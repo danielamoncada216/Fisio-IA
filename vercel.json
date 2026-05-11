@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/generar-plan.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/generar-plan", "dest": "/api/generar-plan.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

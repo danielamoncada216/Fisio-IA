@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FisioIA — Planes de Tratamiento Basados en Evidencia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --neuro: #0F6E56;
+      --neuro-light: #E1F5EE;
+      --neuro-mid: #9FE1CB;
+      --ortho: #1A5FA8;
+      --ortho-light: #E1EDFA;
+      --ortho-mid: #93C5FD;
+      --geria: #7C4D1E;
+      --geria-light: #FDF0E1;
+      --geria-mid: #F5C897;
+      --pedia: #6B3FA0;
+      --pedia-light: #F3EAFD;
+      --pedia-mid: #C4A8E8;
+
+      --accent: var(--neuro);
+      --accent-light: var(--neuro-light);
+      --accent-mid: var(--neuro-mid);
+
+      --gray-50: #F8F9FA;
+      --gray-100: #F1F3F4;
+      --gray-200: #E8EAED;
+      --gray-400: #9AA0A6;
+      --gray-600: #5F6368;
+      --gray-900: #202124;
+      --white: #FFFFFF;
+      --border: rgba(0,0,0,0.10);
+      --border-strong: rgba(0,0,0,0.18);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--gray-100);
+      color: var(--gray-900);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-logo {
+      width: 32px; height: 32px;
+      background: var(--neuro);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-logo svg { width: 17px; height: 17px; fill: white; }
+    .nav-title { font-size: 15px; font-weight: 600; color: var(--gray-900); letter-spacing: -0.01em; }
+    .nav-dot { width: 4px; height: 4px; background: var(--gray-200); border-radius: 50%; }
+    .nav-sub { font-size: 12px; color: var(--gray-400); }
+    .nav-badge {
+      font-size: 11px; font-weight: 500;
+      background: var(--neuro-light); color: var(--neuro);
+      padding: 4px 12px; border-radius: 20px;
+      border: 1px solid var(--neuro-mid);
+      letter-spacing: 0.01em;
+    }
+
+    /* CONTAINER */
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 5rem;
+    }
+
+    /* SPECIALTY TABS */
+    .tabs-wrapper {
+      margin-bottom: 1.5rem;
+    }
+    .tabs-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-400);
+      margin-bottom: 10px;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 5px;
+      box-shadow: var(--shadow-sm);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+    .tab-btn .tab-icon {
+      width: 22px; height: 22px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.18s;
+    }
+    .tab-btn .tab-icon svg { width: 13px; height: 13px; }
+    .tab-btn:hover { color: var(--gray-900); background: var(--gray-50); }
+
+    .tab-btn[data-tab="neuro"] .tab-icon { background: var(--neuro-light); }
+    .tab-btn[data-tab="neuro"] .tab-icon svg { fill: var(--neuro); }
+    .tab-btn[data-tab="ortho"] .tab-icon { background: var(--ortho-light); }
+    .tab-btn[data-tab="ortho"] .tab-icon svg { fill: var(--ortho); }
+    .tab-btn[data-tab="geria"] .tab-icon { background: var(--geria-light); }
+    .tab-btn[data-tab="geria"] .tab-icon svg { fill: var(--geria); }
+    .tab-btn[data-tab="pedia"] .tab-icon { background: var(--pedia-light); }
+    .tab-btn[data-tab="pedia"] .tab-icon svg { fill: var(--pedia); }
+
+    .tab-btn.active[data-tab="neuro"] { background: var(--neuro-light); color: var(--neuro); font-weight: 600; }
+    .tab-btn.active[data-tab="ortho"] { background: var(--ortho-light); color: var(--ortho); font-weight: 600; }
+    .tab-btn.active[data-tab="geria"] { background: var(--geria-light); color: var(--geria); font-weight: 600; }
+    .tab-btn.active[data-tab="pedia"] { background: var(--pedia-light); color: var(--pedia); font-weight: 600; }
+
+    /* TAB PANELS */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* CARD */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      padding: 1.4rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .card-title {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--gray-400);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .card-title-bar {
+      width: 3px; height: 13px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .neuro-bar { background: var(--neuro); }
+    .ortho-bar { background: var(--ortho); }
+    .geria-bar { background: var(--geria); }
+    .pedia-bar { background: var(--pedia); }
+
+    /* FORM */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    .field { margin-bottom: 13px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gray-600);
+      margin-bottom: 5px;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      color: var(--gray-900);
+      background: var(--white);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+    }
+    .field textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+    .field select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239AA0A6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    /* Focus colors per specialty */
+    .tab-panel[data-tab="neuro"] .field input:focus,
+    .tab-panel[data-tab="neuro"] .field select:focus,
+    .tab-panel[data-tab="neuro"] .field textarea:focus {
+      border-color: var(--neuro); box-shadow: 0 0 0 3px rgba(15,110,86,0.09);
+    }
+    .tab-panel[data-tab="ortho"] .field input:focus,
+    .tab-panel[data-tab="ortho"] .field select:focus,
+    .tab-panel[data-tab="ortho"] .field textarea:focus {
+      border-color: var(--ortho); box-shadow: 0 0 0 3px rgba(26,95,168,0.09);
+    }
+    .tab-panel[data-tab="geria"] .field input:focus,
+    .tab-panel[data-tab="geria"] .field select:focus,
+    .tab-panel[data-tab="geria"] .field textarea:focus {
+      border-color: var(--geria); box-shadow: 0 0 0 3px rgba(124,77,30,0.09);
+    }
+    .tab-panel[data-tab="pedia"] .field input:focus,
+    .tab-panel[data-tab="pedia"] .field select:focus,
+    .tab-panel[data-tab="pedia"] .field textarea:focus {
+      border-color: var(--pedia); box-shadow: 0 0 0 3px rgba(107,63,160,0.09);
+    }
+
+    /* TAGS */
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .tag {
+      font-size: 12px;
+      padding: 5px 11px;
+      border-radius: 20px;
+      border: 1px solid var(--border-strong);
+      color: var(--gray-600);
+      background: var(--white);
+      cursor: pointer;
+      transition: all 0.12s;
+      user-select: none;
+    }
+
+    /* Tag active colors */
+    .tab-panel[data-tab="neuro"] .tag:hover,
+    .tab-panel[data-tab="neuro"] .tag.sel { border-color: var(--neuro); color: var(--neuro); background: var(--neuro-light); font-weight: 500; }
+    .tab-panel[data-tab="ortho"] .tag:hover,
+    .tab-panel[data-tab="ortho"] .tag.sel { border-color: var(--ortho); color: var(--ortho); background: var(--ortho-light); font-weight: 500; }
+    .tab-panel[data-tab="geria"] .tag:hover,
+    .tab-panel[data-tab="geria"] .tag.sel { border-color: var(--geria); color: var(--geria); background: var(--geria-light); font-weight: 500; }
+    .tab-panel[data-tab="pedia"] .tag:hover,
+    .tab-panel[data-tab="pedia"] .tag.sel { border-color: var(--pedia); color: var(--pedia); background: var(--pedia-light); font-weight: 500; }
+
+    /* ESCALAS */
+    .escalas { display: flex; flex-wrap: wrap; gap: 6px; }
+    .escala-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      padding: 6px 13px;
+      border-radius: 20px;
+      border: 1px solid var(--border-strong);
+      color: var(--gray-600);
+      background: var(--white);
+      cursor: pointer;
+      transition: all 0.12s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .escala-btn .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gray-400); transition: background 0.12s; }
+
+    .tab-panel[data-tab="neuro"] .escala-btn:hover,
+    .tab-panel[data-tab="neuro"] .escala-btn.active { border-color: var(--neuro); color: var(--neuro); background: var(--neuro-light); font-weight: 500; }
+    .tab-panel[data-tab="neuro"] .escala-btn.active .dot { background: var(--neuro); }
+    .tab-panel[data-tab="ortho"] .escala-btn:hover,
+    .tab-panel[data-tab="ortho"] .escala-btn.active { border-color: var(--ortho); color: var(--ortho); background: var(--ortho-light); font-weight: 500; }
+    .tab-panel[data-tab="ortho"] .escala-btn.active .dot { background: var(--ortho); }
+    .tab-panel[data-tab="geria"] .escala-btn:hover,
+    .tab-panel[data-tab="geria"] .escala-btn.active { border-color: var(--geria); color: var(--geria); background: var(--geria-light); font-weight: 500; }
+    .tab-panel[data-tab="geria"] .escala-btn.active .dot { background: var(--geria); }
+    .tab-panel[data-tab="pedia"] .escala-btn:hover,
+    .tab-panel[data-tab="pedia"] .escala-btn.active { border-color: var(--pedia); color: var(--pedia); background: var(--pedia-light); font-weight: 500; }
+    .tab-panel[data-tab="pedia"] .escala-btn.active .dot { background: var(--pedia); }
+
+    .scores-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+
+    /* GENERATE BUTTON */
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.1s;
+      margin-top: 0.5rem;
+      letter-spacing: 0.01em;
+    }
+    .btn-primary:hover { filter: brightness(0.88); }
+    .btn-primary:active { transform: scale(0.99); }
+    .btn-primary:disabled { background: var(--gray-400) !important; cursor: not-allowed; transform: none; filter: none; }
+
+    .tab-panel[data-tab="neuro"] .btn-primary { background: var(--neuro); }
+    .tab-panel[data-tab="ortho"] .btn-primary { background: var(--ortho); }
+    .tab-panel[data-tab="geria"] .btn-primary { background: var(--geria); }
+    .tab-panel[data-tab="pedia"] .btn-primary { background: var(--pedia); }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 10px;
+      background: transparent;
+      color: var(--gray-600);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.12s;
+    }
+    .btn-secondary:hover { color: var(--gray-900); border-color: var(--gray-900); }
+
+    /* RESULT */
+    .result-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      margin-top: 1.5rem;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--gray-50);
+    }
+    .result-header-left { display: flex; align-items: center; gap: 8px; }
+    .result-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .result-label { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+    .result-specialty-badge {
+      font-size: 11px; font-weight: 500;
+      padding: 3px 10px; border-radius: 20px;
+    }
+    .result-actions { display: flex; gap: 8px; }
+    .btn-action {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      padding: 6px 13px;
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      background: var(--white);
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .btn-action:hover { border-color: var(--gray-900); color: var(--gray-900); }
+    .result-body {
+      padding: 1.5rem;
+      font-size: 13.5px;
+      line-height: 1.85;
+      color: var(--gray-900);
+      white-space: pre-wrap;
+      font-family: 'DM Sans', sans-serif;
+      max-height: 74vh;
+      overflow-y: auto;
+    }
+
+    /* LOADING */
+    .loading-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      margin-top: 1.5rem;
+      padding: 2.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      text-align: center;
+    }
+    .spinner-wrap { position: relative; width: 44px; height: 44px; }
+    .spinner-bg { width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--gray-100); }
+    .spinner {
+      position: absolute; top: 0; left: 0;
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 3px solid transparent;
+      animation: spin 0.85s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-title { font-size: 14px; font-weight: 600; }
+    .loading-sub { font-size: 12px; color: var(--gray-400); max-width: 300px; }
+
+    /* ERROR */
+    .error-card {
+      background: #FFF5F5; border: 1px solid #FED7D7;
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+      font-size: 13px; color: #C53030;
+    }
+
+    /* LOGIN */
+    #login-screen {
+      position: fixed; inset: 0; z-index: 999;
+      background: linear-gradient(135deg, #04342C 0%, #0F6E56 60%, #1a8a6e 100%);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    #login-screen.hidden { display: none; }
+
+    .login-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+      animation: loginIn 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes loginIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .login-logo {
+      width: 48px; height: 48px;
+      background: var(--neuro);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+    .login-logo svg { width: 26px; height: 26px; fill: white; }
+    .login-title {
+      text-align: center;
+      font-size: 20px; font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+      letter-spacing: -0.02em;
+    }
+    .login-sub {
+      text-align: center;
+      font-size: 13px; color: var(--gray-400);
+      margin-bottom: 2rem;
+    }
+    .login-field { margin-bottom: 14px; }
+    .login-field label {
+      display: block; font-size: 12px; font-weight: 500;
+      color: var(--gray-600); margin-bottom: 5px;
+    }
+    .login-field input {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; color: var(--gray-900);
+      background: var(--gray-50);
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -webkit-appearance: none;
+    }
+    .login-field input:focus {
+      outline: none;
+      border-color: var(--neuro);
+      box-shadow: 0 0 0 3px rgba(15,110,86,0.1);
+      background: var(--white);
+    }
+    .login-btn {
+      width: 100%; padding: 13px;
+      background: var(--neuro); color: white;
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; margin-top: 6px;
+      transition: filter 0.15s, transform 0.1s;
+      letter-spacing: 0.01em;
+    }
+    .login-btn:hover { filter: brightness(0.88); }
+    .login-btn:active { transform: scale(0.99); }
+    .login-error {
+      background: #FFF5F5; border: 1px solid #FED7D7;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px; margin-top: 12px;
+      font-size: 13px; color: #C53030;
+      text-align: center; display: none;
+    }
+    .login-error.show { display: block; }
+    .login-footer {
+      text-align: center; font-size: 11px;
+      color: var(--gray-400); margin-top: 1.5rem;
+    }
+
+    /* PRINT */
+    @media print {
+      nav, .tabs-wrapper, .card, .btn-primary, .btn-secondary, .result-actions { display: none !important; }
+      .result-card { box-shadow: none; border: none; margin: 0; }
+      .result-body { max-height: none; overflow: visible; font-size: 12px; }
+    }
+
+    @media (max-width: 640px) {
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+      .container { padding: 1rem 1rem 4rem; }
+      nav { padding: 0 1rem; }
+      .nav-sub, .nav-dot { display: none; }
+      .tabs { gap: 3px; padding: 4px; }
+      .tab-btn { font-size: 11px; padding: 9px 4px; gap: 4px; }
+      .tab-btn .tab-icon { width: 18px; height: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.24 7 7c0 1.57.71 2.98 1.83 3.93C6.6 12.11 5 14.36 5 17h2c0-2.76 2.24-5 5-5s5 2.24 5 5h2c0-2.64-1.6-4.89-3.83-6.07C16.29 9.98 17 8.57 17 7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
+    </div>
+    <div class="login-title">FisioIA</div>
+    <div class="login-sub">Planes de tratamiento basados en evidencia</div>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="Ingresa tu usuario" autocomplete="username" onkeydown="if(event.key==='Enter')intentarLogin()">
+    </div>
+    <div class="login-field">
+      <label>Contraseña</label>
+      <input type="password" id="login-pass" placeholder="Ingresa tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')intentarLogin()">
+    </div>
+    <button class="login-btn" onclick="intentarLogin()">Ingresar</button>
+    <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+    <div class="login-footer">Solo para uso profesional autorizado</div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.24 7 7c0 1.57.71 2.98 1.83 3.93C6.6 12.11 5 14.36 5 17h2c0-2.76 2.24-5 5-5s5 2.24 5 5h2c0-2.64-1.6-4.89-3.83-6.07C16.29 9.98 17 8.57 17 7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
+    </div>
+    <span class="nav-title">FisioIA</span>
+    <span class="nav-dot"></span>
+    <span class="nav-sub">Planes de tratamiento basados en evidencia</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span class="nav-badge">Basado en evidencia</span>
+    <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Cerrar sesión</button>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- TABS -->
+  <div class="tabs-wrapper">
+    <div class="tabs-label">Selecciona la especialidad</div>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="neuro" onclick="switchTab('neuro')" role="tab">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 0-9 9c0 3.07 1.54 5.78 3.9 7.4L8 20h8l1.1-1.6A9 9 0 0 0 21 11 9 9 0 0 0 12 2zm0 2a7 7 0 0 1 7 7 7 7 0 0 1-2.81 5.57l-.69 1H8.5l-.69-1A7 7 0 0 1 5 11a7 7 0 0 1 7-7zm-1 2v4H9l3 4 3-4h-2V6h-2z"/></svg>
+        </span>
+        Neurológico
+      </button>
+      <button class="tab-btn" data-tab="ortho" onclick="switchTab('ortho')" role="tab">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+        </span>
+        Ortopédico
+      </button>
+      <button class="tab-btn" data-tab="geria" onclick="switchTab('geria')" role="tab">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </span>
+        Geriátrico
+      </button>
+      <button class="tab-btn" data-tab="pedia" onclick="switchTab('pedia')" role="tab">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 3c-1.2 5.4-5 7-5 11a5 5 0 0 0 10 0c0-4-3.8-5.6-5-11zm0 15.5c-1.1 0-2-.9-2-2 0-.55.22-1.05.59-1.41L12 13.59l1.41 1.5c.37.36.59.86.59 1.41 0 1.1-.9 2-2 2z"/></svg>
+        </span>
+        Pediátrico
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TAB: NEUROLÓGICO -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tab-panel active" id="panel-neuro" data-tab="neuro">
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar neuro-bar"></span>Datos del paciente</div>
+      <div class="grid3">
+        <div class="field"><label>Edad</label><input type="number" id="n-edad" placeholder="ej. 58" min="0" max="120"></div>
+        <div class="field">
+          <label>Sexo</label>
+          <select id="n-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select>
+        </div>
+        <div class="field">
+          <label>Fase clínica</label>
+          <select id="n-fase">
+            <option value="">Seleccionar</option>
+            <option>Aguda (0-4 semanas)</option>
+            <option>Subaguda (1-6 meses)</option>
+            <option>Crónica (más de 6 meses)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar neuro-bar"></span>Diagnóstico</div>
+      <div class="field">
+        <label>Diagnóstico médico — selección rápida</label>
+        <div class="tags" id="n-dx-tags">
+          <span class="tag" data-field="n-dx_medico">ACV isquémico</span>
+          <span class="tag" data-field="n-dx_medico">ACV hemorrágico</span>
+          <span class="tag" data-field="n-dx_medico">TBI moderado</span>
+          <span class="tag" data-field="n-dx_medico">TBI severo</span>
+          <span class="tag" data-field="n-dx_medico">Parkinson</span>
+          <span class="tag" data-field="n-dx_medico">Esclerosis múltiple</span>
+          <span class="tag" data-field="n-dx_medico">Guillain-Barré</span>
+          <span class="tag" data-field="n-dx_medico">Lesión medular</span>
+          <span class="tag" data-field="n-dx_medico">Neuropatía periférica</span>
+          <span class="tag" data-field="n-dx_medico">Ataxia cerebelosa</span>
+        </div>
+        <input type="text" id="n-dx_medico" placeholder="O escribe el diagnóstico médico...">
+      </div>
+      <div class="field"><label>Diagnóstico fisioterapéutico</label><input type="text" id="n-dx_fisio" placeholder="ej. Alteración del control postural y marcha por hemiparesia espástica izquierda"></div>
+      <div class="field"><label>Tiempo de evolución</label><input type="text" id="n-evolucion" placeholder="ej. 3 semanas post-evento, 2 meses de rehabilitación previa..."></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar neuro-bar"></span>Hallazgos de la evaluación</div>
+      <div class="grid2">
+        <div class="field">
+          <label>Tono muscular</label>
+          <select id="n-tono">
+            <option value="">Seleccionar</option>
+            <option>Normal</option>
+            <option>Hipertonía leve (MAS 1)</option>
+            <option>Hipertonía moderada (MAS 2)</option>
+            <option>Hipertonía severa (MAS 3-4)</option>
+            <option>Hipotonía</option>
+            <option>Fluctuante</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fuerza muscular (MRC global)</label>
+          <select id="n-fuerza">
+            <option value="">Seleccionar</option>
+            <option>0 — Sin contracción</option>
+            <option>1 — Contracción visible sin movimiento</option>
+            <option>2 — Movimiento sin gravedad</option>
+            <option>3 — Movimiento contra gravedad</option>
+            <option>4 — Movimiento contra resistencia parcial</option>
+            <option>5 — Fuerza normal</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Control postural y equilibrio</label>
+        <div class="tags">
+          <span class="tag" data-field="n-equilibrio">Equilibrio en sedente conservado</span>
+          <span class="tag" data-field="n-equilibrio">Equilibrio en sedente alterado</span>
+          <span class="tag" data-field="n-equilibrio">Bipedestación conservada</span>
+          <span class="tag" data-field="n-equilibrio">Bipedestación alterada</span>
+          <span class="tag" data-field="n-equilibrio">Sin control postural independiente</span>
+        </div>
+        <input type="text" id="n-equilibrio" placeholder="Descripción adicional...">
+      </div>
+      <div class="field">
+        <label>Patrón de marcha</label>
+        <div class="tags">
+          <span class="tag" data-field="n-marcha">No deambula</span>
+          <span class="tag" data-field="n-marcha">Con asistencia máxima</span>
+          <span class="tag" data-field="n-marcha">Con asistencia moderada</span>
+          <span class="tag" data-field="n-marcha">Con ayuda técnica</span>
+          <span class="tag" data-field="n-marcha">Independiente con alteraciones</span>
+          <span class="tag" data-field="n-marcha">Deambulación funcional</span>
+        </div>
+        <input type="text" id="n-marcha" placeholder="Hemipléjica, espástica, atáxica, en tijera...">
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Dolor (EVA 0-10)</label><input type="number" id="n-dolor" placeholder="0 = sin dolor" min="0" max="10"></div>
+        <div class="field">
+          <label>Estado cognitivo</label>
+          <select id="n-cognicion">
+            <option value="">Seleccionar</option>
+            <option>Conservado</option>
+            <option>Alteración leve</option>
+            <option>Alteración moderada</option>
+            <option>Alteración severa</option>
+            <option>No evaluable</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Otros hallazgos (sensitivos, visuales, comunicativos, deglución...)</label><textarea id="n-otros" placeholder="Alteraciones sensitivas, hemianopsia, afasia, disfagia, alteraciones de la coordinación..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar neuro-bar"></span>Escalas clínicas aplicadas</div>
+      <div class="escalas" id="n-escalas-btns">
+        <button class="escala-btn" data-scale="barthel"><span class="dot"></span>Barthel</button>
+        <button class="escala-btn" data-scale="fim"><span class="dot"></span>FIM</button>
+        <button class="escala-btn" data-scale="berg"><span class="dot"></span>Berg Balance</button>
+        <button class="escala-btn" data-scale="mas"><span class="dot"></span>MAS (Ashworth)</button>
+        <button class="escala-btn" data-scale="mrc"><span class="dot"></span>MRC suma</button>
+        <button class="escala-btn" data-scale="nihss"><span class="dot"></span>NIHSS</button>
+        <button class="escala-btn" data-scale="fugl"><span class="dot"></span>Fugl-Meyer</button>
+        <button class="escala-btn" data-scale="tug"><span class="dot"></span>TUG (seg)</button>
+        <button class="escala-btn" data-scale="moca"><span class="dot"></span>MoCA</button>
+        <button class="escala-btn" data-scale="fac"><span class="dot"></span>FAC</button>
+        <button class="escala-btn" data-scale="wmft"><span class="dot"></span>Wolf Motor</button>
+        <button class="escala-btn" data-scale="arat"><span class="dot"></span>ARAT</button>
+      </div>
+      <div class="scores-grid" id="n-scores-container"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar neuro-bar"></span>Contexto y objetivos</div>
+      <div class="grid2">
+        <div class="field">
+          <label>Situación del paciente</label>
+          <select id="n-contexto">
+            <option value="">Seleccionar</option>
+            <option>Hospitalizado (UCI / sala general)</option>
+            <option>Institución de rehabilitación</option>
+            <option>Domicilio con cuidador primario</option>
+            <option>Domicilio con familia sin cuidador formal</option>
+            <option>Vive solo, sin cuidador</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Frecuencia de sesiones</label>
+          <select id="n-frecuencia">
+            <option value="">Seleccionar</option>
+            <option>Diario (hospitalizado)</option>
+            <option>5 veces/semana (intensivo)</option>
+            <option>3 veces/semana</option>
+            <option>2 veces/semana</option>
+            <option>1 vez/semana</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Objetivos del paciente y/o familia</label><textarea id="n-objetivos_px" placeholder="ej. Recuperar marcha independiente, volver a trabajar, mejorar independencia en AVD..."></textarea></div>
+      <div class="field"><label>Información adicional relevante</label><textarea id="n-adicional" placeholder="Comorbilidades, antecedentes, barreras para la rehabilitación, contexto socioeconómico..."></textarea></div>
+    </div>
+
+    <button class="btn-primary" id="n-btn-gen" onclick="generarPlan('neuro')">Generar plan neurológico</button>
+    <button class="btn-secondary" onclick="limpiarFormulario('neuro')">Limpiar formulario</button>
+    <div id="n-resultado"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TAB: ORTOPÉDICO -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-ortho" data-tab="ortho">
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar ortho-bar"></span>Datos del paciente</div>
+      <div class="grid3">
+        <div class="field"><label>Edad</label><input type="number" id="o-edad" placeholder="ej. 42" min="0" max="120"></div>
+        <div class="field"><label>Sexo</label><select id="o-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select></div>
+        <div class="field">
+          <label>Fase clínica</label>
+          <select id="o-fase">
+            <option value="">Seleccionar</option>
+            <option>Aguda (0-2 semanas)</option>
+            <option>Subaguda (2-6 semanas)</option>
+            <option>Crónica (más de 6 semanas)</option>
+            <option>Post-quirúrgica inmediata</option>
+            <option>Post-quirúrgica tardía</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar ortho-bar"></span>Diagnóstico</div>
+      <div class="field">
+        <label>Diagnóstico médico — selección rápida</label>
+        <div class="tags" id="o-dx-tags">
+          <span class="tag" data-field="o-dx_medico">Lesión LCA</span>
+          <span class="tag" data-field="o-dx_medico">Lesión meniscal</span>
+          <span class="tag" data-field="o-dx_medico">Fractura de cadera</span>
+          <span class="tag" data-field="o-dx_medico">Fractura de muñeca</span>
+          <span class="tag" data-field="o-dx_medico">Artroplastia de rodilla</span>
+          <span class="tag" data-field="o-dx_medico">Artroplastia de cadera</span>
+          <span class="tag" data-field="o-dx_medico">Manguito rotador</span>
+          <span class="tag" data-field="o-dx_medico">Lumbalgia crónica</span>
+          <span class="tag" data-field="o-dx_medico">Cervicalgia</span>
+          <span class="tag" data-field="o-dx_medico">Epicondilitis</span>
+          <span class="tag" data-field="o-dx_medico">Esguince tobillo</span>
+          <span class="tag" data-field="o-dx_medico">Hernia discal</span>
+        </div>
+        <input type="text" id="o-dx_medico" placeholder="O escribe el diagnóstico médico...">
+      </div>
+      <div class="field"><label>Diagnóstico fisioterapéutico</label><input type="text" id="o-dx_fisio" placeholder="ej. Disfunción de rodilla derecha con limitación de ROM y debilidad de cuádriceps post LCA"></div>
+      <div class="field"><label>Tiempo de evolución / semanas post-cirugía</label><input type="text" id="o-evolucion" placeholder="ej. 3 semanas post-operatorio, 2 meses de evolución..."></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar ortho-bar"></span>Hallazgos de la evaluación</div>
+      <div class="grid2">
+        <div class="field"><label>Dolor en reposo (EVA 0-10)</label><input type="number" id="o-dolor_reposo" placeholder="0 = sin dolor" min="0" max="10"></div>
+        <div class="field"><label>Dolor en movimiento (EVA 0-10)</label><input type="number" id="o-dolor_movimiento" placeholder="0 = sin dolor" min="0" max="10"></div>
+      </div>
+      <div class="field">
+        <label>Rango articular (ROM)</label>
+        <div class="tags">
+          <span class="tag" data-field="o-rom">Conservado</span>
+          <span class="tag" data-field="o-rom">Limitación leve (&lt;25%)</span>
+          <span class="tag" data-field="o-rom">Limitación moderada (25-50%)</span>
+          <span class="tag" data-field="o-rom">Limitación severa (&gt;50%)</span>
+        </div>
+        <input type="text" id="o-rom" placeholder="Especifica articulación y movimientos limitados...">
+      </div>
+      <div class="field">
+        <label>Fuerza muscular</label>
+        <div class="tags">
+          <span class="tag" data-field="o-fuerza">Normal (MRC 5)</span>
+          <span class="tag" data-field="o-fuerza">Debilidad leve (MRC 4)</span>
+          <span class="tag" data-field="o-fuerza">Debilidad moderada (MRC 3)</span>
+          <span class="tag" data-field="o-fuerza">Debilidad severa (MRC 0-2)</span>
+        </div>
+        <input type="text" id="o-fuerza" placeholder="Grupos musculares comprometidos...">
+      </div>
+      <div class="field">
+        <label>Edema / inflamación</label>
+        <div class="tags">
+          <span class="tag" data-field="o-edema">Sin edema</span>
+          <span class="tag" data-field="o-edema">Edema leve</span>
+          <span class="tag" data-field="o-edema">Edema moderado</span>
+          <span class="tag" data-field="o-edema">Edema severo</span>
+        </div>
+        <input type="text" id="o-edema" placeholder="Localización y características...">
+      </div>
+      <div class="field">
+        <label>Función y carga</label>
+        <div class="tags">
+          <span class="tag" data-field="o-funcion">Carga completa</span>
+          <span class="tag" data-field="o-funcion">Carga parcial</span>
+          <span class="tag" data-field="o-funcion">Sin carga (NWB)</span>
+          <span class="tag" data-field="o-funcion">Independiente en AVD</span>
+          <span class="tag" data-field="o-funcion">Limitado en AVD</span>
+        </div>
+        <input type="text" id="o-funcion" placeholder="Descripción funcional adicional...">
+      </div>
+      <div class="field"><label>Otros hallazgos relevantes</label><textarea id="o-otros" placeholder="Alteraciones posturales, compensaciones, pruebas especiales positivas, cicatriz quirúrgica, sensibilidad..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar ortho-bar"></span>Escalas clínicas aplicadas</div>
+      <div class="escalas" id="o-escalas-btns">
+        <button class="escala-btn" data-scale="vas"><span class="dot"></span>EVA / VAS</button>
+        <button class="escala-btn" data-scale="nprs"><span class="dot"></span>NPRS</button>
+        <button class="escala-btn" data-scale="dash"><span class="dot"></span>DASH (hombro/codo)</button>
+        <button class="escala-btn" data-scale="koos"><span class="dot"></span>KOOS (rodilla)</button>
+        <button class="escala-btn" data-scale="hoos"><span class="dot"></span>HOOS (cadera)</button>
+        <button class="escala-btn" data-scale="odi"><span class="dot"></span>ODI (lumbar)</button>
+        <button class="escala-btn" data-scale="ndi"><span class="dot"></span>NDI (cervical)</button>
+        <button class="escala-btn" data-scale="lefs"><span class="dot"></span>LEFS (extremidad inf.)</button>
+        <button class="escala-btn" data-scale="tug"><span class="dot"></span>TUG</button>
+        <button class="escala-btn" data-scale="sf36"><span class="dot"></span>SF-36</button>
+      </div>
+      <div class="scores-grid" id="o-scores-container"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar ortho-bar"></span>Contexto y objetivos</div>
+      <div class="grid2">
+        <div class="field">
+          <label>Nivel de actividad previo</label>
+          <select id="o-actividad">
+            <option value="">Seleccionar</option>
+            <option>Sedentario</option>
+            <option>Moderadamente activo</option>
+            <option>Activo / deportista recreativo</option>
+            <option>Deportista competitivo</option>
+            <option>Trabajo físicamente exigente</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Frecuencia de sesiones</label>
+          <select id="o-frecuencia">
+            <option value="">Seleccionar</option>
+            <option>Diario (hospitalizado)</option>
+            <option>5 veces/semana</option>
+            <option>3 veces/semana</option>
+            <option>2 veces/semana</option>
+            <option>1 vez/semana</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Meta funcional del paciente</label><textarea id="o-objetivos_px" placeholder="ej. Volver al deporte, retorno laboral, recuperar marcha sin dolor, subir escaleras..."></textarea></div>
+      <div class="field"><label>Información adicional</label><textarea id="o-adicional" placeholder="Comorbilidades, protocolo quirúrgico específico, restricciones del cirujano, contexto laboral..."></textarea></div>
+    </div>
+
+    <button class="btn-primary" id="o-btn-gen" onclick="generarPlan('ortho')">Generar plan ortopédico</button>
+    <button class="btn-secondary" onclick="limpiarFormulario('ortho')">Limpiar formulario</button>
+    <div id="o-resultado"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TAB: GERIÁTRICO -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-geria" data-tab="geria">
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar geria-bar"></span>Datos del paciente</div>
+      <div class="grid3">
+        <div class="field"><label>Edad</label><input type="number" id="g-edad" placeholder="ej. 75" min="60" max="120"></div>
+        <div class="field"><label>Sexo</label><select id="g-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select></div>
+        <div class="field">
+          <label>Situación de residencia</label>
+          <select id="g-residencia">
+            <option value="">Seleccionar</option>
+            <option>Domicilio propio</option>
+            <option>Con familia</option>
+            <option>Institución geriátrica</option>
+            <option>Hospitalizado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar geria-bar"></span>Diagnóstico y motivo de consulta</div>
+      <div class="field">
+        <label>Motivo principal — selección rápida</label>
+        <div class="tags" id="g-dx-tags">
+          <span class="tag" data-field="g-dx_medico">Fractura de cadera</span>
+          <span class="tag" data-field="g-dx_medico">Síndrome de caídas</span>
+          <span class="tag" data-field="g-dx_medico">Deterioro funcional</span>
+          <span class="tag" data-field="g-dx_medico">Artrosis de rodilla</span>
+          <span class="tag" data-field="g-dx_medico">Artrosis de cadera</span>
+          <span class="tag" data-field="g-dx_medico">Post-ACV en adulto mayor</span>
+          <span class="tag" data-field="g-dx_medico">Demencia con compromiso motor</span>
+          <span class="tag" data-field="g-dx_medico">EPOC / desacondicionamiento</span>
+          <span class="tag" data-field="g-dx_medico">Osteoporosis sintomática</span>
+          <span class="tag" data-field="g-dx_medico">Fragilidad</span>
+        </div>
+        <input type="text" id="g-dx_medico" placeholder="O escribe el diagnóstico...">
+      </div>
+      <div class="field"><label>Diagnóstico fisioterapéutico</label><input type="text" id="g-dx_fisio" placeholder="ej. Síndrome de desacondicionamiento con alto riesgo de caída y dependencia en AVD"></div>
+      <div class="field"><label>Comorbilidades relevantes</label><textarea id="g-comorbilidades" placeholder="HTA, DM2, ICC, EPOC, deterioro cognitivo, polifarmacia, depresión, incontinencia..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar geria-bar"></span>Hallazgos de la evaluación</div>
+      <div class="field">
+        <label>Nivel de independencia funcional</label>
+        <div class="tags">
+          <span class="tag" data-field="g-independencia">Independiente</span>
+          <span class="tag" data-field="g-independencia">Dependencia leve</span>
+          <span class="tag" data-field="g-independencia">Dependencia moderada</span>
+          <span class="tag" data-field="g-independencia">Dependencia severa</span>
+          <span class="tag" data-field="g-independencia">Dependencia total</span>
+        </div>
+        <input type="text" id="g-independencia" placeholder="Descripción de AVD básicas e instrumentales...">
+      </div>
+      <div class="field">
+        <label>Riesgo de caída</label>
+        <div class="tags">
+          <span class="tag" data-field="g-caida">Sin riesgo</span>
+          <span class="tag" data-field="g-caida">Riesgo bajo</span>
+          <span class="tag" data-field="g-caida">Riesgo moderado</span>
+          <span class="tag" data-field="g-caida">Riesgo alto</span>
+          <span class="tag" data-field="g-caida">Caídas recurrentes</span>
+        </div>
+        <input type="text" id="g-caida" placeholder="Número de caídas en el último año, contexto...">
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Marcha y movilidad</label>
+          <select id="g-marcha">
+            <option value="">Seleccionar</option>
+            <option>Marcha independiente normal</option>
+            <option>Marcha con alteraciones leves</option>
+            <option>Marcha con ayuda técnica</option>
+            <option>Marcha con asistencia personal</option>
+            <option>No deambula — en silla de ruedas</option>
+            <option>Encamado</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Estado cognitivo</label>
+          <select id="g-cognicion">
+            <option value="">Seleccionar</option>
+            <option>Sin deterioro</option>
+            <option>Deterioro cognitivo leve</option>
+            <option>Deterioro cognitivo moderado</option>
+            <option>Deterioro cognitivo severo / demencia</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Fuerza muscular (MRC global)</label><select id="g-fuerza"><option value="">Seleccionar</option><option>5 — Normal</option><option>4 — Debilidad leve</option><option>3 — Debilidad moderada</option><option>2 — Debilidad severa</option><option>0-1 — Muy severa</option></select></div>
+        <div class="field"><label>Dolor predominante (EVA 0-10)</label><input type="number" id="g-dolor" placeholder="0 = sin dolor" min="0" max="10"></div>
+      </div>
+      <div class="field"><label>Otros hallazgos (sarcopenia, desnutrición, alteraciones sensoriales...)</label><textarea id="g-otros" placeholder="Pérdida de masa muscular, alteraciones visuales o auditivas, úlceras por presión, estado nutricional..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar geria-bar"></span>Escalas clínicas aplicadas</div>
+      <div class="escalas" id="g-escalas-btns">
+        <button class="escala-btn" data-scale="barthel"><span class="dot"></span>Barthel</button>
+        <button class="escala-btn" data-scale="berg"><span class="dot"></span>Berg Balance</button>
+        <button class="escala-btn" data-scale="tug"><span class="dot"></span>TUG</button>
+        <button class="escala-btn" data-scale="mmse"><span class="dot"></span>MMSE</button>
+        <button class="escala-btn" data-scale="moca"><span class="dot"></span>MoCA</button>
+        <button class="escala-btn" data-scale="sppb"><span class="dot"></span>SPPB</button>
+        <button class="escala-btn" data-scale="frailty"><span class="dot"></span>Escala de Fried</button>
+        <button class="escala-btn" data-scale="gds"><span class="dot"></span>GDS (depresión)</button>
+        <button class="escala-btn" data-scale="tinetti"><span class="dot"></span>Tinetti</button>
+        <button class="escala-btn" data-scale="lawton"><span class="dot"></span>Lawton-Brody</button>
+      </div>
+      <div class="scores-grid" id="g-scores-container"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar geria-bar"></span>Contexto y objetivos</div>
+      <div class="grid2">
+        <div class="field">
+          <label>Red de apoyo</label>
+          <select id="g-apoyo">
+            <option value="">Seleccionar</option>
+            <option>Cuidador formal a tiempo completo</option>
+            <option>Familiar como cuidador principal</option>
+            <option>Apoyo parcial de familia</option>
+            <option>Sin red de apoyo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Frecuencia de sesiones</label>
+          <select id="g-frecuencia">
+            <option value="">Seleccionar</option>
+            <option>Diario (hospitalizado)</option>
+            <option>3 veces/semana</option>
+            <option>2 veces/semana</option>
+            <option>1 vez/semana</option>
+            <option>Domiciliaria</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Objetivos del paciente y/o familia</label><textarea id="g-objetivos_px" placeholder="ej. Reducir riesgo de caída, recuperar independencia en higiene, volver a caminar al parque, evitar institucionalización..."></textarea></div>
+      <div class="field"><label>Información adicional</label><textarea id="g-adicional" placeholder="Contexto familiar, barreras arquitectónicas en el hogar, acceso a servicios, medicamentos que afectan el equilibrio..."></textarea></div>
+    </div>
+
+    <button class="btn-primary" id="g-btn-gen" onclick="generarPlan('geria')">Generar plan geriátrico</button>
+    <button class="btn-secondary" onclick="limpiarFormulario('geria')">Limpiar formulario</button>
+    <div id="g-resultado"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TAB: PEDIÁTRICO -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-pedia" data-tab="pedia">
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar pedia-bar"></span>Datos del paciente</div>
+      <div class="grid3">
+        <div class="field"><label>Edad</label><input type="text" id="p-edad" placeholder="ej. 3 años 4 meses"></div>
+        <div class="field"><label>Sexo</label><select id="p-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select></div>
+        <div class="field">
+          <label>Grupo etario</label>
+          <select id="p-grupo">
+            <option value="">Seleccionar</option>
+            <option>Neonato (0-28 días)</option>
+            <option>Lactante menor (1-12 meses)</option>
+            <option>Lactante mayor (1-2 años)</option>
+            <option>Preescolar (2-5 años)</option>
+            <option>Escolar (6-11 años)</option>
+            <option>Adolescente (12-17 años)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar pedia-bar"></span>Diagnóstico</div>
+      <div class="field">
+        <label>Diagnóstico — selección rápida</label>
+        <div class="tags" id="p-dx-tags">
+          <span class="tag" data-field="p-dx_medico">Parálisis cerebral</span>
+          <span class="tag" data-field="p-dx_medico">Retraso del desarrollo motor</span>
+          <span class="tag" data-field="p-dx_medico">Mielomeningocele</span>
+          <span class="tag" data-field="p-dx_medico">Síndrome de Down</span>
+          <span class="tag" data-field="p-dx_medico">Distrofia muscular de Duchenne</span>
+          <span class="tag" data-field="p-dx_medico">Artrogriposis</span>
+          <span class="tag" data-field="p-dx_medico">Tortícolis muscular congénita</span>
+          <span class="tag" data-field="p-dx_medico">Displasia de cadera</span>
+          <span class="tag" data-field="p-dx_medico">Pie equino varo</span>
+          <span class="tag" data-field="p-dx_medico">TEC pediátrico</span>
+          <span class="tag" data-field="p-dx_medico">Lesión de plexo braquial</span>
+          <span class="tag" data-field="p-dx_medico">Escoliosis</span>
+        </div>
+        <input type="text" id="p-dx_medico" placeholder="O escribe el diagnóstico...">
+      </div>
+      <div class="field"><label>Diagnóstico fisioterapéutico</label><input type="text" id="p-dx_fisio" placeholder="ej. Trastorno del desarrollo motor con hipotonía global y retraso en adquisición de hitos"></div>
+      <div class="field"><label>Antecedentes perinatales relevantes</label><input type="text" id="p-perinatales" placeholder="ej. Prematuro 32 sem, peso al nacer, APGAR, hipoxia perinatal, cesárea de urgencia..."></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar pedia-bar"></span>Hallazgos del desarrollo motor</div>
+      <div class="field">
+        <label>Hitos motores alcanzados</label>
+        <div class="tags">
+          <span class="tag" data-field="p-hitos">Control cefálico</span>
+          <span class="tag" data-field="p-hitos">Rolado</span>
+          <span class="tag" data-field="p-hitos">Sedestación</span>
+          <span class="tag" data-field="p-hitos">Gateo</span>
+          <span class="tag" data-field="p-hitos">Bipedestación</span>
+          <span class="tag" data-field="p-hitos">Marcha independiente</span>
+          <span class="tag" data-field="p-hitos">Carrera</span>
+          <span class="tag" data-field="p-hitos">Salto</span>
+        </div>
+        <input type="text" id="p-hitos" placeholder="Edad de adquisición si se conoce, hitos pendientes...">
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Tono muscular</label>
+          <select id="p-tono">
+            <option value="">Seleccionar</option>
+            <option>Normal</option>
+            <option>Hipotonía leve</option>
+            <option>Hipotonía moderada</option>
+            <option>Hipotonía severa</option>
+            <option>Hipertonía espástica</option>
+            <option>Hipertonía distónica</option>
+            <option>Fluctuante / atetósico</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Patrón motor predominante</label>
+          <select id="p-patron">
+            <option value="">Seleccionar</option>
+            <option>Diplejía</option>
+            <option>Hemiplejía</option>
+            <option>Tetraplejía</option>
+            <option>Monoplejía</option>
+            <option>Hipotónico global</option>
+            <option>Mixto</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Nivel funcional de marcha</label>
+        <div class="tags">
+          <span class="tag" data-field="p-marcha">No deambula</span>
+          <span class="tag" data-field="p-marcha">Marcha con asistencia máxima</span>
+          <span class="tag" data-field="p-marcha">Marcha con andadera</span>
+          <span class="tag" data-field="p-marcha">Marcha con bastones</span>
+          <span class="tag" data-field="p-marcha">Marcha independiente</span>
+          <span class="tag" data-field="p-marcha">Marcha con alteraciones</span>
+        </div>
+        <input type="text" id="p-marcha" placeholder="Descripción del patrón de marcha...">
+      </div>
+      <div class="field"><label>Reflejos primitivos / reacciones de maduración</label><textarea id="p-reflejos" placeholder="Presencia de reflejos primitivos persistentes, reacciones de enderezamiento, equilibrio y protección..."></textarea></div>
+      <div class="field"><label>Otros hallazgos (sensorial, comunicación, conducta, alimentación...)</label><textarea id="p-otros" placeholder="Alteraciones sensoriales, hipersensibilidad, comunicación verbal/no verbal, conducta, deglución, visión..."></textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar pedia-bar"></span>Escalas clínicas aplicadas</div>
+      <div class="escalas" id="p-escalas-btns">
+        <button class="escala-btn" data-scale="gmfcs"><span class="dot"></span>GMFCS</button>
+        <button class="escala-btn" data-scale="macs"><span class="dot"></span>MACS</button>
+        <button class="escala-btn" data-scale="gmfm"><span class="dot"></span>GMFM-88 / 66</button>
+        <button class="escala-btn" data-scale="pedi"><span class="dot"></span>PEDI</button>
+        <button class="escala-btn" data-scale="aims"><span class="dot"></span>AIMS</button>
+        <button class="escala-btn" data-scale="bayley"><span class="dot"></span>Bayley III</button>
+        <button class="escala-btn" data-scale="mas"><span class="dot"></span>MAS (Ashworth)</button>
+        <button class="escala-btn" data-scale="fms"><span class="dot"></span>FMS</button>
+        <button class="escala-btn" data-scale="weefim"><span class="dot"></span>WeeFIM</button>
+        <button class="escala-btn" data-scale="bimanual"><span class="dot"></span>BIMANU-KID</button>
+      </div>
+      <div class="scores-grid" id="p-scores-container"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar pedia-bar"></span>Contexto y objetivos</div>
+      <div class="grid2">
+        <div class="field">
+          <label>Contexto escolar / social</label>
+          <select id="p-escolar">
+            <option value="">Seleccionar</option>
+            <option>Escolarización regular</option>
+            <option>Escolarización con apoyo</option>
+            <option>Educación especial</option>
+            <option>Sin escolarizar (menor de edad)</option>
+            <option>En casa</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Frecuencia de sesiones</label>
+          <select id="p-frecuencia">
+            <option value="">Seleccionar</option>
+            <option>Diario</option>
+            <option>5 veces/semana (intensivo)</option>
+            <option>3 veces/semana</option>
+            <option>2 veces/semana</option>
+            <option>1 vez/semana</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Objetivos de los padres / familia</label><textarea id="p-objetivos_px" placeholder="ej. Lograr marcha independiente, mejorar manipulación, integración escolar, independencia en higiene..."></textarea></div>
+      <div class="field"><label>Intervenciones previas y otros tratamientos actuales</label><textarea id="p-adicional" placeholder="Terapia ocupacional, fonoaudiología, toxina botulínica, ortesis, cirugías previas, estimulación temprana..."></textarea></div>
+    </div>
+
+    <button class="btn-primary" id="p-btn-gen" onclick="generarPlan('pedia')">Generar plan pediátrico</button>
+    <button class="btn-secondary" onclick="limpiarFormulario('pedia')">Limpiar formulario</button>
+    <div id="p-resultado"></div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ─── SCALE DEFINITIONS PER TAB ───────────────────────────────────────────────
+const scaleRanges = {
+  barthel: { label: "Índice de Barthel (0-100)", min: 0, max: 100 },
+  fim:     { label: "FIM (18-126)", min: 18, max: 126 },
+  berg:    { label: "Berg Balance Scale (0-56)", min: 0, max: 56 },
+  mas:     { label: "Modified Ashworth Scale (0-4)", min: 0, max: 4 },
+  mrc:     { label: "MRC suma (0-60)", min: 0, max: 60 },
+  nihss:   { label: "NIHSS (0-42)", min: 0, max: 42 },
+  gmfcs:   { label: "GMFCS nivel (I-V)", min: 1, max: 5 },
+  fugl:    { label: "Fugl-Meyer (0-226)", min: 0, max: 226 },
+  tug:     { label: "TUG (segundos)", min: 0, max: 300 },
+  moca:    { label: "MoCA (0-30)", min: 0, max: 30 },
+  fac:     { label: "FAC (0-5)", min: 0, max: 5 },
+  wmft:    { label: "Wolf Motor Function Test (0-75)", min: 0, max: 75 },
+  arat:    { label: "ARAT (0-57)", min: 0, max: 57 },
+  vas:     { label: "EVA / VAS (0-10)", min: 0, max: 10 },
+  nprs:    { label: "NPRS (0-10)", min: 0, max: 10 },
+  dash:    { label: "DASH (0-100)", min: 0, max: 100 },
+  koos:    { label: "KOOS (0-100)", min: 0, max: 100 },
+  hoos:    { label: "HOOS (0-100)", min: 0, max: 100 },
+  odi:     { label: "ODI Oswestry (0-100%)", min: 0, max: 100 },
+  ndi:     { label: "NDI (0-50)", min: 0, max: 50 },
+  lefs:    { label: "LEFS (0-80)", min: 0, max: 80 },
+  sf36:    { label: "SF-36 (0-100)", min: 0, max: 100 },
+  mmse:    { label: "MMSE (0-30)", min: 0, max: 30 },
+  sppb:    { label: "SPPB (0-12)", min: 0, max: 12 },
+  frailty: { label: "Fried Frailty (0-5)", min: 0, max: 5 },
+  gds:     { label: "GDS Depresión (0-15)", min: 0, max: 15 },
+  tinetti: { label: "Tinetti (0-28)", min: 0, max: 28 },
+  lawton:  { label: "Lawton-Brody (0-8)", min: 0, max: 8 },
+  macs:    { label: "MACS nivel (I-V)", min: 1, max: 5 },
+  gmfm:    { label: "GMFM % total", min: 0, max: 100 },
+  pedi:    { label: "PEDI (puntaje)", min: 0, max: 100 },
+  aims:    { label: "AIMS (0-58)", min: 0, max: 58 },
+  bayley:  { label: "Bayley III (índice compuesto)", min: 40, max: 160 },
+  fms:     { label: "FMS (1-6 para D/D/E)", min: 1, max: 6 },
+  weefim:  { label: "WeeFIM (18-126)", min: 18, max: 126 },
+  bimanual:{ label: "BIMANU-KID (puntaje)", min: 0, max: 100 }
+};
+
+const activeScales = { neuro: new Set(), ortho: new Set(), geria: new Set(), pedia: new Set() };
+const tabPrefix = { neuro: 'n', ortho: 'o', geria: 'g', pedia: 'p' };
+
+// Init scale buttons for each tab
+['neuro','ortho','geria','pedia'].forEach(tab => {
+  const prefix = tabPrefix[tab];
+  document.querySelectorAll(`#${prefix}-escalas-btns .escala-btn`).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const s = btn.dataset.scale;
+      activeScales[tab].has(s) ? activeScales[tab].delete(s) : activeScales[tab].add(s);
+      btn.classList.toggle('active');
+      renderScoreFields(tab);
+    });
+  });
+});
+
+function renderScoreFields(tab) {
+  const prefix = tabPrefix[tab];
+  const c = document.getElementById(`${prefix}-scores-container`);
+  c.innerHTML = '';
+  activeScales[tab].forEach(s => {
+    const r = scaleRanges[s];
+    if (!r) return;
+    const div = document.createElement('div');
+    div.className = 'field';
+    div.innerHTML = `<label>${r.label}</label><input type="number" id="score_${tab}_${s}" placeholder="Puntaje" min="${r.min}" max="${r.max}">`;
+    c.appendChild(div);
+  });
+}
+
+// Tags logic — single-select within same field
+document.querySelectorAll('.tag').forEach(tag => {
+  tag.addEventListener('click', () => {
+    const field = tag.dataset.field;
+    const input = document.getElementById(field);
+    if (!input) return;
+    if (tag.classList.contains('sel')) {
+      tag.classList.remove('sel');
+      if (input.value === tag.textContent.trim()) input.value = '';
+    } else {
+      // For dx tags: only one active; for others: allow accumulation
+      const isDxTag = tag.closest('[id$="-dx-tags"]');
+      if (isDxTag) {
+        document.querySelectorAll(`[data-field="${field}"]`).forEach(t => t.classList.remove('sel'));
+        tag.classList.add('sel');
+        input.value = tag.textContent.trim();
+      } else {
+        tag.classList.add('sel');
+        const current = input.value.trim();
+        const tagText = tag.textContent.trim();
+        if (!current.includes(tagText)) {
+          input.value = current ? current + ', ' + tagText : tagText;
+        }
+      }
+    }
+  });
+});
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── DATA COLLECTION ─────────────────────────────────────────────────────────
+function recopilarDatos(tab) {
+  const p = tabPrefix[tab];
+  const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const scores = {};
+  activeScales[tab].forEach(s => {
+    const el = document.getElementById(`score_${tab}_${s}`);
+    if (el && el.value) scores[scaleRanges[s].label] = el.value;
+  });
+
+  if (tab === 'neuro') return {
+    especialidad: 'Neurológico', edad: g('n-edad'), sexo: g('n-sexo'), fase: g('n-fase'),
+    dx_medico: g('n-dx_medico'), dx_fisio: g('n-dx_fisio'), evolucion: g('n-evolucion'),
+    tono: g('n-tono'), fuerza: g('n-fuerza'), equilibrio: g('n-equilibrio'),
+    marcha: g('n-marcha'), dolor: g('n-dolor'), cognicion: g('n-cognicion'),
+    otros: g('n-otros'), escalas: scores, contexto: g('n-contexto'),
+    frecuencia: g('n-frecuencia'), objetivos_px: g('n-objetivos_px'), adicional: g('n-adicional')
+  };
+  if (tab === 'ortho') return {
+    especialidad: 'Ortopédico', edad: g('o-edad'), sexo: g('o-sexo'), fase: g('o-fase'),
+    dx_medico: g('o-dx_medico'), dx_fisio: g('o-dx_fisio'), evolucion: g('o-evolucion'),
+    dolor_reposo: g('o-dolor_reposo'), dolor_movimiento: g('o-dolor_movimiento'),
+    rom: g('o-rom'), fuerza: g('o-fuerza'), edema: g('o-edema'), funcion: g('o-funcion'),
+    otros: g('o-otros'), escalas: scores, actividad: g('o-actividad'),
+    frecuencia: g('o-frecuencia'), objetivos_px: g('o-objetivos_px'), adicional: g('o-adicional')
+  };
+  if (tab === 'geria') return {
+    especialidad: 'Geriátrico', edad: g('g-edad'), sexo: g('g-sexo'), residencia: g('g-residencia'),
+    dx_medico: g('g-dx_medico'), dx_fisio: g('g-dx_fisio'), comorbilidades: g('g-comorbilidades'),
+    independencia: g('g-independencia'), caida: g('g-caida'), marcha: g('g-marcha'),
+    cognicion: g('g-cognicion'), fuerza: g('g-fuerza'), dolor: g('g-dolor'),
+    otros: g('g-otros'), escalas: scores, apoyo: g('g-apoyo'),
+    frecuencia: g('g-frecuencia'), objetivos_px: g('g-objetivos_px'), adicional: g('g-adicional')
+  };
+  if (tab === 'pedia') return {
+    especialidad: 'Pediátrico', edad: g('p-edad'), sexo: g('p-sexo'), grupo: g('p-grupo'),
+    dx_medico: g('p-dx_medico'), dx_fisio: g('p-dx_fisio'), perinatales: g('p-perinatales'),
+    hitos: g('p-hitos'), tono: g('p-tono'), patron: g('p-patron'), marcha: g('p-marcha'),
+    reflejos: g('p-reflejos'), otros: g('p-otros'), escalas: scores, escolar: g('p-escolar'),
+    frecuencia: g('p-frecuencia'), objetivos_px: g('p-objetivos_px'), adicional: g('p-adicional')
+  };
+}
+
+// ─── PROMPT BUILDERS ─────────────────────────────────────────────────────────
+function construirPrompt(tab, d) {
+  const escalasTxt = Object.keys(d.escalas).length > 0
+    ? Object.entries(d.escalas).map(([k,v]) => `${k}: ${v}`).join(' | ')
+    : 'No especificadas';
+
+  const base = `Eres un asistente clínico especializado en fisioterapia. Genera un plan de tratamiento fisioterapéutico completo, estructurado y basado en evidencia científica actualizada para la especialidad de ${d.especialidad}. Usa lenguaje técnico apropiado para comunicación entre profesionales de salud en Colombia. Responde en español colombiano.`;
+
+  const estructura = `
+Genera el plan con EXACTAMENTE esta estructura:
+
+**PLAN DE TRATAMIENTO FISIOTERAPÉUTICO — ${d.especialidad.toUpperCase()}**
+**Paciente:** [perfil breve]
+**Diagnóstico:** [médico + fisioterapéutico]
+**Fase clínica:** [fase]
+
+---
+
+**PRONÓSTICO**
+- Pronóstico funcional estimado: [descripción clara, realista y justificada]
+- Factores favorables: [lista numerada]
+- Factores limitantes: [lista numerada]
+- Tiempo estimado para objetivos principales: [rango temporal]
+
+---
+
+**OBJETIVOS TERAPÉUTICOS**
+Corto plazo (semanas 1-4):
+- [Objetivo SMART 1]
+- [Objetivo SMART 2]
+- [Objetivo SMART 3]
+
+Mediano plazo (1-3 meses):
+- [Objetivo SMART 1]
+- [Objetivo SMART 2]
+- [Objetivo SMART 3]
+
+Largo plazo (3-6+ meses):
+- [Objetivo SMART 1]
+- [Objetivo SMART 2]
+- [Objetivo SMART 3]
+
+---
+
+**PLAN DE INTERVENCIÓN**
+
+Fase 1 – [nombre] (semanas 1-X):
+Técnicas e intervenciones:
+- [Técnica] — justificación: [evidencia]
+- [Técnica] — justificación: [evidencia]
+- [Técnica] — justificación: [evidencia]
+Progresión: [frecuencia y criterios]
+Indicadores de progreso: [cómo medir]
+
+Fase 2 – [nombre] (semanas X-X):
+Técnicas e intervenciones:
+- [Técnica] — justificación: [evidencia]
+- [Técnica] — justificación: [evidencia]
+Progresión: [descripción]
+Indicadores de progreso: [métricas]
+
+Fase 3 – [nombre] (si aplica):
+Técnicas e intervenciones:
+- [Técnica] — justificación: [evidencia]
+- [Técnica] — justificación: [evidencia]
+Progresión: [descripción]
+Indicadores de progreso: [métricas]
+
+---
+
+**CONSIDERACIONES ESPECIALES**
+- Precauciones y contraindicaciones: [lista]
+- Recomendaciones para cuidadores/familia: [si aplica]
+- Tecnología de apoyo y adaptaciones: [sugerencias]
+- Criterios de derivación o interconsulta: [si aplica]
+
+---
+
+**REFERENCIAS DE EVIDENCIA**
+1. [Autor (año). Título. Fuente.]
+2. [Autor (año). Título. Fuente.]
+3. [Autor (año). Título. Fuente.]
+4. [Autor (año). Título. Fuente.]
+5. [Autor (año). Título. Fuente.]`;
+
+  if (tab === 'neuro') return `${base}
+
+DATOS DE EVALUACIÓN NEUROLÓGICA:
+- Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'} | Fase: ${d.fase||'N/E'}
+- Diagnóstico médico: ${d.dx_medico||'N/E'}
+- Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
+- Tiempo de evolución: ${d.evolucion||'N/E'}
+
+HALLAZGOS CLÍNICOS:
+- Tono: ${d.tono||'N/E'} | Fuerza MRC: ${d.fuerza||'N/E'}
+- Control postural / Equilibrio: ${d.equilibrio||'N/E'}
+- Marcha: ${d.marcha||'N/E'}
+- Dolor EVA: ${d.dolor||'N/R'}/10 | Cognición: ${d.cognicion||'N/E'}
+- Otros hallazgos: ${d.otros||'Ninguno'}
+- Escalas: ${escalasTxt}
+
+CONTEXTO:
+- Situación: ${d.contexto||'N/E'} | Frecuencia: ${d.frecuencia||'N/E'}
+- Objetivos: ${d.objetivos_px||'N/E'}
+- Adicional: ${d.adicional||'Ninguno'}
+${estructura}`;
+
+  if (tab === 'ortho') return `${base}
+
+DATOS DE EVALUACIÓN ORTOPÉDICA:
+- Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'} | Fase: ${d.fase||'N/E'}
+- Diagnóstico médico: ${d.dx_medico||'N/E'}
+- Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
+- Tiempo de evolución: ${d.evolucion||'N/E'}
+
+HALLAZGOS CLÍNICOS:
+- Dolor en reposo: ${d.dolor_reposo||'N/R'}/10 | Dolor en movimiento: ${d.dolor_movimiento||'N/R'}/10
+- ROM: ${d.rom||'N/E'} | Fuerza: ${d.fuerza||'N/E'}
+- Edema: ${d.edema||'N/E'} | Función / Carga: ${d.funcion||'N/E'}
+- Otros hallazgos: ${d.otros||'Ninguno'}
+- Escalas: ${escalasTxt}
+
+CONTEXTO:
+- Nivel de actividad previo: ${d.actividad||'N/E'} | Frecuencia: ${d.frecuencia||'N/E'}
+- Objetivo funcional: ${d.objetivos_px||'N/E'}
+- Adicional: ${d.adicional||'Ninguno'}
+${estructura}`;
+
+  if (tab === 'geria') return `${base}
+
+DATOS DE EVALUACIÓN GERIÁTRICA:
+- Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'} | Residencia: ${d.residencia||'N/E'}
+- Diagnóstico / Motivo: ${d.dx_medico||'N/E'}
+- Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
+- Comorbilidades: ${d.comorbilidades||'N/E'}
+
+HALLAZGOS CLÍNICOS:
+- Independencia funcional: ${d.independencia||'N/E'}
+- Riesgo de caída: ${d.caida||'N/E'} | Marcha: ${d.marcha||'N/E'}
+- Cognición: ${d.cognicion||'N/E'} | Fuerza: ${d.fuerza||'N/E'} | Dolor: ${d.dolor||'N/R'}/10
+- Otros: ${d.otros||'Ninguno'}
+- Escalas: ${escalasTxt}
+
+CONTEXTO:
+- Red de apoyo: ${d.apoyo||'N/E'} | Frecuencia: ${d.frecuencia||'N/E'}
+- Objetivos: ${d.objetivos_px||'N/E'}
+- Adicional: ${d.adicional||'Ninguno'}
+${estructura}`;
+
+  if (tab === 'pedia') return `${base}
+
+DATOS DE EVALUACIÓN PEDIÁTRICA:
+- Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'} | Grupo etario: ${d.grupo||'N/E'}
+- Diagnóstico médico: ${d.dx_medico||'N/E'}
+- Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
+- Antecedentes perinatales: ${d.perinatales||'N/E'}
+
+HALLAZGOS DEL DESARROLLO:
+- Hitos alcanzados: ${d.hitos||'N/E'}
+- Tono: ${d.tono||'N/E'} | Patrón motor: ${d.patron||'N/E'}
+- Marcha: ${d.marcha||'N/E'}
+- Reflejos / reacciones: ${d.reflejos||'N/E'}
+- Otros hallazgos: ${d.otros||'Ninguno'}
+- Escalas: ${escalasTxt}
+
+CONTEXTO:
+- Contexto escolar: ${d.escolar||'N/E'} | Frecuencia: ${d.frecuencia||'N/E'}
+- Objetivos familia: ${d.objetivos_px||'N/E'}
+- Terapias previas / actuales: ${d.adicional||'Ninguno'}
+${estructura}`;
+}
+
+// ─── SPECIALTY COLORS ────────────────────────────────────────────────────────
+const specConfig = {
+  neuro: { color: '#0F6E56', light: '#E1F5EE', label: 'Neurológico' },
+  ortho: { color: '#1A5FA8', light: '#E1EDFA', label: 'Ortopédico' },
+  geria: { color: '#7C4D1E', light: '#FDF0E1', label: 'Geriátrico' },
+  pedia: { color: '#6B3FA0', light: '#F3EAFD', label: 'Pediátrico' }
+};
+
+// ─── GENERATE PLAN ────────────────────────────────────────────────────────────
+async function generarPlan(tab) {
+  const d = recopilarDatos(tab);
+  const prefix = tabPrefix[tab];
+  const cfg = specConfig[tab];
+
+  if (!d.dx_medico && !d.dx_fisio) {
+    alert('Por favor ingresa al menos el diagnóstico médico o fisioterapéutico.');
+    return;
+  }
+
+  const btn = document.getElementById(`${prefix}-btn-gen`);
+  btn.disabled = true;
+  btn.textContent = 'Generando plan...';
+
+  document.getElementById(`${prefix}-resultado`).innerHTML = `
+    <div class="loading-card">
+      <div class="spinner-wrap">
+        <div class="spinner-bg"></div>
+        <div class="spinner" style="border-top-color:${cfg.color}"></div>
+      </div>
+      <div class="loading-title" style="color:${cfg.color}">Analizando hallazgos clínicos...</div>
+      <div class="loading-sub">Generando plan ${cfg.label.toLowerCase()} basado en evidencia. Puede tomar 20-40 segundos.</div>
+    </div>`;
+
+  try {
+    const resp = await fetch('/api/generar-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: construirPrompt(tab, d) })
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Error desconocido');
+
+    const texto = data.plan || '';
+    const html = texto
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">');
+
+    document.getElementById(`${prefix}-resultado`).innerHTML = `
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-header-left">
+            <div class="result-dot" style="background:${cfg.color}"></div>
+            <span class="result-label">Plan de tratamiento generado</span>
+            <span class="result-specialty-badge" style="background:${cfg.light};color:${cfg.color};border:1px solid ${cfg.color}33">${cfg.label}</span>
+          </div>
+          <div class="result-actions">
+            <button class="btn-action" onclick="imprimirPlan()">Imprimir / PDF</button>
+            <button class="btn-action" onclick="copiarPlan('${prefix}-plan-texto')">Copiar texto</button>
+          </div>
+        </div>
+        <div class="result-body" id="${prefix}-plan-texto">${html}</div>
+      </div>`;
+
+  } catch (e) {
+    document.getElementById(`${prefix}-resultado`).innerHTML = `
+      <div class="error-card">
+        <strong>Error al generar el plan.</strong> ${e.message || 'Verifica tu conexión e intenta nuevamente.'}
+      </div>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = `Generar plan ${cfg.label.toLowerCase()}`;
+  document.getElementById(`${prefix}-resultado`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copiarPlan(id) {
+  const txt = document.getElementById(id)?.innerText || '';
+  navigator.clipboard.writeText(txt).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+function imprimirPlan() { window.print(); }
+
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+// Para agregar más usuarios: { usuario: 'nombre', clave: 'contraseña' }
+const USUARIOS = [
+  { usuario: 'admin',    clave: 'fisio2024' },
+  { usuario: 'daniela', clave: 'neuro2024' }
+];
+
+function intentarLogin() {
+  const user = document.getElementById('login-user').value.trim().toLowerCase();
+  const pass = document.getElementById('login-pass').value;
+  const error = document.getElementById('login-error');
+  const valido = USUARIOS.some(u => u.usuario === user && u.clave === pass);
+  if (valido) {
+    sessionStorage.setItem('fisioIA_auth', 'true');
+    document.getElementById('login-screen').classList.add('hidden');
+    error.classList.remove('show');
+  } else {
+    error.classList.add('show');
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+function cerrarSesion() {
+  sessionStorage.removeItem('fisioIA_auth');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').classList.remove('show');
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+// Verificar sesión al cargar
+(function() {
+  if (sessionStorage.getItem('fisioIA_auth') !== 'true') {
+    document.getElementById('login-screen').classList.remove('hidden');
+  } else {
+    document.getElementById('login-screen').classList.add('hidden');
+  }
+  setTimeout(() => document.getElementById('login-user').focus(), 100);
+})();
+
+function limpiarFormulario(tab) {
+  const prefix = tabPrefix[tab];
+  document.querySelectorAll(`#panel-${tab} input, #panel-${tab} select, #panel-${tab} textarea`)
+    .forEach(el => el.value = '');
+  document.querySelectorAll(`#panel-${tab} .tag.sel`).forEach(t => t.classList.remove('sel'));
+  activeScales[tab].clear();
+  document.querySelectorAll(`#${prefix}-escalas-btns .escala-btn.active`).forEach(b => b.classList.remove('active'));
+  document.getElementById(`${prefix}-scores-container`).innerHTML = '';
+  document.getElementById(`${prefix}-resultado`).innerHTML = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
