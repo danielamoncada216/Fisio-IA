@@ -514,11 +514,32 @@
       color: var(--gray-400); margin-top: 1.5rem;
     }
 
-    /* PRINT */
+    /* PRINT / PDF PROFESIONAL */
     @media print {
-      nav, .tabs-wrapper, .card, .btn-primary, .btn-secondary, .result-actions { display: none !important; }
-      .result-card { box-shadow: none; border: none; margin: 0; }
-      .result-body { max-height: none; overflow: visible; font-size: 12px; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      #login-screen, nav, .tabs-wrapper, .card, .btn-primary, .btn-secondary,
+      .result-actions, .result-header { display: none !important; }
+      body { background: white !important; margin: 0; padding: 0; font-size: 11pt; }
+      .container { max-width: 100%; padding: 0; margin: 0; }
+      .result-card { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+      .result-body { max-height: none !important; overflow: visible !important; padding: 0 !important; font-size: 10.5pt; line-height: 1.7; color: #1a1a1a; }
+      .pdf-header { display: flex !important; align-items: flex-start; justify-content: space-between; padding: 0 0 14pt 0; margin-bottom: 14pt; border-bottom: 2pt solid #0F6E56; page-break-inside: avoid; }
+      .pdf-header-left { display: flex; align-items: center; gap: 10pt; }
+      .pdf-logo-box { width: 40pt; height: 40pt; background: #0F6E56 !important; border-radius: 8pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .pdf-logo-box svg { width: 24pt; height: 24pt; fill: white; }
+      .pdf-app-name { font-size: 17pt; font-weight: 700; color: #0F6E56; }
+      .pdf-app-sub { font-size: 8pt; color: #5F6368; margin-top: 2pt; }
+      .pdf-header-right { text-align: right; }
+      .pdf-doc-title { font-size: 11pt; font-weight: 600; color: #202124; }
+      .pdf-doc-meta { font-size: 8pt; color: #5F6368; margin-top: 3pt; line-height: 1.5; }
+      .pdf-fisio-bar { display: flex !important; gap: 20pt; background: #F1F3F4 !important; border-radius: 5pt; padding: 9pt 12pt; margin-bottom: 16pt; font-size: 8.5pt; color: #5F6368; page-break-inside: avoid; }
+      .pdf-fisio-bar span { display: flex; flex-direction: column; gap: 2pt; }
+      .pdf-fisio-bar strong { font-size: 9pt; color: #202124; font-weight: 600; }
+      .pdf-footer { display: flex !important; justify-content: space-between; align-items: flex-end; margin-top: 28pt; padding-top: 12pt; border-top: 1pt solid #E8EAED; font-size: 8pt; color: #9AA0A6; page-break-inside: avoid; }
+      .pdf-firma-box { text-align: center; }
+      .pdf-firma-line { width: 130pt; border-bottom: 1pt solid #202124; margin-bottom: 4pt; height: 26pt; }
+      .pdf-firma-label { font-size: 7.5pt; color: #5F6368; }
+      .pdf-disclaimer { max-width: 250pt; font-size: 7pt; color: #9AA0A6; line-height: 1.4; }
     }
 
     @media (max-width: 640px) {
@@ -1616,7 +1637,7 @@ async function generarPlan(tab) {
             <span class="result-specialty-badge" style="background:${cfg.light};color:${cfg.color};border:1px solid ${cfg.color}33">${cfg.label}</span>
           </div>
           <div class="result-actions">
-            <button class="btn-action" onclick="imprimirPlan()">Imprimir / PDF</button>
+            <button class="btn-action" onclick="imprimirPlan('${prefix}')">Imprimir / PDF</button>
             <button class="btn-action" onclick="copiarPlan('${prefix}-plan-texto')">Copiar texto</button>
           </div>
         </div>
@@ -1645,7 +1666,83 @@ function copiarPlan(id) {
   });
 }
 
-function imprimirPlan() { window.print(); }
+function imprimirPlan(tabPrefix) {
+  const planEl = document.getElementById(tabPrefix + '-plan-texto');
+  if (!planEl) return;
+
+  const tabs = { n: 'neuro', o: 'ortho', g: 'geria', p: 'pedia' };
+  const tab = tabs[tabPrefix] || 'neuro';
+  const cfg = specConfig[tab];
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+  const hora = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+
+  // Remove existing pdf wrappers if any
+  const existingHeader = document.getElementById('pdf-header-inject');
+  const existingFisio = document.getElementById('pdf-fisio-inject');
+  const existingFooter = document.getElementById('pdf-footer-inject');
+  if (existingHeader) existingHeader.remove();
+  if (existingFisio) existingFisio.remove();
+  if (existingFooter) existingFooter.remove();
+
+  const resultCard = planEl.closest('.result-card');
+
+  // Build header
+  const header = document.createElement('div');
+  header.id = 'pdf-header-inject';
+  header.className = 'pdf-header';
+  header.innerHTML = `
+    <div class="pdf-header-left">
+      <div class="pdf-logo-box" style="background:${cfg.color}">
+        <svg viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.24 7 7c0 1.57.71 2.98 1.83 3.93C6.6 12.11 5 14.36 5 17h2c0-2.76 2.24-5 5-5s5 2.24 5 5h2c0-2.64-1.6-4.89-3.83-6.07C16.29 9.98 17 8.57 17 7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
+      </div>
+      <div>
+        <div class="pdf-app-name" style="color:${cfg.color}">FisioIA</div>
+        <div class="pdf-app-sub">Planes de tratamiento basados en evidencia científica</div>
+      </div>
+    </div>
+    <div class="pdf-header-right">
+      <div class="pdf-doc-title">Plan de Tratamiento ${cfg.label}</div>
+      <div class="pdf-doc-meta">Generado el ${fecha} a las ${hora}<br>Documento confidencial — solo uso clínico</div>
+    </div>`;
+  resultCard.insertBefore(header, resultCard.firstChild);
+
+  // Build fisio bar
+  const fisioBar = document.createElement('div');
+  fisioBar.id = 'pdf-fisio-inject';
+  fisioBar.className = 'pdf-fisio-bar';
+  fisioBar.innerHTML = `
+    <span><strong>Especialidad</strong>${cfg.label}</span>
+    <span><strong>Plataforma</strong>FisioIA — IA Clínica</span>
+    <span><strong>Fecha</strong>${fecha}</span>
+    <span><strong>Estado</strong>Borrador para revisión clínica</span>`;
+  resultCard.insertBefore(fisioBar, planEl);
+
+  // Build footer
+  const footer = document.createElement('div');
+  footer.id = 'pdf-footer-inject';
+  footer.className = 'pdf-footer';
+  footer.innerHTML = `
+    <div class="pdf-disclaimer">
+      Este documento fue generado con asistencia de inteligencia artificial como apoyo clínico. 
+      No reemplaza el juicio profesional del fisioterapeuta tratante. 
+      Debe ser revisado, ajustado y validado por el profesional responsable antes de su implementación.
+    </div>
+    <div class="pdf-firma-box">
+      <div class="pdf-firma-line"></div>
+      <div class="pdf-firma-label">Firma y sello del fisioterapeuta</div>
+    </div>`;
+  resultCard.appendChild(footer);
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => {
+      if (header) header.remove();
+      if (fisioBar) fisioBar.remove();
+      if (footer) footer.remove();
+    }, 1000);
+  }, 100);
+}
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 // Para agregar más usuarios: { usuario: 'nombre', clave: 'contraseña' }
