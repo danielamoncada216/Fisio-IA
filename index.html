@@ -1934,72 +1934,120 @@ function imprimirPlan(tabPrefix) {
   const now = new Date();
   const fecha = now.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
   const hora = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  const planHTML = planEl.innerHTML;
 
-  // Remove existing pdf wrappers if any
-  const existingHeader = document.getElementById('pdf-header-inject');
-  const existingFisio = document.getElementById('pdf-fisio-inject');
-  const existingFooter = document.getElementById('pdf-footer-inject');
-  if (existingHeader) existingHeader.remove();
-  if (existingFisio) existingFisio.remove();
-  if (existingFooter) existingFooter.remove();
+  const ventana = window.open('', '_blank', 'width=900,height=700');
+  ventana.document.write(`<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>FisioIA — Plan de Tratamiento ${cfg.label}</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; color: #202124; background: white; padding: 0; font-size: 11pt; line-height: 1.7; }
 
-  const resultCard = planEl.closest('.result-card');
+    .pdf-wrap { max-width: 800px; margin: 0 auto; padding: 32px 40px 48px; }
 
-  // Build header
-  const header = document.createElement('div');
-  header.id = 'pdf-header-inject';
-  header.className = 'pdf-header';
-  header.innerHTML = `
-    <div class="pdf-header-left">
-      <div class="pdf-logo-box" style="background:${cfg.color}">
-        <svg viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.24 7 7c0 1.57.71 2.98 1.83 3.93C6.6 12.11 5 14.36 5 17h2c0-2.76 2.24-5 5-5s5 2.24 5 5h2c0-2.64-1.6-4.89-3.83-6.07C16.29 9.98 17 8.57 17 7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
+    /* HEADER */
+    .pdf-header { display: flex; align-items: flex-start; justify-content: space-between; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 2.5px solid ${cfg.color}; }
+    .pdf-header-left { display: flex; align-items: center; gap: 12px; }
+    .pdf-logo-box { width: 46px; height: 46px; background: ${cfg.color}; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .pdf-logo-box svg { width: 26px; height: 26px; fill: white; }
+    .pdf-app-name { font-size: 20px; font-weight: 700; color: ${cfg.color}; letter-spacing: -0.5px; }
+    .pdf-app-sub { font-size: 9px; color: #5F6368; margin-top: 2px; }
+    .pdf-header-right { text-align: right; }
+    .pdf-doc-title { font-size: 12px; font-weight: 600; color: #202124; }
+    .pdf-doc-meta { font-size: 9px; color: #5F6368; margin-top: 4px; line-height: 1.5; }
+
+    /* INFO BAR */
+    .pdf-info-bar { display: flex; gap: 0; background: #F8F9FA; border-radius: 8px; padding: 10px 16px; margin-bottom: 20px; font-size: 9px; color: #5F6368; }
+    .pdf-info-bar span { flex: 1; display: flex; flex-direction: column; gap: 2px; padding-right: 12px; border-right: 1px solid #E8EAED; margin-right: 12px; }
+    .pdf-info-bar span:last-child { border-right: none; margin-right: 0; padding-right: 0; }
+    .pdf-info-bar strong { font-size: 10px; color: #202124; font-weight: 600; }
+
+    /* CONTENT */
+    .pdf-content { font-size: 10.5pt; line-height: 1.8; color: #202124; }
+    .pdf-content strong { font-weight: 600; color: #111; }
+    .pdf-content hr { border: none; border-top: 1px solid #E8EAED; margin: 14px 0; }
+
+    /* BADGE */
+    .specialty-badge { display: inline-block; font-size: 9px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: ${cfg.light}; color: ${cfg.color}; border: 1px solid ${cfg.color}44; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* FOOTER */
+    .pdf-footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #E8EAED; display: flex; justify-content: space-between; align-items: flex-end; }
+    .pdf-disclaimer { max-width: 420px; font-size: 8px; color: #9AA0A6; line-height: 1.5; }
+    .pdf-firma-box { text-align: center; }
+    .pdf-firma-line { width: 160px; border-bottom: 1px solid #202124; margin-bottom: 5px; height: 32px; }
+    .pdf-firma-label { font-size: 8px; color: #5F6368; }
+
+    /* PRINT BTN — screen only */
+    .print-bar { background: ${cfg.color}; padding: 12px 40px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    .print-bar-title { color: white; font-size: 13px; font-weight: 600; }
+    .print-btns { display: flex; gap: 8px; }
+    .btn-print { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer; background: white; color: ${cfg.color}; transition: opacity 0.12s; }
+    .btn-print:hover { opacity: 0.85; }
+    .btn-close { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 16px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,0.5); cursor: pointer; background: transparent; color: white; }
+    .btn-close:hover { background: rgba(255,255,255,0.1); }
+
+    @media print {
+      .print-bar { display: none !important; }
+      body { padding: 0; }
+      .pdf-wrap { padding: 20px 28px 36px; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar">
+    <div class="print-bar-title">FisioIA — Plan de Tratamiento ${cfg.label}</div>
+    <div class="print-btns">
+      <button class="btn-print" onclick="window.print()">⬇ Guardar PDF</button>
+      <button class="btn-close" onclick="window.close()">✕ Cerrar</button>
+    </div>
+  </div>
+  <div class="pdf-wrap">
+    <div class="pdf-header">
+      <div class="pdf-header-left">
+        <div class="pdf-logo-box">
+          <svg viewBox="0 0 24 24"><path d="M12 2C9.24 2 7 4.24 7 7c0 1.57.71 2.98 1.83 3.93C6.6 12.11 5 14.36 5 17h2c0-2.76 2.24-5 5-5s5 2.24 5 5h2c0-2.64-1.6-4.89-3.83-6.07C16.29 9.98 17 8.57 17 7c0-2.76-2.24-5-5-5zm0 2c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3z"/></svg>
+        </div>
+        <div>
+          <div class="pdf-app-name">FisioIA</div>
+          <div class="pdf-app-sub">Planes de tratamiento basados en evidencia científica</div>
+        </div>
       </div>
-      <div>
-        <div class="pdf-app-name" style="color:${cfg.color}">FisioIA</div>
-        <div class="pdf-app-sub">Planes de tratamiento basados en evidencia científica</div>
+      <div class="pdf-header-right">
+        <div class="pdf-doc-title">Plan de Tratamiento ${cfg.label}</div>
+        <div class="pdf-doc-meta">Generado el ${fecha} a las ${hora}<br>Documento confidencial — solo uso clínico</div>
       </div>
     </div>
-    <div class="pdf-header-right">
-      <div class="pdf-doc-title">Plan de Tratamiento ${cfg.label}</div>
-      <div class="pdf-doc-meta">Generado el ${fecha} a las ${hora}<br>Documento confidencial — solo uso clínico</div>
-    </div>`;
-  resultCard.insertBefore(header, resultCard.firstChild);
 
-  // Build fisio bar
-  const fisioBar = document.createElement('div');
-  fisioBar.id = 'pdf-fisio-inject';
-  fisioBar.className = 'pdf-fisio-bar';
-  fisioBar.innerHTML = `
-    <span><strong>Especialidad</strong>${cfg.label}</span>
-    <span><strong>Plataforma</strong>FisioIA — IA Clínica</span>
-    <span><strong>Fecha</strong>${fecha}</span>
-    <span><strong>Estado</strong>Borrador para revisión clínica</span>`;
-  resultCard.insertBefore(fisioBar, planEl);
-
-  // Build footer
-  const footer = document.createElement('div');
-  footer.id = 'pdf-footer-inject';
-  footer.className = 'pdf-footer';
-  footer.innerHTML = `
-    <div class="pdf-disclaimer">
-      Este documento fue generado con asistencia de inteligencia artificial como apoyo clínico. 
-      No reemplaza el juicio profesional del fisioterapeuta tratante. 
-      Debe ser revisado, ajustado y validado por el profesional responsable antes de su implementación.
+    <div class="pdf-info-bar">
+      <span><strong>Especialidad</strong>${cfg.label}</span>
+      <span><strong>Plataforma</strong>FisioIA — IA Clínica</span>
+      <span><strong>Fecha</strong>${fecha}</span>
+      <span><strong>Estado</strong>Borrador para revisión</span>
     </div>
-    <div class="pdf-firma-box">
-      <div class="pdf-firma-line"></div>
-      <div class="pdf-firma-label">Firma y sello del fisioterapeuta</div>
-    </div>`;
-  resultCard.appendChild(footer);
 
-  setTimeout(() => {
-    window.print();
-    setTimeout(() => {
-      if (header) header.remove();
-      if (fisioBar) fisioBar.remove();
-      if (footer) footer.remove();
-    }, 1000);
-  }, 100);
+    <div class="specialty-badge">${cfg.label}</div>
+
+    <div class="pdf-content">${planHTML}</div>
+
+    <div class="pdf-footer">
+      <div class="pdf-disclaimer">
+        Este documento fue generado con asistencia de inteligencia artificial como apoyo clínico.
+        No reemplaza el juicio profesional del fisioterapeuta tratante.
+        Debe ser revisado, ajustado y validado por el profesional responsable antes de su implementación.
+      </div>
+      <div class="pdf-firma-box">
+        <div class="pdf-firma-line"></div>
+        <div class="pdf-firma-label">Firma y sello del fisioterapeuta</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`);
+  ventana.document.close();
 }
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
