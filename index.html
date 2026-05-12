@@ -514,6 +514,90 @@
       color: var(--gray-400); margin-top: 1.5rem;
     }
 
+
+    /* SOAP TABS */
+    .result-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 10px 1.5rem 0;
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--border);
+    }
+    .result-tab-btn {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--gray-600);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+      border-radius: 6px 6px 0 0;
+    }
+    .result-tab-btn:hover { color: var(--gray-900); background: var(--gray-100); }
+    .result-tab-btn.active { color: var(--gray-900); font-weight: 600; background: var(--white); }
+    .result-tab-content { display: none; }
+    .result-tab-content.active { display: block; }
+
+    .soap-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .soap-section {
+      padding: 1.2rem 1.5rem;
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .soap-section:nth-child(even) { border-right: none; }
+    .soap-section:nth-child(3), .soap-section:nth-child(4) { border-bottom: none; }
+    .soap-letter {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .soap-letter-badge {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+    .soap-title { font-size: 11px; color: var(--gray-600); }
+    .soap-body {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--gray-900);
+      white-space: pre-wrap;
+      margin-top: 8px;
+      min-height: 60px;
+    }
+    .soap-loading {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--gray-400);
+      padding: 1rem 0;
+    }
+    .soap-spinner {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--gray-200);
+      border-top-color: var(--gray-400);
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+    @media (max-width: 640px) {
+      .soap-grid { grid-template-columns: 1fr; }
+      .soap-section { border-right: none; }
+      .soap-section:nth-child(3) { border-bottom: 1px solid var(--border); }
+    }
+
     /* PRINT / PDF PROFESIONAL */
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -542,18 +626,129 @@
       .pdf-disclaimer { max-width: 250pt; font-size: 7pt; color: #9AA0A6; line-height: 1.4; }
     }
 
+
+    /* HISTORIAL */
+    .historial-panel {
+      position: fixed; top: 0; right: -420px; width: 400px; height: 100vh;
+      background: var(--white); border-left: 1px solid var(--border);
+      box-shadow: -8px 0 32px rgba(0,0,0,0.12);
+      z-index: 300; transition: right 0.3s cubic-bezier(0.16,1,0.3,1);
+      display: flex; flex-direction: column;
+    }
+    .historial-panel.open { right: 0; }
+    .historial-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .historial-title { font-size: 14px; font-weight: 600; }
+    .historial-close {
+      width: 28px; height: 28px; border-radius: 8px; border: none;
+      background: var(--gray-100); cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gray-600); transition: background 0.12s;
+    }
+    .historial-close:hover { background: var(--gray-200); }
+    .historial-list { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 8px; }
+    .historial-empty { text-align: center; padding: 2rem 1rem; color: var(--gray-400); font-size: 13px; }
+    .historial-item {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 12px 14px; cursor: pointer; transition: all 0.12s;
+      background: var(--white);
+    }
+    .historial-item:hover { border-color: var(--neuro); background: var(--neuro-light); }
+    .historial-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .historial-item-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .historial-item-date { font-size: 11px; color: var(--gray-400); }
+    .historial-item-dx { font-size: 13px; font-weight: 500; color: var(--gray-900); margin-bottom: 2px; }
+    .historial-item-meta { font-size: 11px; color: var(--gray-600); }
+    .historial-item-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .historial-btn-sm {
+      font-family: 'DM Sans', sans-serif; font-size: 11px;
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid var(--border-strong);
+      background: var(--white); color: var(--gray-600);
+      cursor: pointer; transition: all 0.12s;
+    }
+    .historial-btn-sm:hover { border-color: var(--gray-900); color: var(--gray-900); }
+    .historial-btn-sm.danger:hover { border-color: #C53030; color: #C53030; }
+    .historial-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.3);
+      z-index: 299; display: none;
+    }
+    .historial-overlay.open { display: block; }
+
+    /* AUTOSAVE INDICATOR */
+    .autosave-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--gray-400); display: inline-block;
+      margin-right: 4px; transition: background 0.3s;
+    }
+    .autosave-dot.saved { background: #22C55E; }
+    .autosave-label { font-size: 11px; color: var(--gray-400); }
+
+    /* SEGUIMIENTO CARD */
+    .seguimiento-toggle {
+      width: 100%; padding: 10px 1.5rem;
+      background: var(--gray-50); border: none; border-top: 1px solid var(--border);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--gray-600); cursor: pointer; text-align: left;
+      display: flex; align-items: center; gap: 8px;
+      transition: background 0.12s;
+    }
+    .seguimiento-toggle:hover { background: var(--gray-100); }
+    .seguimiento-panel { display: none; padding: 1.2rem 1.5rem; border-top: 1px solid var(--border); }
+    .seguimiento-panel.open { display: block; }
+
+    /* MOBILE IMPROVEMENTS */
     @media (max-width: 640px) {
       .grid2, .grid3 { grid-template-columns: 1fr; }
-      .container { padding: 1rem 1rem 4rem; }
+      .container { padding: 1rem 0.75rem 5rem; }
       nav { padding: 0 1rem; }
       .nav-sub, .nav-dot { display: none; }
       .tabs { gap: 3px; padding: 4px; }
       .tab-btn { font-size: 11px; padding: 9px 4px; gap: 4px; }
       .tab-btn .tab-icon { width: 18px; height: 18px; }
+      .tab-btn span:not(.tab-icon) { display: none; }
+      .card { padding: 1.1rem 1rem; }
+      .result-body { font-size: 13px; padding: 1rem; }
+      .soap-grid { grid-template-columns: 1fr; }
+      .soap-section { border-right: none; }
+      .soap-section:nth-child(3) { border-bottom: 1px solid var(--border); }
+      .historial-panel { width: 100%; right: -100%; }
+      .result-tabs { padding: 8px 1rem 0; overflow-x: auto; }
+      .result-tab-btn { white-space: nowrap; font-size: 11px; padding: 7px 12px; }
+      .btn-primary { font-size: 14px; }
+      .tags { gap: 5px; }
+      .tag { font-size: 11px; padding: 4px 9px; }
+      .escalas { gap: 5px; }
+      .escala-btn { font-size: 11px; padding: 5px 10px; }
     }
+
   </style>
 </head>
 <body>
+
+
+<!-- HISTORIAL OVERLAY -->
+<div class="historial-overlay" id="historial-overlay" onclick="cerrarHistorial()"></div>
+
+<!-- HISTORIAL PANEL -->
+<div class="historial-panel" id="historial-panel">
+  <div class="historial-header">
+    <div>
+      <div class="historial-title">Historial de planes</div>
+      <div style="font-size:11px;color:var(--gray-400);margin-top:2px">Guardado en este dispositivo</div>
+    </div>
+    <button class="historial-close" onclick="cerrarHistorial()">✕</button>
+  </div>
+  <div class="historial-list" id="historial-list">
+    <div class="historial-empty">Aún no hay planes guardados.<br>Genera tu primer plan para verlo aquí.</div>
+  </div>
+</div>
 
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
@@ -586,9 +781,14 @@
     <span class="nav-dot"></span>
     <span class="nav-sub">Planes de tratamiento basados en evidencia</span>
   </div>
-  <div style="display:flex;align-items:center;gap:10px;">
+  <div style="display:flex;align-items:center;gap:8px;">
+    <div style="display:flex;align-items:center;gap:4px;">
+      <span class="autosave-dot" id="autosave-dot"></span>
+      <span class="autosave-label" id="autosave-label">Autoguardado</span>
+    </div>
     <span class="nav-badge">Basado en evidencia</span>
-    <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Cerrar sesión</button>
+    <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
+    <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Salir</button>
   </div>
 </nav>
 
@@ -1641,8 +1841,66 @@ async function generarPlan(tab) {
             <button class="btn-action" onclick="copiarPlan('${prefix}-plan-texto')">Copiar texto</button>
           </div>
         </div>
-        <div class="result-body" id="${prefix}-plan-texto">${html}</div>
+        <div class="result-tabs">
+          <button class="result-tab-btn active" onclick="switchResultTab('${prefix}','plan',this)" style="border-bottom-color:${cfg.color};color:${cfg.color}">Plan de intervención</button>
+          <button class="result-tab-btn" onclick="switchResultTab('${prefix}','soap',this)">Nota SOAP</button>
+        </div>
+        <div id="${prefix}-tab-plan" class="result-tab-content active">
+          <div class="result-body" id="${prefix}-plan-texto">${html}</div>
+        </div>
+        <div id="${prefix}-tab-soap" class="result-tab-content">
+          <div class="soap-grid" id="${prefix}-soap-grid">
+            <div class="soap-section">
+              <div class="soap-letter">
+                <div class="soap-letter-badge" style="background:${cfg.color}">S</div>
+                <div>
+                  <div style="font-weight:700;color:var(--gray-900)">Subjetivo</div>
+                  <div class="soap-title">Lo que refiere el paciente / familia</div>
+                </div>
+              </div>
+              <div class="soap-body" id="${prefix}-soap-s"><div class="soap-loading"><div class="soap-spinner"></div>Generando nota SOAP...</div></div>
+            </div>
+            <div class="soap-section">
+              <div class="soap-letter">
+                <div class="soap-letter-badge" style="background:#1A5FA8">O</div>
+                <div>
+                  <div style="font-weight:700;color:var(--gray-900)">Objetivo</div>
+                  <div class="soap-title">Hallazgos de la evaluación</div>
+                </div>
+              </div>
+              <div class="soap-body" id="${prefix}-soap-o"><div class="soap-loading"><div class="soap-spinner"></div>Generando nota SOAP...</div></div>
+            </div>
+            <div class="soap-section">
+              <div class="soap-letter">
+                <div class="soap-letter-badge" style="background:#7C4D1E">A</div>
+                <div>
+                  <div style="font-weight:700;color:var(--gray-900)">Análisis</div>
+                  <div class="soap-title">Impresión clínica y diagnóstico fisioterapéutico</div>
+                </div>
+              </div>
+              <div class="soap-body" id="${prefix}-soap-a"><div class="soap-loading"><div class="soap-spinner"></div>Generando nota SOAP...</div></div>
+            </div>
+            <div class="soap-section">
+              <div class="soap-letter">
+                <div class="soap-letter-badge" style="background:#6B3FA0">P</div>
+                <div>
+                  <div style="font-weight:700;color:var(--gray-900)">Plan</div>
+                  <div class="soap-title">Intervenciones y próximos pasos</div>
+                </div>
+              </div>
+              <div class="soap-body" id="${prefix}-soap-p"><div class="soap-loading"><div class="soap-spinner"></div>Generando nota SOAP...</div></div>
+            </div>
+          </div>
+          <div style="padding:0.75rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end;background:var(--gray-50)">
+            <button class="btn-action" onclick="copiarSOAP('${prefix}')">Copiar nota SOAP</button>
+          </div>
+        </div>
       </div>`;
+
+    // Save to historial
+    guardarEnHistorial(tab, recopilarDatos(tab), texto);
+    // Generate SOAP note asynchronously
+    generarSOAP(tab, prefix, recopilarDatos(tab));
 
   } catch (e) {
     document.getElementById(`${prefix}-resultado`).innerHTML = `
@@ -1785,6 +2043,248 @@ function cerrarSesion() {
   setTimeout(() => document.getElementById('login-user').focus(), 100);
 })();
 
+
+// ─── RESULT TABS ──────────────────────────────────────────────────────────────
+function switchResultTab(prefix, tab, btn) {
+  document.querySelectorAll(`#${prefix}-resultado .result-tab-btn`).forEach(b => {
+    b.classList.remove('active');
+    b.style.borderBottomColor = 'transparent';
+    b.style.color = '';
+  });
+  document.querySelectorAll(`#${prefix}-resultado .result-tab-content`).forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const cfg = specConfig[Object.keys(tabPrefix).find(k => tabPrefix[k] === prefix)];
+  if (cfg) { btn.style.borderBottomColor = cfg.color; btn.style.color = cfg.color; }
+  document.getElementById(`${prefix}-tab-${tab}`).classList.add('active');
+}
+
+// ─── SOAP GENERATION ──────────────────────────────────────────────────────────
+async function generarSOAP(tab, prefix, d) {
+  const escalasTxt = Object.keys(d.escalas||{}).length > 0
+    ? Object.entries(d.escalas).map(([k,v]) => `${k}: ${v}`).join(' | ')
+    : 'No especificadas';
+
+  const soapPrompt = `Eres un fisioterapeuta clínico experto. Con base en los datos de evaluación, genera una nota de evolución en formato SOAP completa y profesional. Responde ÚNICAMENTE en JSON con exactamente estas 4 claves: "S", "O", "A", "P". Sin texto extra, sin markdown, sin explicaciones fuera del JSON.
+
+DATOS DE EVALUACIÓN (especialidad: ${d.especialidad}):
+- Diagnóstico médico: ${d.dx_medico||'N/E'}
+- Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
+- Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'}
+- Fase: ${d.fase||d.grupo||'N/E'}
+- Hallazgos principales: tono=${d.tono||'N/E'}, fuerza=${d.fuerza||'N/E'}, marcha=${d.marcha||'N/E'}, equilibrio=${d.equilibrio||'N/E'}
+- Dolor: ${d.dolor||d.dolor_reposo||'N/E'}/10
+- Cognición: ${d.cognicion||'N/E'}
+- Escalas: ${escalasTxt}
+- Objetivos del paciente: ${d.objetivos_px||'N/E'}
+- Contexto: ${d.contexto||d.apoyo||'N/E'}
+- Otros: ${d.otros||'Ninguno'}
+
+Formato JSON esperado:
+{
+  "S": "Paciente refiere... [síntomas subjetivos, quejas principales, expectativas, lo que dice el paciente o la familia en 3-5 oraciones]",
+  "O": "Al examen físico se evidencia... [hallazgos objetivos medibles: tono, fuerza, ROM, escalas, marcha, equilibrio en 4-6 oraciones]",
+  "A": "Paciente con diagnóstico fisioterapéutico de... [análisis clínico, pronóstico, factores que influyen, razonamiento clínico en 3-5 oraciones]",
+  "P": "Se planea... [intervenciones específicas de hoy, frecuencia, metas próxima sesión, educación al paciente en 4-6 oraciones]"
+}`;
+
+  try {
+    const resp = await fetch('/api/generar-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: soapPrompt })
+    });
+    const data = await resp.json();
+    const texto = data.plan || '';
+    const clean = texto.replace(/```json|```/g, '').trim();
+    const soap = JSON.parse(clean);
+
+    ['s','o','a','p'].forEach(k => {
+      const el = document.getElementById(`${prefix}-soap-${k}`);
+      if (el) el.textContent = soap[k.toUpperCase()] || 'No generado';
+    });
+  } catch(e) {
+    ['s','o','a','p'].forEach(k => {
+      const el = document.getElementById(`${prefix}-soap-${k}`);
+      if (el) el.textContent = 'Error al generar esta sección. Intenta copiar el plan y redactar manualmente.';
+    });
+  }
+}
+
+function copiarSOAP(prefix) {
+  const s = document.getElementById(`${prefix}-soap-s`)?.innerText || '';
+  const o = document.getElementById(`${prefix}-soap-o`)?.innerText || '';
+  const a = document.getElementById(`${prefix}-soap-a`)?.innerText || '';
+  const p = document.getElementById(`${prefix}-soap-p`)?.innerText || '';
+  const texto = `NOTA DE EVOLUCIÓN FISIOTERAPÉUTICA\n\nS (Subjetivo):\n${s}\n\nO (Objetivo):\n${o}\n\nA (Análisis):\n${a}\n\nP (Plan):\n${p}`;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = event.target;
+    btn.textContent = '¡Copiada!';
+    setTimeout(() => btn.textContent = 'Copiar nota SOAP', 2000);
+  });
+}
+
+
+// ─── HISTORIAL DE PLANES ──────────────────────────────────────────────────────
+function getHistorial() {
+  try { return JSON.parse(localStorage.getItem('fisioIA_historial') || '[]'); } catch { return []; }
+}
+function saveHistorial(h) {
+  localStorage.setItem('fisioIA_historial', JSON.stringify(h));
+}
+
+function guardarEnHistorial(tab, datos, planTexto) {
+  const h = getHistorial();
+  const entry = {
+    id: Date.now(),
+    fecha: new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }),
+    hora: new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' }),
+    tab,
+    especialidad: specConfig[tab]?.label || tab,
+    color: specConfig[tab]?.color || '#0F6E56',
+    light: specConfig[tab]?.light || '#E1F5EE',
+    dx_medico: datos.dx_medico || '',
+    dx_fisio: datos.dx_fisio || '',
+    edad: datos.edad || '',
+    sexo: datos.sexo || '',
+    plan: planTexto
+  };
+  h.unshift(entry);
+  if (h.length > 50) h.splice(50);
+  saveHistorial(h);
+  renderHistorial();
+}
+
+function renderHistorial() {
+  const h = getHistorial();
+  const list = document.getElementById('historial-list');
+  if (!list) return;
+  if (h.length === 0) {
+    list.innerHTML = '<div class="historial-empty">Aún no hay planes guardados.<br>Genera tu primer plan para verlo aquí.</div>';
+    return;
+  }
+  list.innerHTML = h.map(e => `
+    <div class="historial-item" id="hitem-${e.id}">
+      <div class="historial-item-top">
+        <span class="historial-item-badge" style="background:${e.light};color:${e.color}">${e.especialidad}</span>
+        <span class="historial-item-date">${e.fecha} ${e.hora}</span>
+      </div>
+      <div class="historial-item-dx">${e.dx_medico || e.dx_fisio || 'Sin diagnóstico'}</div>
+      <div class="historial-item-meta">${e.dx_fisio ? e.dx_fisio.substring(0,60)+'...' : ''} ${e.edad ? '· '+e.edad+' años' : ''} ${e.sexo ? '· '+e.sexo : ''}</div>
+      <div class="historial-item-actions">
+        <button class="historial-btn-sm" onclick="verPlanHistorial(${e.id})">Ver plan</button>
+        <button class="historial-btn-sm" onclick="copiarPlanHistorial(${e.id})">Copiar</button>
+        <button class="historial-btn-sm danger" onclick="eliminarHistorial(${e.id})">Eliminar</button>
+      </div>
+    </div>`).join('');
+}
+
+function verPlanHistorial(id) {
+  const h = getHistorial();
+  const entry = h.find(e => e.id === id);
+  if (!entry) return;
+  cerrarHistorial();
+  const html = entry.plan
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">');
+  const prefix = tabPrefix[entry.tab] || 'n';
+  const cfg = specConfig[entry.tab] || specConfig.neuro;
+  switchTab(entry.tab);
+  document.getElementById(`${prefix}-resultado`).innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-header-left">
+          <div class="result-dot" style="background:${cfg.color}"></div>
+          <span class="result-label">Plan guardado — ${entry.fecha}</span>
+          <span class="result-specialty-badge" style="background:${cfg.light};color:${cfg.color};border:1px solid ${cfg.color}33">${cfg.label}</span>
+        </div>
+        <div class="result-actions">
+          <button class="btn-action" onclick="imprimirPlan('${prefix}')">Imprimir / PDF</button>
+          <button class="btn-action" onclick="copiarPlan('${prefix}-plan-texto')">Copiar texto</button>
+        </div>
+      </div>
+      <div class="result-body" id="${prefix}-plan-texto">${html}</div>
+    </div>`;
+  document.getElementById(`${prefix}-resultado`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copiarPlanHistorial(id) {
+  const h = getHistorial();
+  const entry = h.find(e => e.id === id);
+  if (!entry) return;
+  navigator.clipboard.writeText(entry.plan);
+  const btn = document.querySelector(`#hitem-${id} .historial-btn-sm`);
+  if (btn) { const orig = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(() => btn.textContent = orig, 2000); }
+}
+
+function eliminarHistorial(id) {
+  let h = getHistorial();
+  h = h.filter(e => e.id !== id);
+  saveHistorial(h);
+  renderHistorial();
+}
+
+function abrirHistorial() {
+  renderHistorial();
+  document.getElementById('historial-panel').classList.add('open');
+  document.getElementById('historial-overlay').classList.add('open');
+}
+
+function cerrarHistorial() {
+  document.getElementById('historial-panel').classList.remove('open');
+  document.getElementById('historial-overlay').classList.remove('open');
+}
+
+// ─── AUTOGUARDADO ─────────────────────────────────────────────────────────────
+let autosaveTimer = null;
+function triggerAutosave(tab) {
+  clearTimeout(autosaveTimer);
+  const dot = document.getElementById('autosave-dot');
+  const label = document.getElementById('autosave-label');
+  if (dot) { dot.classList.remove('saved'); }
+  autosaveTimer = setTimeout(() => {
+    try {
+      const d = recopilarDatos(tab);
+      localStorage.setItem(`fisioIA_draft_${tab}`, JSON.stringify(d));
+      if (dot) dot.classList.add('saved');
+      if (label) label.textContent = 'Guardado';
+      setTimeout(() => { if (label) label.textContent = 'Autoguardado'; }, 2000);
+    } catch(e) {}
+  }, 1500);
+}
+
+function restoreDraft(tab) {
+  try {
+    const saved = localStorage.getItem(`fisioIA_draft_${tab}`);
+    if (!saved) return;
+    const d = JSON.parse(saved);
+    const prefix = tabPrefix[tab];
+    const fieldMap = {
+      neuro: ['edad','sexo','fase','dx_medico','dx_fisio','evolucion','tono','fuerza','equilibrio','marcha','dolor','cognicion','otros','contexto','frecuencia','objetivos_px','adicional'],
+      ortho: ['edad','sexo','fase','dx_medico','dx_fisio','evolucion','dolor_reposo','dolor_movimiento','rom','fuerza','edema','funcion','otros','actividad','frecuencia','objetivos_px','adicional'],
+      geria: ['edad','sexo','residencia','dx_medico','dx_fisio','comorbilidades','independencia','caida','marcha','cognicion','fuerza','dolor','otros','apoyo','frecuencia','objetivos_px','adicional'],
+      pedia: ['edad','sexo','grupo','dx_medico','dx_fisio','perinatales','hitos','tono','patron','marcha','reflejos','otros','escolar','frecuencia','objetivos_px','adicional']
+    };
+    (fieldMap[tab] || []).forEach(f => {
+      const el = document.getElementById(`${prefix[0]}-${f}`) || document.getElementById(`${prefix}-${f}`);
+      if (el && d[f]) el.value = d[f];
+    });
+  } catch(e) {}
+}
+
+// Init autosave listeners after DOM ready
+function initAutosave() {
+  ['neuro','ortho','geria','pedia'].forEach(tab => {
+    const prefix = tabPrefix[tab];
+    document.querySelectorAll(`#panel-${tab} input, #panel-${tab} select, #panel-${tab} textarea`).forEach(el => {
+      el.addEventListener('change', () => triggerAutosave(tab));
+      el.addEventListener('input', () => triggerAutosave(tab));
+    });
+    restoreDraft(tab);
+  });
+  renderHistorial();
+}
+document.addEventListener('DOMContentLoaded', initAutosave);
+
 function limpiarFormulario(tab) {
   const prefix = tabPrefix[tab];
   document.querySelectorAll(`#panel-${tab} input, #panel-${tab} select, #panel-${tab} textarea`)
@@ -1794,6 +2294,7 @@ function limpiarFormulario(tab) {
   document.querySelectorAll(`#${prefix}-escalas-btns .escala-btn.active`).forEach(b => b.classList.remove('active'));
   document.getElementById(`${prefix}-scores-container`).innerHTML = '';
   document.getElementById(`${prefix}-resultado`).innerHTML = '';
+  localStorage.removeItem(`fisioIA_draft_${tab}`);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
