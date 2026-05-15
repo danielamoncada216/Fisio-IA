@@ -758,17 +758,66 @@
     </div>
     <div class="login-title">FisioIA</div>
     <div class="login-sub">Planes de tratamiento basados en evidencia</div>
-    <div class="login-field">
-      <label>Usuario</label>
-      <input type="text" id="login-user" placeholder="Ingresa tu usuario" autocomplete="username" onkeydown="if(event.key==='Enter')intentarLogin()">
+
+    <!-- AUTH TABS -->
+    <div style="display:flex;gap:0;border:1px solid var(--border-strong);border-radius:8px;margin-bottom:1.5rem;overflow:hidden;">
+      <button id="tab-login-btn" onclick="showAuthTab('login')" style="flex:1;padding:9px;border:none;background:var(--neuro);color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;">Ingresar</button>
+      <button id="tab-register-btn" onclick="showAuthTab('register')" style="flex:1;padding:9px;border:none;background:var(--white);color:var(--gray-600);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;">Registrarse</button>
     </div>
-    <div class="login-field">
-      <label>Contraseña</label>
-      <input type="password" id="login-pass" placeholder="Ingresa tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')intentarLogin()">
+
+    <!-- LOGIN FORM -->
+    <div id="auth-login">
+      <div class="login-field">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@correo.com" autocomplete="email" onkeydown="if(event.key==='Enter')intentarLogin()">
+      </div>
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" placeholder="Tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')intentarLogin()">
+      </div>
+      <button class="login-btn" id="login-btn" onclick="intentarLogin()">Ingresar</button>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="showAuthTab('forgot')" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--gray-400);cursor:pointer;text-decoration:underline;">¿Olvidaste tu contraseña?</button>
+      </div>
     </div>
-    <button class="login-btn" onclick="intentarLogin()">Ingresar</button>
-    <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
-    <div class="login-footer">Solo para uso profesional autorizado</div>
+
+    <!-- REGISTER FORM -->
+    <div id="auth-register" style="display:none;">
+      <div class="login-field">
+        <label>Nombre completo</label>
+        <input type="text" id="reg-name" placeholder="Tu nombre" autocomplete="name">
+      </div>
+      <div class="login-field">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@correo.com" autocomplete="email">
+      </div>
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input type="password" id="reg-pass" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+      </div>
+      <button class="login-btn" id="register-btn" onclick="intentarRegistro()">Crear cuenta gratis</button>
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--gray-400);">
+        Al registrarte aceptas los términos de uso y política de privacidad.
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <div id="auth-forgot" style="display:none;">
+      <div style="text-align:center;margin-bottom:1rem;font-size:13px;color:var(--gray-600);">
+        Ingresa tu correo y te enviaremos un link para restablecer tu contraseña.
+      </div>
+      <div class="login-field">
+        <label>Correo electrónico</label>
+        <input type="email" id="forgot-email" placeholder="tu@correo.com">
+      </div>
+      <button class="login-btn" onclick="enviarRecuperacion()">Enviar link de recuperación</button>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="showAuthTab('login')" style="background:none;border:none;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--gray-400);cursor:pointer;text-decoration:underline;">Volver al login</button>
+      </div>
+    </div>
+
+    <div class="login-error" id="login-error"></div>
+    <div class="login-footer" id="login-footer">Solo para uso profesional autorizado</div>
   </div>
 </div>
 
@@ -788,6 +837,7 @@
     </div>
     <span class="nav-badge">Basado en evidencia</span>
     <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
+    <span id="nav-user-email" style="font-size:11px;color:var(--gray-400);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Salir</button>
   </div>
 </nav>
@@ -2050,45 +2100,150 @@ function imprimirPlan(tabPrefix) {
   ventana.document.close();
 }
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
-// Para agregar más usuarios: { usuario: 'nombre', clave: 'contraseña' }
-const USUARIOS = [
-  { usuario: 'admin',    clave: 'fisio2024' },
-  { usuario: 'daniela', clave: 'neuro2024' }
-];
+// ─── SUPABASE AUTH ────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://rfnuzhmxdmhekqbaloko.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_xyLKd8KnFG-wSJvxrZdc3A_EtVxhTvX';
 
-function intentarLogin() {
-  const user = document.getElementById('login-user').value.trim().toLowerCase();
+async function supabaseFetch(endpoint, method, body, token) {
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${token || SUPABASE_KEY}`
+  };
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/${endpoint}`, {
+    method, headers,
+    body: body ? JSON.stringify(body) : undefined
+  });
+  return res.json();
+}
+
+function showAuthTab(tab) {
+  document.getElementById('auth-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('auth-forgot').style.display = tab === 'forgot' ? 'block' : 'none';
+  const loginBtn = document.getElementById('tab-login-btn');
+  const regBtn = document.getElementById('tab-register-btn');
+  if (tab === 'login') {
+    loginBtn.style.background = 'var(--neuro)'; loginBtn.style.color = 'white';
+    regBtn.style.background = 'var(--white)'; regBtn.style.color = 'var(--gray-600)';
+  } else if (tab === 'register') {
+    regBtn.style.background = 'var(--neuro)'; regBtn.style.color = 'white';
+    loginBtn.style.background = 'var(--white)'; loginBtn.style.color = 'var(--gray-600)';
+  }
+  mostrarError('');
+}
+
+function mostrarError(msg) {
+  const el = document.getElementById('login-error');
+  if (msg) { el.textContent = msg; el.classList.add('show'); }
+  else { el.textContent = ''; el.classList.remove('show'); }
+}
+
+function setBtnLoading(id, loading, text) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Cargando...' : text;
+}
+
+async function intentarLogin() {
+  const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
-  const error = document.getElementById('login-error');
-  const valido = USUARIOS.some(u => u.usuario === user && u.clave === pass);
-  if (valido) {
-    sessionStorage.setItem('fisioIA_auth', 'true');
-    document.getElementById('login-screen').classList.add('hidden');
-    error.classList.remove('show');
-  } else {
-    error.classList.add('show');
-    document.getElementById('login-pass').value = '';
-    document.getElementById('login-pass').focus();
+  if (!email || !pass) { mostrarError('Por favor completa todos los campos.'); return; }
+  setBtnLoading('login-btn', true, 'Ingresar');
+  mostrarError('');
+  try {
+    const data = await supabaseFetch('token?grant_type=password', 'POST', { email, password: pass });
+    if (data.access_token) {
+      localStorage.setItem('fisioIA_token', data.access_token);
+      localStorage.setItem('fisioIA_email', email);
+      localStorage.setItem('fisioIA_expires', Date.now() + (data.expires_in * 1000));
+      mostrarError('');
+      entrarApp(email);
+    } else {
+      const msg = data.error_description || data.msg || '';
+      if (msg.includes('Invalid login')) mostrarError('Correo o contraseña incorrectos.');
+      else if (msg.includes('Email not confirmed')) mostrarError('Confirma tu correo antes de ingresar. Revisa tu bandeja de entrada.');
+      else mostrarError('Error al ingresar. Intenta nuevamente.');
+    }
+  } catch(e) {
+    mostrarError('Error de conexión. Verifica tu internet.');
+  }
+  setBtnLoading('login-btn', false, 'Ingresar');
+}
+
+async function intentarRegistro() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  if (!name || !email || !pass) { mostrarError('Por favor completa todos los campos.'); return; }
+  if (pass.length < 8) { mostrarError('La contraseña debe tener al menos 8 caracteres.'); return; }
+  setBtnLoading('register-btn', true, 'Crear cuenta gratis');
+  mostrarError('');
+  try {
+    const data = await supabaseFetch('signup', 'POST', {
+      email, password: pass,
+      data: { full_name: name }
+    });
+    if (data.id || data.user?.id) {
+      mostrarError('');
+      document.getElementById('login-error').style.color = '#0F6E56';
+      document.getElementById('login-error').textContent = '✓ Cuenta creada. Revisa tu correo para confirmar y luego inicia sesión.';
+      document.getElementById('login-error').classList.add('show');
+      setTimeout(() => showAuthTab('login'), 3000);
+    } else {
+      const msg = data.error_description || data.msg || data.message || '';
+      if (msg.includes('already registered')) mostrarError('Este correo ya está registrado. Ingresa con tu contraseña.');
+      else mostrarError('Error al crear la cuenta. Intenta nuevamente.');
+    }
+  } catch(e) {
+    mostrarError('Error de conexión. Verifica tu internet.');
+  }
+  setBtnLoading('register-btn', false, 'Crear cuenta gratis');
+}
+
+async function enviarRecuperacion() {
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) { mostrarError('Ingresa tu correo.'); return; }
+  mostrarError('');
+  try {
+    await supabaseFetch('recover', 'POST', { email });
+    document.getElementById('login-error').style.color = '#0F6E56';
+    document.getElementById('login-error').textContent = '✓ Link enviado. Revisa tu correo (incluyendo spam).';
+    document.getElementById('login-error').classList.add('show');
+  } catch(e) {
+    mostrarError('Error de conexión.');
   }
 }
 
+function entrarApp(email) {
+  document.getElementById('login-screen').classList.add('hidden');
+  const navEmail = document.getElementById('nav-user-email');
+  if (navEmail) navEmail.textContent = email;
+}
+
 function cerrarSesion() {
-  sessionStorage.removeItem('fisioIA_auth');
-  document.getElementById('login-user').value = '';
-  document.getElementById('login-pass').value = '';
-  document.getElementById('login-error').classList.remove('show');
+  localStorage.removeItem('fisioIA_token');
+  localStorage.removeItem('fisioIA_email');
+  localStorage.removeItem('fisioIA_expires');
   document.getElementById('login-screen').classList.remove('hidden');
+  showAuthTab('login');
 }
 
 // Verificar sesión al cargar
 (function() {
-  if (sessionStorage.getItem('fisioIA_auth') !== 'true') {
-    document.getElementById('login-screen').classList.remove('hidden');
+  const token = localStorage.getItem('fisioIA_token');
+  const expires = localStorage.getItem('fisioIA_expires');
+  const email = localStorage.getItem('fisioIA_email');
+  if (token && expires && Date.now() < parseInt(expires)) {
+    entrarApp(email || '');
   } else {
-    document.getElementById('login-screen').classList.add('hidden');
+    localStorage.removeItem('fisioIA_token');
+    localStorage.removeItem('fisioIA_email');
+    localStorage.removeItem('fisioIA_expires');
+    document.getElementById('login-screen').classList.remove('hidden');
+    setTimeout(() => { const el = document.getElementById('login-email'); if(el) el.focus(); }, 200);
   }
-  setTimeout(() => document.getElementById('login-user').focus(), 100);
 })();
 
 
