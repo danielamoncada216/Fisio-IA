@@ -915,8 +915,12 @@
           <span class="tag" data-field="n-dx_medico">Lesión medular</span>
           <span class="tag" data-field="n-dx_medico">Neuropatía periférica</span>
           <span class="tag" data-field="n-dx_medico">Ataxia cerebelosa</span>
+          <span class="tag" data-field="n-dx_medico" id="tag-otro-neuro" onclick="toggleOtroDx()">Otro diagnóstico</span>
         </div>
         <input type="text" id="n-dx_medico" placeholder="O escribe el diagnóstico médico...">
+        <div id="otro-dx-field" style="display:none;margin-top:8px;">
+          <input type="text" id="n-dx_otro" placeholder="Describe el diagnóstico no listado (ej. Síndrome de Brown-Séquard, ELA, Huntington...)">
+        </div>
       </div>
       <div class="field"><label>Diagnóstico fisioterapéutico</label><input type="text" id="n-dx_fisio" placeholder="ej. Alteración del control postural y marcha por hemiparesia espástica izquierda"></div>
       <div class="field"><label>Tiempo de evolución</label><input type="text" id="n-evolucion" placeholder="ej. 3 semanas post-evento, 2 meses de rehabilitación previa..."></div>
@@ -975,6 +979,39 @@
       </div>
       <div class="grid2">
         <div class="field"><label>Dolor (EVA 0-10)</label><input type="number" id="n-dolor" placeholder="0 = sin dolor" min="0" max="10"></div>
+        <div class="field"><label>Zona del dolor</label><input type="text" id="n-dolor_zona" placeholder="ej. hombro derecho, región lumbar, miembro inferior izquierdo..."></div>
+      </div>
+      <div class="field">
+        <label>Sensibilidad</label>
+        <div class="grid2">
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Superficial (tacto, temperatura, dolor)</label>
+            <select id="n-sens-superficial">
+              <option value="">Seleccionar</option>
+              <option>Normal</option>
+              <option>Hipoestesia leve</option>
+              <option>Hipoestesia moderada</option>
+              <option>Hipoestesia severa / Anestesia</option>
+              <option>Hiperestesia</option>
+              <option>Alodinia</option>
+              <option>No evaluable</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Profunda (propiocepción, vibración, barestesia)</label>
+            <select id="n-sens-profunda">
+              <option value="">Seleccionar</option>
+              <option>Normal</option>
+              <option>Alteración leve</option>
+              <option>Alteración moderada</option>
+              <option>Alteración severa / Ausente</option>
+              <option>No evaluable</option>
+            </select>
+          </div>
+        </div>
+        <input type="text" id="n-sensibilidad_zona" placeholder="Zona(s) afectada(s) en sensibilidad..." style="margin-top:8px;">
+      </div>
+      <div class="grid2">
         <div class="field">
           <label>Estado cognitivo</label>
           <select id="n-cognicion">
@@ -986,8 +1023,9 @@
             <option>No evaluable</option>
           </select>
         </div>
+        <div class="field"></div>
       </div>
-      <div class="field"><label>Otros hallazgos (sensitivos, visuales, comunicativos, deglución...)</label><textarea id="n-otros" placeholder="Alteraciones sensitivas, hemianopsia, afasia, disfagia, alteraciones de la coordinación..."></textarea></div>
+      <div class="field"><label>Otros hallazgos (visuales, comunicativos, deglución...)</label><textarea id="n-otros" placeholder="Hemianopsia, afasia, disfagia, alteraciones de la coordinación, espasticidad localizada..."></textarea></div>
     </div>
 
     <div class="card">
@@ -1005,6 +1043,9 @@
         <button class="escala-btn" data-scale="fac"><span class="dot"></span>FAC</button>
         <button class="escala-btn" data-scale="wmft"><span class="dot"></span>Wolf Motor</button>
         <button class="escala-btn" data-scale="arat"><span class="dot"></span>ARAT</button>
+        <button class="escala-btn" data-scale="tinetti"><span class="dot"></span>Tinetti</button>
+        <button class="escala-btn" data-scale="tis"><span class="dot"></span>TIS (Control de tronco)</button>
+        <button class="escala-btn" data-scale="tass"><span class="dot"></span>TASS (Tronco lesión medular)</button>
       </div>
       <div class="scores-grid" id="n-scores-container"></div>
     </div>
@@ -1545,7 +1586,10 @@ const scaleRanges = {
   bayley:  { label: "Bayley III (índice compuesto)", min: 40, max: 160 },
   fms:     { label: "FMS (1-6 para D/D/E)", min: 1, max: 6 },
   weefim:  { label: "WeeFIM (18-126)", min: 18, max: 126 },
-  bimanual:{ label: "BIMANU-KID (puntaje)", min: 0, max: 100 }
+  bimanual:{ label: "BIMANU-KID (puntaje)", min: 0, max: 100 },
+  tinetti: { label: "Tinetti (0-28)", min: 0, max: 28 },
+  tis:     { label: "TIS - Trunk Impairment Scale (0-23)", min: 0, max: 23 },
+  tass:    { label: "TASS - Trunk Control Test (0-100)", min: 0, max: 100 }
 };
 
 const activeScales = { neuro: new Set(), ortho: new Set(), geria: new Set(), pedia: new Set() };
@@ -1625,14 +1669,22 @@ function recopilarDatos(tab) {
     if (el && el.value) scores[scaleRanges[s].label] = el.value;
   });
 
-  if (tab === 'neuro') return {
-    especialidad: 'Neurológico', edad: g('n-edad'), sexo: g('n-sexo'), fase: g('n-fase'),
-    dx_medico: g('n-dx_medico'), dx_fisio: g('n-dx_fisio'), evolucion: g('n-evolucion'),
-    tono: g('n-tono'), fuerza: g('n-fuerza'), equilibrio: g('n-equilibrio'),
-    marcha: g('n-marcha'), dolor: g('n-dolor'), cognicion: g('n-cognicion'),
-    otros: g('n-otros'), escalas: scores, contexto: g('n-contexto'),
-    frecuencia: g('n-frecuencia'), objetivos_px: g('n-objetivos_px'), adicional: g('n-adicional')
-  };
+  if (tab === 'neuro') {
+    const dxMedico = g('n-dx_medico');
+    const dxOtro = g('n-dx_otro');
+    const dxFinal = dxOtro ? (dxMedico ? dxMedico + ' / ' + dxOtro : dxOtro) : dxMedico;
+    return {
+      especialidad: 'Neurológico', edad: g('n-edad'), sexo: g('n-sexo'), fase: g('n-fase'),
+      dx_medico: dxFinal, dx_fisio: g('n-dx_fisio'), evolucion: g('n-evolucion'),
+      tono: g('n-tono'), fuerza: g('n-fuerza'), equilibrio: g('n-equilibrio'),
+      marcha: g('n-marcha'), dolor: g('n-dolor'), dolor_zona: g('n-dolor_zona'),
+      sens_superficial: g('n-sens-superficial'), sens_profunda: g('n-sens-profunda'),
+      sensibilidad_zona: g('n-sensibilidad_zona'),
+      cognicion: g('n-cognicion'),
+      otros: g('n-otros'), escalas: scores, contexto: g('n-contexto'),
+      frecuencia: g('n-frecuencia'), objetivos_px: g('n-objetivos_px'), adicional: g('n-adicional')
+    };
+  }
   if (tab === 'ortho') return {
     especialidad: 'Ortopédico', edad: g('o-edad'), sexo: g('o-sexo'), fase: g('o-fase'),
     dx_medico: g('o-dx_medico'), dx_fisio: g('o-dx_fisio'), evolucion: g('o-evolucion'),
@@ -1755,7 +1807,10 @@ HALLAZGOS CLÍNICOS:
 - Tono: ${d.tono||'N/E'} | Fuerza MRC: ${d.fuerza||'N/E'}
 - Control postural / Equilibrio: ${d.equilibrio||'N/E'}
 - Marcha: ${d.marcha||'N/E'}
-- Dolor EVA: ${d.dolor||'N/R'}/10 | Cognición: ${d.cognicion||'N/E'}
+- Dolor EVA: ${d.dolor||'N/R'}/10 | Zona del dolor: ${d.dolor_zona||'N/E'}
+- Sensibilidad superficial: ${d.sens_superficial||'N/E'} | Sensibilidad profunda: ${d.sens_profunda||'N/E'}
+- Zona afectada en sensibilidad: ${d.sensibilidad_zona||'N/E'}
+- Cognición: ${d.cognicion||'N/E'}
 - Otros hallazgos: ${d.otros||'Ninguno'}
 - Escalas: ${escalasTxt}
 
@@ -2488,6 +2543,22 @@ function initAutosave() {
 }
 document.addEventListener('DOMContentLoaded', initAutosave);
 
+
+// ─── OTRO DIAGNÓSTICO TOGGLE ──────────────────────────────────────────────────
+function toggleOtroDx() {
+  const field = document.getElementById('otro-dx-field');
+  const tag = document.getElementById('tag-otro-neuro');
+  if (field.style.display === 'none') {
+    field.style.display = 'block';
+    tag.classList.add('sel');
+    document.getElementById('n-dx_otro').focus();
+  } else {
+    field.style.display = 'none';
+    tag.classList.remove('sel');
+    document.getElementById('n-dx_otro').value = '';
+  }
+}
+
 function limpiarFormulario(tab) {
   const prefix = tabPrefix[tab];
   document.querySelectorAll(`#panel-${tab} input, #panel-${tab} select, #panel-${tab} textarea`)
@@ -2498,6 +2569,14 @@ function limpiarFormulario(tab) {
   document.getElementById(`${prefix}-scores-container`).innerHTML = '';
   document.getElementById(`${prefix}-resultado`).innerHTML = '';
   localStorage.removeItem(`fisioIA_draft_${tab}`);
+  if (tab === 'neuro') {
+    const otroDx = document.getElementById('n-dx_otro');
+    const otroField = document.getElementById('otro-dx-field');
+    if (otroDx) otroDx.value = '';
+    if (otroField) otroField.style.display = 'none';
+    const tagOtro = document.getElementById('tag-otro-neuro');
+    if (tagOtro) tagOtro.classList.remove('sel');
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 </script>
