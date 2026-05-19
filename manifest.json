@@ -1,0 +1,36 @@
+{
+  "name": "FisioIA — Planes de Tratamiento",
+  "short_name": "FisioIA",
+  "description": "Planes de tratamiento fisioterapéutico basados en evidencia científica",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#04342C",
+  "theme_color": "#0F6E56",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "categories": [
+    "health",
+    "medical",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230F6E56'/><path fill='white' d='M96 24C78.3 24 64 38.3 64 56c0 9.4 4.3 17.9 11 23.6C61.6 87.3 52 101.2 52 117h12c0-17.7 14.3-32 32-32s32 14.3 32 32h12c0-15.8-9.6-29.7-23-37.4 6.7-5.7 11-14.2 11-23.6 0-17.7-14.3-32-32-32zm0 12c11 0 20 9 20 20s-9 20-20 20-20-9-20-20 9-20 20-20z'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230F6E56'/><path fill='white' d='M256 64C211.8 64 176 99.8 176 144c0 25.1 11.4 47.6 29.4 62.8C162.8 226.9 140 258.3 140 296h32c0-46.4 37.6-84 84-84s84 37.6 84 84h32c0-37.7-22.8-69.1-55.4-83.2 18-15.2 29.4-37.7 29.4-62.8 0-44.2-35.8-80-80-80zm0 32c26.5 0 48 21.5 48 48s-21.5 48-48 48-48-21.5-48-48 21.5-48 48-48z'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "label": "FisioIA — Plan neurológico",
+      "form_factor": "narrow"
+    }
+  ]
+}
