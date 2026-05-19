@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FisioIA — Planes de Tratamiento Basados en Evidencia</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0F6E56">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FisioIA">
+  <meta name="application-name" content="FisioIA">
+  <meta name="description" content="Planes de tratamiento fisioterapéutico basados en evidencia científica">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -2542,6 +2552,55 @@ function initAutosave() {
   renderHistorial();
 }
 document.addEventListener('DOMContentLoaded', initAutosave);
+
+// ─── PWA SERVICE WORKER ───────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('SW registrado:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
+}
+
+// ─── PWA INSTALL PROMPT ───────────────────────────────────────────────────────
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner after 30 seconds if not installed
+  setTimeout(() => {
+    if (deferredPrompt) showInstallBanner();
+  }, 30000);
+});
+
+function showInstallBanner() {
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = `
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+    background: #0F6E56; color: white; border-radius: 100px;
+    padding: 12px 20px; font-family: 'DM Sans', sans-serif; font-size: 13px;
+    font-weight: 500; display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 999; white-space: nowrap;
+    animation: fadeUp 0.4s ease;
+  `;
+  banner.innerHTML = `
+    <span>📲</span>
+    <span>Instala FisioIA en tu celular</span>
+    <button onclick="instalarPWA()" style="background:white;color:#0F6E56;border:none;border-radius:100px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">Instalar</button>
+    <button onclick="document.getElementById('install-banner').remove()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:100px;width:24px;height:24px;cursor:pointer;font-size:14px;">✕</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function instalarPWA() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.remove();
+}
 
 
 // ─── OTRO DIAGNÓSTICO TOGGLE ──────────────────────────────────────────────────
