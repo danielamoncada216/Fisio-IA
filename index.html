@@ -609,6 +609,182 @@
     }
 
 
+
+    /* PATIENT SYSTEM */
+    .patient-panel {
+      position: fixed; top: 0; left: -480px; width: 460px; height: 100vh;
+      background: var(--white); border-right: 1px solid var(--border);
+      box-shadow: 8px 0 32px rgba(0,0,0,0.1);
+      z-index: 300; transition: left 0.3s cubic-bezier(0.16,1,0.3,1);
+      display: flex; flex-direction: column;
+    }
+    .patient-panel.open { left: 0; }
+    .patient-panel-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; background: var(--gray-50);
+    }
+    .patient-panel-title { font-size: 14px; font-weight: 600; }
+    .patient-panel-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+    .patient-panel-close {
+      width: 28px; height: 28px; border-radius: 8px; border: none;
+      background: var(--gray-200); cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gray-600);
+    }
+    .patient-search-bar { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .patient-search-input {
+      width: 100%; padding: 9px 12px; border-radius: 8px;
+      border: 1px solid var(--border-strong); font-family: 'DM Sans', sans-serif;
+      font-size: 13px; color: var(--gray-900); background: var(--white);
+    }
+    .patient-search-input:focus { outline: none; border-color: var(--neuro); box-shadow: 0 0 0 3px rgba(15,110,86,0.1); }
+    .patient-list { flex: 1; overflow-y: auto; padding: 0.75rem; }
+    .patient-empty { text-align: center; padding: 2rem 1rem; color: var(--gray-400); font-size: 13px; }
+    .patient-item {
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; cursor: pointer; transition: all 0.12s;
+      background: var(--white); margin-bottom: 8px; display: flex; align-items: center; gap: 12px;
+    }
+    .patient-item:hover { border-color: var(--neuro); background: var(--neuro-light); }
+    .patient-item.active { border-color: var(--neuro); background: var(--neuro-light); }
+    .patient-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--neuro); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; flex-shrink: 0;
+    }
+    .patient-item-info { flex: 1; min-width: 0; }
+    .patient-item-name { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+    .patient-item-meta { font-size: 11px; color: var(--gray-600); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .patient-panel-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0; }
+    .btn-new-patient {
+      width: 100%; padding: 10px; border-radius: 8px;
+      background: var(--neuro); color: white; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .btn-new-patient:hover { filter: brightness(0.9); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 400; display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: var(--white); border-radius: 16px;
+      width: 100%; max-width: 560px; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      animation: loginIn 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .modal-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--white); z-index: 1;
+    }
+    .modal-title { font-size: 15px; font-weight: 600; }
+    .modal-close {
+      width: 28px; height: 28px; border-radius: 8px; border: none;
+      background: var(--gray-100); cursor: pointer; font-size: 14px;
+    }
+    .modal-body { padding: 1.25rem 1.5rem; }
+    .modal-footer {
+      padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+      display: flex; gap: 8px; justify-content: flex-end;
+      position: sticky; bottom: 0; background: var(--white);
+    }
+    .btn-modal-primary {
+      padding: 9px 22px; border-radius: 8px; border: none;
+      background: var(--neuro); color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .btn-modal-secondary {
+      padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border-strong);
+      background: transparent; color: var(--gray-600);
+      font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+    }
+
+    /* ACTIVE PATIENT BANNER */
+    .active-patient-banner {
+      background: linear-gradient(135deg, var(--neuro) 0%, #1a8a6e 100%);
+      border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 1rem;
+      display: none; align-items: center; justify-content: space-between; gap: 12px;
+      color: white; box-shadow: 0 4px 16px rgba(15,110,86,0.25);
+    }
+    .active-patient-banner.visible { display: flex; }
+    .apb-left { display: flex; align-items: center; gap: 10px; }
+    .apb-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .apb-name { font-size: 13px; font-weight: 600; }
+    .apb-meta { font-size: 11px; color: rgba(255,255,255,0.75); }
+    .apb-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-apb {
+      padding: 5px 12px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.4);
+      background: transparent; color: white; font-family: 'DM Sans',sans-serif;
+      font-size: 11px; cursor: pointer; transition: all 0.12s;
+    }
+    .btn-apb:hover { background: rgba(255,255,255,0.15); }
+
+    /* PATIENT DETAIL */
+    .patient-detail {
+      background: var(--white); border-radius: var(--radius-md);
+      border: 1px solid var(--border); margin-bottom: 1rem; overflow: hidden;
+    }
+    .pdh { background: var(--neuro); color: white; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .pdh-avatar { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+    .pdh-name { font-size: 15px; font-weight: 600; }
+    .pdh-meta { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+    .pdh-actions { display: flex; gap: 6px; }
+    .btn-pdh { padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.4); background: transparent; color: white; font-family: 'DM Sans',sans-serif; font-size: 12px; cursor: pointer; }
+    .btn-pdh:hover { background: rgba(255,255,255,0.15); }
+    .pdb { padding: 1.25rem 1.5rem; }
+    .px-info-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.25rem; }
+    .px-info-item label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-400); display: block; margin-bottom: 3px; }
+    .px-info-item span { font-size: 13px; color: var(--gray-900); font-weight: 500; }
+    .goal-box { border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .goal-box-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .goal-box-text { font-size: 13px; line-height: 1.6; }
+
+    /* SESSIONS */
+    .session-list { display: flex; flex-direction: column; gap: 8px; }
+    .session-item { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .session-header {
+      padding: 12px 14px; display: flex; align-items: center;
+      justify-content: space-between; cursor: pointer; background: var(--gray-50);
+    }
+    .session-header:hover { background: var(--gray-100); }
+    .session-left { display: flex; align-items: center; gap: 10px; }
+    .session-num { width: 26px; height: 26px; border-radius: 7px; background: var(--neuro); color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .session-date { font-size: 13px; font-weight: 600; }
+    .session-dx { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+    .session-badge { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+    .session-body { display: none; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+    .session-body.open { display: block; }
+    .session-plan-text { font-size: 12.5px; line-height: 1.75; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+
+    /* PROGRESS */
+    .progress-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 1rem 0; }
+    .prog-card { border-radius: 10px; padding: 10px 12px; }
+    .prog-card.logros { background: #F0FBF6; border: 1px solid #A8EDD5; }
+    .prog-card.proceso { background: #FFF8E1; border: 1px solid #F59E0B44; }
+    .prog-card.revisar { background: #FFF5F5; border: 1px solid #FED7D7; }
+    .prog-card-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .prog-card.logros .prog-card-title { color: #0F6E56; }
+    .prog-card.proceso .prog-card-title { color: #D97706; }
+    .prog-card.revisar .prog-card-title { color: #C53030; }
+    .prog-card ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .prog-card ul li { font-size: 11.5px; line-height: 1.4; }
+
+    @media (max-width: 640px) {
+      .patient-panel { width: 100%; left: -100%; }
+      .px-info-grid { grid-template-columns: 1fr 1fr; }
+      .progress-grid { grid-template-columns: 1fr; }
+    }
+
     /* DISCLAIMER */
     .disclaimer-banner {
       background: #FFF8E1; border: 1px solid #F59E0B;
@@ -776,6 +952,82 @@
   </div>
 </div>
 
+
+<!-- PATIENT OVERLAY -->
+<div class="historial-overlay" id="patient-overlay" onclick="cerrarPacientes()"></div>
+
+<!-- PATIENT PANEL -->
+<div class="patient-panel" id="patient-panel">
+  <div class="patient-panel-header">
+    <div>
+      <div class="patient-panel-title">👥 Mis pacientes</div>
+      <div class="patient-panel-sub">Seguimiento por paciente</div>
+    </div>
+    <button class="patient-panel-close" onclick="cerrarPacientes()">✕</button>
+  </div>
+  <div class="patient-search-bar">
+    <input class="patient-search-input" id="patient-search" placeholder="🔍 Buscar paciente..." oninput="filtrarPacientes(this.value)">
+  </div>
+  <div class="patient-list" id="patient-list">
+    <div class="patient-empty">Aún no tienes pacientes.<br>Crea el primero abajo.</div>
+  </div>
+  <div class="patient-panel-footer">
+    <button class="btn-new-patient" onclick="abrirModalPaciente()">+ Nuevo paciente</button>
+  </div>
+</div>
+
+<!-- PATIENT MODAL -->
+<div class="modal-overlay" id="patient-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="px-modal-title">Nuevo paciente</div>
+      <button class="modal-close" onclick="cerrarModalPaciente()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2" style="margin-bottom:12px;">
+        <div class="field"><label>Nombre completo *</label><input type="text" id="px-nombre" placeholder="Nombre y apellidos"></div>
+        <div class="field"><label>Identificación</label><input type="text" id="px-id" placeholder="CC / TI / Pasaporte"></div>
+      </div>
+      <div class="grid3" style="margin-bottom:12px;">
+        <div class="field"><label>Fecha de nacimiento</label><input type="date" id="px-nacimiento"></div>
+        <div class="field"><label>Sexo</label><select id="px-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select></div>
+        <div class="field"><label>Teléfono</label><input type="text" id="px-telefono" placeholder="300 123 4567"></div>
+      </div>
+      <div class="field" style="margin-bottom:12px;"><label>Diagnóstico principal</label><input type="text" id="px-diagnostico" placeholder="ej. ACV isquémico, Parálisis cerebral..."></div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>🎯 Meta funcional — ¿qué quiere recuperar?</label>
+        <textarea id="px-meta" placeholder="ej. Quiere volver a bailar salsa con su esposa, quiere poder cargar a su nieto, quiere cocinar de forma independiente..." style="min-height:75px;"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>👤 Roles en la vida (familiar, laboral, social)</label>
+        <textarea id="px-roles" placeholder="ej. Padre de 3 hijos, trabaja como contador, cocinero del hogar, juega fútbol los domingos..." style="min-height:55px;"></textarea>
+      </div>
+      <div class="field"><label>Notas adicionales</label><textarea id="px-notas" placeholder="Información adicional relevante..." style="min-height:45px;"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="cerrarModalPaciente()">Cancelar</button>
+      <button class="btn-modal-primary" onclick="guardarPaciente()">Guardar paciente</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS MODAL -->
+<div class="modal-overlay" id="progress-modal">
+  <div class="modal-card" style="max-width:620px;">
+    <div class="modal-header">
+      <div class="modal-title">📊 Análisis de progreso</div>
+      <button class="modal-close" onclick="document.getElementById('progress-modal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="progress-modal-body">
+      <div style="text-align:center;padding:2rem;color:var(--gray-400);font-size:13px;">Analizando progreso...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="document.getElementById('progress-modal').classList.remove('open')">Cerrar</button>
+      <button class="btn-modal-primary" onclick="copiarAnalisis()">Copiar análisis</button>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-card">
@@ -863,6 +1115,7 @@
       <span class="autosave-label" id="autosave-label">Autoguardado</span>
     </div>
     <span class="nav-badge">Basado en evidencia</span>
+    <button onclick="abrirPacientes()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:var(--neuro);color:white;border:none;cursor:pointer;font-weight:600;">👥 Pacientes</button>
     <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
     <span id="nav-user-email" style="font-size:11px;color:var(--gray-400);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Salir</button>
@@ -870,6 +1123,21 @@
 </nav>
 
 <div class="container">
+
+  <!-- ACTIVE PATIENT BANNER -->
+  <div class="active-patient-banner" id="active-patient-banner">
+    <div class="apb-left">
+      <div class="apb-avatar" id="apb-avatar"></div>
+      <div>
+        <div class="apb-name" id="apb-name"></div>
+        <div class="apb-meta" id="apb-meta"></div>
+      </div>
+    </div>
+    <div class="apb-actions">
+      <button class="btn-apb" onclick="verDetalle(activePxId)">Ver historial</button>
+      <button class="btn-apb" onclick="desactivarPaciente()">✕ Desvincular</button>
+    </div>
+  </div>
 
   <!-- DISCLAIMER BANNER -->
   <div class="disclaimer-banner">
@@ -1752,7 +2020,7 @@ function construirPrompt(tab, d) {
     ? Object.entries(d.escalas).map(([k,v]) => `${k}: ${v}`).join(' | ')
     : 'No especificadas';
 
-  const base = `Eres un asistente clínico especializado en fisioterapia. Genera un plan de tratamiento fisioterapéutico completo, estructurado y basado en evidencia científica actualizada para la especialidad de ${d.especialidad}. Usa lenguaje técnico apropiado para comunicación entre profesionales de salud en Colombia. Responde en español colombiano.`;
+  const base = `Eres un asistente clínico especializado en fisioterapia. Genera un plan de tratamiento fisioterapéutico completo, estructurado y basado en evidencia científica actualizada para la especialidad de ${d.especialidad}. Usa lenguaje técnico apropiado para comunicación entre profesionales de salud en Colombia. Responde en español colombiano.` + getPatientContext();
 
   const estructura = `
 Genera el plan con EXACTAMENTE esta estructura:
@@ -2039,8 +2307,11 @@ async function generarPlan(tab) {
         </div>
       </div>`;
 
-    // Save to historial
-    guardarEnHistorial(tab, recopilarDatos(tab), texto);
+    // Save to historial and patient
+    var datosActuales = recopilarDatos(tab);
+    guardarEnHistorial(tab, datosActuales, texto);
+    guardarSesionEnPaciente(tab, datosActuales, texto);
+    if (activePxId) { setTimeout(function(){ verDetalle(activePxId); }, 600); }
     // Generate SOAP note asynchronously
     generarSOAP(tab, prefix, recopilarDatos(tab));
 
@@ -2189,6 +2460,406 @@ function imprimirPlan(tabPrefix) {
 </html>`);
   ventana.document.close();
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+// PATIENT SYSTEM
+// ═══════════════════════════════════════════════════════════════
+var activePxId = null;
+var editingPxId = null;
+var lastProgressText = '';
+
+function getPacientes() {
+  try { return JSON.parse(localStorage.getItem('fisioIA_pacientes') || '[]'); } catch(e) { return []; }
+}
+function savePacientes(p) {
+  localStorage.setItem('fisioIA_pacientes', JSON.stringify(p));
+}
+function getInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').slice(0,2).map(function(n){ return n[0]; }).join('').toUpperCase();
+}
+function calcEdad(fecha) {
+  if (!fecha) return '';
+  var hoy = new Date(), nac = new Date(fecha);
+  var edad = hoy.getFullYear() - nac.getFullYear();
+  if (hoy.getMonth() - nac.getMonth() < 0 || (hoy.getMonth() - nac.getMonth() === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return edad + ' años';
+}
+
+function abrirPacientes() {
+  renderPxList();
+  document.getElementById('patient-panel').classList.add('open');
+  document.getElementById('patient-overlay').classList.add('open');
+}
+function cerrarPacientes() {
+  document.getElementById('patient-panel').classList.remove('open');
+  document.getElementById('patient-overlay').classList.remove('open');
+}
+
+function renderPxList(filter) {
+  var pacientes = getPacientes();
+  var list = document.getElementById('patient-list');
+  var filtered = filter
+    ? pacientes.filter(function(p){ return p.nombre.toLowerCase().indexOf(filter.toLowerCase()) > -1 || (p.diagnostico||'').toLowerCase().indexOf(filter.toLowerCase()) > -1; })
+    : pacientes;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="patient-empty">' + (filter ? 'No se encontraron pacientes.' : 'Aún no tienes pacientes.<br>Crea el primero abajo.') + '</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(function(p) {
+    var edad = calcEdad(p.nacimiento);
+    var sesiones = (p.sesiones || []).length;
+    var isActive = p.id === activePxId;
+    return '<div class="patient-item' + (isActive ? ' active' : '') + '" onclick="seleccionarPaciente('' + p.id + '')">' +
+      '<div class="patient-avatar">' + getInitials(p.nombre) + '</div>' +
+      '<div class="patient-item-info">' +
+        '<div class="patient-item-name">' + p.nombre + '</div>' +
+        '<div class="patient-item-meta">' + (p.diagnostico || 'Sin diagnóstico') + (edad ? ' · ' + edad : '') + ' · ' + sesiones + ' sesión' + (sesiones !== 1 ? 'es' : '') + '</div>' +
+      '</div>' +
+      (isActive ? '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--neuro-light);color:var(--neuro);">Activo</span>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function filtrarPacientes(val) { renderPxList(val); }
+
+function seleccionarPaciente(id) {
+  activePxId = id;
+  var p = getPacientes().find(function(px){ return px.id === id; });
+  if (!p) return;
+  var banner = document.getElementById('active-patient-banner');
+  banner.classList.add('visible');
+  document.getElementById('apb-avatar').textContent = getInitials(p.nombre);
+  document.getElementById('apb-name').textContent = p.nombre;
+  document.getElementById('apb-meta').textContent = (p.diagnostico || '') + (calcEdad(p.nacimiento) ? ' · ' + calcEdad(p.nacimiento) : '');
+  cerrarPacientes();
+  verDetalle(id);
+}
+
+function desactivarPaciente() {
+  activePxId = null;
+  document.getElementById('active-patient-banner').classList.remove('visible');
+  var det = document.getElementById('px-detail-card');
+  if (det) det.remove();
+}
+
+function verDetalle(id) {
+  var pacientes = getPacientes();
+  var p = pacientes.find(function(px){ return px.id === id; });
+  if (!p) return;
+  activePxId = id;
+  var edad = calcEdad(p.nacimiento);
+  var sesiones = p.sesiones || [];
+
+  var det = document.getElementById('px-detail-card');
+  if (!det) {
+    det = document.createElement('div');
+    det.id = 'px-detail-card';
+    det.className = 'patient-detail';
+    var container = document.querySelector('.container');
+    var tabsWrapper = document.querySelector('.tabs-wrapper');
+    container.insertBefore(det, tabsWrapper);
+  }
+
+  var sesHTML = '';
+  if (sesiones.length === 0) {
+    sesHTML = '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:1rem 0;">Aún no hay sesiones. Genera un plan con este paciente activo.</p>';
+  } else {
+    var reversed = sesiones.slice().reverse();
+    for (var i = 0; i < reversed.length; i++) {
+      var s = reversed[i];
+      var num = sesiones.length - i;
+      var planSafe = (s.plan || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+      sesHTML += '<div class="session-item">' +
+        '<div class="session-header" onclick="toggleSess('' + s.id + '')">' +
+          '<div class="session-left">' +
+            '<div class="session-num">' + num + '</div>' +
+            '<div>' +
+              '<div class="session-date">' + s.fecha + ' — ' + s.especialidad + '</div>' +
+              '<div class="session-dx">' + (s.dx || '') + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<span class="session-badge" style="background:' + (s.color||'#0F6E56') + '22;color:' + (s.color||'#0F6E56') + '">' + s.especialidad + '</span>' +
+        '</div>' +
+        '<div class="session-body" id="sb-' + s.id + '">' +
+          '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">' +
+            '<button class="historial-btn-sm" onclick="copiarSesionPlan('' + id + '','' + s.id + '')">Copiar plan</button>' +
+            '<button class="historial-btn-sm" onclick="analizarProgreso('' + id + '')" style="background:var(--neuro-light);color:var(--neuro);border-color:var(--neuro);">📊 Analizar progreso</button>' +
+            '<button class="historial-btn-sm danger" onclick="eliminarSesion('' + id + '','' + s.id + '')">Eliminar</button>' +
+          '</div>' +
+          '<div class="session-plan-text">' + planSafe + '</div>' +
+        '</div>' +
+      '</div>';
+    }
+  }
+
+  var metaBox = p.meta ? '<div class="goal-box" style="background:var(--neuro-light);border-left:3px solid var(--neuro);margin-bottom:10px;"><div class="goal-box-label" style="color:var(--neuro);">🎯 Meta funcional</div><div class="goal-box-text">' + p.meta + '</div></div>' : '';
+  var rolesBox = p.roles ? '<div class="goal-box" style="background:#E1EDFA;border-left:3px solid #1A5FA8;margin-bottom:10px;"><div class="goal-box-label" style="color:#1A5FA8;">👤 Roles en la vida</div><div class="goal-box-text">' + p.roles + '</div></div>' : '';
+
+  det.innerHTML =
+    '<div class="pdh">' +
+      '<div style="display:flex;align-items:center;gap:12px;">' +
+        '<div class="pdh-avatar">' + getInitials(p.nombre) + '</div>' +
+        '<div><div class="pdh-name">' + p.nombre + '</div><div class="pdh-meta">' + (p.diagnostico||'Sin diagnóstico') + (edad ? ' · '+edad : '') + ' · ' + sesiones.length + ' sesión' + (sesiones.length!==1?'es':'') + '</div></div>' +
+      '</div>' +
+      '<div class="pdh-actions">' +
+        '<button class="btn-pdh" onclick="abrirModalPaciente('' + id + '')">✏️ Editar</button>' +
+        '<button class="btn-pdh" onclick="cerrarDetalle()">✕</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="pdb">' +
+      '<div class="px-info-grid">' +
+        '<div class="px-info-item"><label>ID</label><span>' + (p.identificacion||'—') + '</span></div>' +
+        '<div class="px-info-item"><label>Edad</label><span>' + (edad||'—') + '</span></div>' +
+        '<div class="px-info-item"><label>Sexo</label><span>' + (p.sexo||'—') + '</span></div>' +
+        '<div class="px-info-item"><label>Teléfono</label><span>' + (p.telefono||'—') + '</span></div>' +
+        '<div class="px-info-item"><label>Sesiones</label><span>' + sesiones.length + '</span></div>' +
+        '<div class="px-info-item"><label>Registrado</label><span>' + (p.fechaCreacion||'—') + '</span></div>' +
+      '</div>' +
+      metaBox + rolesBox +
+      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:10px;margin-top:1rem;">📋 Historial de sesiones</div>' +
+      '<div class="session-list">' + sesHTML + '</div>' +
+    '</div>';
+
+  det.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cerrarDetalle() {
+  var el = document.getElementById('px-detail-card');
+  if (el) el.remove();
+}
+
+function toggleSess(id) {
+  var body = document.getElementById('sb-' + id);
+  if (body) body.classList.toggle('open');
+}
+
+function copiarSesionPlan(pxId, sesId) {
+  var p = getPacientes().find(function(px){ return px.id === pxId; });
+  if (!p) return;
+  var s = (p.sesiones||[]).find(function(x){ return x.id === sesId; });
+  if (s) navigator.clipboard.writeText(s.plan || '');
+}
+
+function eliminarSesion(pxId, sesId) {
+  var pacientes = getPacientes();
+  var p = pacientes.find(function(px){ return px.id === pxId; });
+  if (!p) return;
+  p.sesiones = (p.sesiones||[]).filter(function(s){ return s.id !== sesId; });
+  savePacientes(pacientes);
+  verDetalle(pxId);
+}
+
+function guardarSesionEnPaciente(tab, datos, planTexto) {
+  if (!activePxId) return;
+  var cfg = specConfig[tab];
+  var pacientes = getPacientes();
+  var p = pacientes.find(function(px){ return px.id === activePxId; });
+  if (!p) return;
+  if (!p.sesiones) p.sesiones = [];
+  p.sesiones.push({
+    id: Date.now().toString(),
+    fecha: new Date().toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}),
+    tab: tab,
+    especialidad: cfg ? cfg.label : tab,
+    color: cfg ? cfg.color : '#0F6E56',
+    dx: datos.dx_medico || datos.dx_fisio || '',
+    plan: planTexto
+  });
+  savePacientes(pacientes);
+}
+
+function getPatientContext() {
+  if (!activePxId) return '';
+  var p = getPacientes().find(function(px){ return px.id === activePxId; });
+  if (!p) return '';
+  return '
+
+CONTEXTO PERSONAL DEL PACIENTE (MUY IMPORTANTE):
+' +
+    '- Nombre: ' + p.nombre + '
+' +
+    '- Meta funcional: ' + (p.meta || 'No especificada') + '
+' +
+    '- Roles en la vida: ' + (p.roles || 'No especificados') + '
+' +
+    '- Sesiones previas: ' + (p.sesiones||[]).length + '
+' +
+    'El plan DEBE orientarse hacia estas metas personales. Si quiere bailar, cocinar, caminar al parque — el tratamiento debe tener ese norte claro como destino final de la rehabilitación.';
+}
+
+async function analizarProgreso(pxId) {
+  var p = getPacientes().find(function(px){ return px.id === pxId; });
+  if (!p || !p.sesiones || p.sesiones.length === 0) {
+    alert('Necesitas al menos una sesión registrada para analizar el progreso.');
+    return;
+  }
+  document.getElementById('progress-modal').classList.add('open');
+  document.getElementById('progress-modal-body').innerHTML = '<div style="text-align:center;padding:2rem;"><div class="spinner-wrap" style="margin:0 auto 1rem;"><div class="spinner-bg"></div><div class="spinner"></div></div><div style="font-size:13px;color:var(--gray-600);">Analizando el progreso de ' + p.nombre + '...</div></div>';
+
+  var sesiones = p.sesiones;
+  var ultima = sesiones[sesiones.length - 1];
+  var anterior = sesiones.length > 1 ? sesiones[sesiones.length - 2] : null;
+
+  var prompt = 'Eres un fisioterapeuta clínico experto. Analiza el progreso de este paciente considerando su meta funcional personal.
+
+' +
+    'PACIENTE: ' + p.nombre + '
+' +
+    'DIAGNÓSTICO: ' + (p.diagnostico || 'N/E') + '
+' +
+    'META FUNCIONAL PERSONAL: ' + (p.meta || 'No especificada') + '
+' +
+    'ROLES EN LA VIDA: ' + (p.roles || 'No especificados') + '
+' +
+    'TOTAL SESIONES: ' + sesiones.length + '
+
+' +
+    'PLAN MÁS RECIENTE (Sesión ' + sesiones.length + ' — ' + ultima.fecha + '):
+' +
+    ultima.plan.substring(0, 1200) + '
+
+' +
+    (anterior ? 'PLAN ANTERIOR (Sesión ' + (sesiones.length-1) + ' — ' + anterior.fecha + '):
+' + anterior.plan.substring(0, 600) + '
+
+' : '') +
+    'Responde ÚNICAMENTE en JSON sin texto adicional:
+' +
+    '{"resumen":"...","logros":["..."],"en_proceso":["..."],"revisar":["..."],"nueva_direccion":"...","proyeccion":"..."}';
+
+  try {
+    var resp = await fetch('/api/generar-plan', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({prompt: prompt})
+    });
+    var data = await resp.json();
+    var clean = (data.plan || '').replace(/```json|```/g,'').trim();
+    var a = JSON.parse(clean);
+    lastProgressText = 'ANÁLISIS DE PROGRESO — ' + p.nombre + '
+
+Resumen: ' + a.resumen +
+      '
+
+Logros:
+' + (a.logros||[]).map(function(l){return '• '+l;}).join('
+') +
+      '
+
+En proceso:
+' + (a.en_proceso||[]).map(function(l){return '• '+l;}).join('
+') +
+      '
+
+Revisar:
+' + (a.revisar||[]).map(function(l){return '• '+l;}).join('
+') +
+      '
+
+Nueva dirección: ' + a.nueva_direccion +
+      '
+
+Proyección: ' + a.proyeccion;
+
+    document.getElementById('progress-modal-body').innerHTML =
+      '<div style="margin-bottom:1rem;padding:1rem;background:var(--neuro-light);border-radius:10px;border-left:3px solid var(--neuro);">' +
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--neuro);margin-bottom:6px;">Resumen</div>' +
+        '<p style="font-size:13px;line-height:1.65;">' + a.resumen + '</p>' +
+      '</div>' +
+      '<div class="progress-grid">' +
+        '<div class="prog-card logros"><div class="prog-card-title">✅ Logros</div><ul>' + (a.logros||[]).map(function(l){return '<li>• '+l+'</li>';}).join('') + '</ul></div>' +
+        '<div class="prog-card proceso"><div class="prog-card-title">🔄 En proceso</div><ul>' + (a.en_proceso||[]).map(function(l){return '<li>• '+l+'</li>';}).join('') + '</ul></div>' +
+        '<div class="prog-card revisar"><div class="prog-card-title">⚠️ Revisar</div><ul>' + (a.revisar||[]).map(function(l){return '<li>• '+l+'</li>';}).join('') + '</ul></div>' +
+      '</div>' +
+      '<div style="padding:1rem;background:#F0FBF6;border-radius:10px;border-left:3px solid var(--neuro);margin-bottom:8px;">' +
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--neuro);margin-bottom:6px;">🧭 Nueva dirección</div>' +
+        '<p style="font-size:13px;line-height:1.65;">' + a.nueva_direccion + '</p>' +
+      '</div>' +
+      '<div style="padding:1rem;background:#E1EDFA;border-radius:10px;border-left:3px solid #1A5FA8;">' +
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1A5FA8;margin-bottom:6px;">🎯 Proyección hacia meta personal</div>' +
+        '<p style="font-size:13px;line-height:1.65;">' + a.proyeccion + '</p>' +
+      '</div>';
+  } catch(e) {
+    document.getElementById('progress-modal-body').innerHTML = '<div style="color:#C53030;padding:1rem;">Error al generar el análisis. Intenta nuevamente.</div>';
+  }
+}
+
+function copiarAnalisis() {
+  if (lastProgressText) {
+    navigator.clipboard.writeText(lastProgressText);
+    var btn = event.target;
+    btn.textContent = '¡Copiado!';
+    setTimeout(function(){ btn.textContent = 'Copiar análisis'; }, 2000);
+  }
+}
+
+function abrirModalPaciente(id) {
+  editingPxId = id || null;
+  document.getElementById('px-modal-title').textContent = id ? 'Editar paciente' : 'Nuevo paciente';
+  var fields = ['px-nombre','px-id','px-telefono','px-diagnostico','px-meta','px-roles','px-notas'];
+  fields.forEach(function(f){ var el=document.getElementById(f); if(el) el.value=''; });
+  document.getElementById('px-nacimiento').value = '';
+  document.getElementById('px-sexo').value = '';
+  if (id) {
+    var p = getPacientes().find(function(px){ return px.id === id; });
+    if (p) {
+      if(document.getElementById('px-nombre')) document.getElementById('px-nombre').value = p.nombre||'';
+      if(document.getElementById('px-id')) document.getElementById('px-id').value = p.identificacion||'';
+      if(document.getElementById('px-nacimiento')) document.getElementById('px-nacimiento').value = p.nacimiento||'';
+      if(document.getElementById('px-sexo')) document.getElementById('px-sexo').value = p.sexo||'';
+      if(document.getElementById('px-telefono')) document.getElementById('px-telefono').value = p.telefono||'';
+      if(document.getElementById('px-diagnostico')) document.getElementById('px-diagnostico').value = p.diagnostico||'';
+      if(document.getElementById('px-meta')) document.getElementById('px-meta').value = p.meta||'';
+      if(document.getElementById('px-roles')) document.getElementById('px-roles').value = p.roles||'';
+      if(document.getElementById('px-notas')) document.getElementById('px-notas').value = p.notas||'';
+    }
+  }
+  document.getElementById('patient-modal').classList.add('open');
+  setTimeout(function(){ var n=document.getElementById('px-nombre'); if(n) n.focus(); }, 100);
+}
+
+function cerrarModalPaciente() {
+  document.getElementById('patient-modal').classList.remove('open');
+  editingPxId = null;
+}
+
+function guardarPaciente() {
+  var nombre = document.getElementById('px-nombre').value.trim();
+  if (!nombre) { alert('El nombre del paciente es obligatorio.'); return; }
+  var pacientes = getPacientes();
+  var data = {
+    nombre: nombre,
+    identificacion: document.getElementById('px-id').value.trim(),
+    nacimiento: document.getElementById('px-nacimiento').value,
+    sexo: document.getElementById('px-sexo').value,
+    telefono: document.getElementById('px-telefono').value.trim(),
+    diagnostico: document.getElementById('px-diagnostico').value.trim(),
+    meta: document.getElementById('px-meta').value.trim(),
+    roles: document.getElementById('px-roles').value.trim(),
+    notas: document.getElementById('px-notas').value.trim()
+  };
+  if (editingPxId) {
+    var idx = pacientes.findIndex(function(p){ return p.id === editingPxId; });
+    if (idx > -1) pacientes[idx] = Object.assign({}, pacientes[idx], data);
+  } else {
+    data.id = Date.now().toString();
+    data.fechaCreacion = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+    data.sesiones = [];
+    pacientes.unshift(data);
+  }
+  savePacientes(pacientes);
+  cerrarModalPaciente();
+  renderPxList();
+  seleccionarPaciente(editingPxId || data.id);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  initAutosave();
+  renderPxList();
+});
 
 // ─── SUPABASE AUTH ────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://rfnuzhmxdmhekqbaloko.supabase.co';
@@ -2576,7 +3247,7 @@ function initAutosave() {
   });
   renderHistorial();
 }
-document.addEventListener('DOMContentLoaded', initAutosave);
+// initAutosave called in patient system DOMContentLoaded
 
 // ─── PWA SERVICE WORKER ───────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
