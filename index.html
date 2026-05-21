@@ -2324,12 +2324,65 @@ var activePxId = null;
 var editingPxId = null;
 var lastProgressText = '';
 
-function getPacientes(){try{return JSON.parse(localStorage.getItem('fisioIA_pacientes')||'[]');}catch(e){return [];}}
-function savePacientes(p){localStorage.setItem('fisioIA_pacientes',JSON.stringify(p));}
+// ─── SUPABASE PATIENT CRUD ───────────────────────────────────────────────────
+async function getPacientesDB(){
+  var token=localStorage.getItem('fisioIA_token');
+  if(!token)return[];
+  try{
+    var r=await fetch(SUPABASE_URL+'/rest/v1/pacientes?select=*&order=created_at.desc',{
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+    });
+    if(!r.ok)return[];
+    return await r.json();
+  }catch(e){return[];}
+}
+
+async function savePacienteDB(p){
+  var token=localStorage.getItem('fisioIA_token');
+  if(!token)return false;
+  try{
+    var r=await fetch(SUPABASE_URL+'/rest/v1/pacientes',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(p)
+    });
+    return r.ok;
+  }catch(e){return false;}
+}
+
+async function updatePacienteDB(id,data){
+  var token=localStorage.getItem('fisioIA_token');
+  if(!token)return false;
+  try{
+    var r=await fetch(SUPABASE_URL+'/rest/v1/pacientes?id=eq.'+id,{
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    return r.ok;
+  }catch(e){return false;}
+}
+
+async function deletePacienteDB(id){
+  var token=localStorage.getItem('fisioIA_token');
+  if(!token)return false;
+  try{
+    var r=await fetch(SUPABASE_URL+'/rest/v1/pacientes?id=eq.'+id,{
+      method:'DELETE',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'}
+    });
+    return r.ok;
+  }catch(e){return false;}
+}
+
+// Local cache for performance
+var pacientesCache=[];
+function getPacientes(){return pacientesCache;}
+function savePacientes(p){pacientesCache=p;}
 function getInitials(n){if(!n)return '?';return n.split(' ').slice(0,2).map(function(x){return x[0];}).join('').toUpperCase();}
 function calcEdad(f){if(!f)return '';var h=new Date(),n=new Date(f),e=h.getFullYear()-n.getFullYear();if(h.getMonth()-n.getMonth()<0||(h.getMonth()-n.getMonth()===0&&h.getDate()<n.getDate()))e--;return e+' años';}
 
-function abrirPacientes(){renderPxList();document.getElementById('patient-panel').classList.add('open');document.getElementById('patient-overlay').classList.add('open');}
+function abrirPacientes(){document.getElementById('patient-panel').classList.add('open');document.getElementById('patient-overlay').classList.add('open');cargarPacientes();}
 function cerrarPacientes(){document.getElementById('patient-panel').classList.remove('open');document.getElementById('patient-overlay').classList.remove('open');}
 
 function renderPxList(filter){
@@ -2348,6 +2401,13 @@ function renderPxList(filter){
 }
 
 function filtrarPacientes(v){renderPxList(v);}
+
+async function cargarPacientes(){
+  var list=document.getElementById('patient-list');
+  if(list)list.innerHTML='<div class="patient-empty">Cargando pacientes...</div>';
+  pacientesCache=await getPacientesDB();
+  renderPxList();
+}
 
 function seleccionarPaciente(id){
   activePxId=id;
@@ -2445,7 +2505,9 @@ function eliminarSesion(pxId,sesId){
   var px=getPacientes(),p=px.find(function(x){return x.id===pxId;});
   if(!p)return;
   p.sesiones=(p.sesiones||[]).filter(function(s){return s.id!==sesId;});
-  savePacientes(px);verDetalle(pxId);
+  savePacientes(px);
+  updatePacienteDB(pxId,{sesiones:p.sesiones}).catch(function(e){console.log('Error:',e);});
+  verDetalle(pxId);
 }
 
 function guardarSesionEnPaciente(tab,datos,planTexto){
@@ -2455,6 +2517,8 @@ function guardarSesionEnPaciente(tab,datos,planTexto){
   if(!p.sesiones)p.sesiones=[];
   p.sesiones.push({id:Date.now().toString(),fecha:new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}),tab:tab,especialidad:cfg?cfg.label:tab,color:cfg?cfg.color:'#0F6E56',dx:datos.dx_medico||datos.dx_fisio||'',plan:planTexto});
   savePacientes(px);
+  // Save to Supabase asynchronously
+  updatePacienteDB(activePxId,{sesiones:p.sesiones}).catch(function(e){console.log('Error saving session to DB:',e);});
 }
 
 function getPatientContext(){
@@ -2520,14 +2584,29 @@ function abrirModalPaciente(id){
 
 function cerrarModalPaciente(){document.getElementById('patient-modal').classList.remove('open');editingPxId=null;}
 
-function guardarPaciente(){
+async function guardarPaciente(){
   var nombre=document.getElementById('px-nombre').value.trim();
   if(!nombre){alert('El nombre es obligatorio.');return;}
-  var px=getPacientes();
-  var d={nombre:nombre,identificacion:document.getElementById('px-id').value.trim(),nacimiento:document.getElementById('px-nacimiento').value,sexo:document.getElementById('px-sexo').value,telefono:document.getElementById('px-telefono').value.trim(),diagnostico:document.getElementById('px-diagnostico').value.trim(),meta:document.getElementById('px-meta').value.trim(),roles:document.getElementById('px-roles').value.trim(),notas:document.getElementById('px-notas').value.trim()};
-  if(editingPxId){var i=px.findIndex(function(p){return p.id===editingPxId;});if(i>-1)px[i]=Object.assign({},px[i],d);}
-  else{d.id=Date.now().toString();d.fechaCreacion=new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});d.sesiones=[];px.unshift(d);}
-  savePacientes(px);cerrarModalPaciente();renderPxList();
+  var btn=document.querySelector('#patient-modal .btn-modal-primary');
+  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+  var userId=localStorage.getItem('fisioIA_email')||'';
+  var d={nombre:nombre,identificacion:document.getElementById('px-id').value.trim(),nacimiento:document.getElementById('px-nacimiento').value,sexo:document.getElementById('px-sexo').value,telefono:document.getElementById('px-telefono').value.trim(),diagnostico:document.getElementById('px-diagnostico').value.trim(),meta:document.getElementById('px-meta').value.trim(),roles:document.getElementById('px-roles').value.trim(),notas:document.getElementById('px-notas').value.trim(),sesiones:[]};
+  var ok=false;
+  if(editingPxId){
+    var px=getPacientes(),p=px.find(function(x){return x.id===editingPxId;});
+    if(p)d.sesiones=p.sesiones||[];
+    ok=await updatePacienteDB(editingPxId,d);
+    if(ok){var i=px.findIndex(function(x){return x.id===editingPxId;});if(i>-1)px[i]=Object.assign({},px[i],d);savePacientes(px);}
+  }else{
+    d.id=Date.now().toString();
+    d.user_id=userId;
+    d.fecha_creacion=new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+    ok=await savePacienteDB(d);
+    if(ok){var px2=getPacientes();px2.unshift(d);savePacientes(px2);}
+  }
+  if(btn){btn.disabled=false;btn.textContent='Guardar paciente';}
+  if(!ok){alert('Error al guardar. Verifica tu conexion.');return;}
+  cerrarModalPaciente();renderPxList();
   seleccionarPaciente(editingPxId||d.id);
 }
 
@@ -2652,6 +2731,8 @@ function entrarApp(email) {
   document.getElementById('login-screen').classList.add('hidden');
   const navEmail = document.getElementById('nav-user-email');
   if (navEmail) navEmail.textContent = email;
+  // Load patients from Supabase
+  cargarPacientes();
 }
 
 function cerrarSesion() {
@@ -2918,7 +2999,12 @@ function initAutosave() {
   });
   renderHistorial();
 }
-document.addEventListener('DOMContentLoaded', function(){ initAutosave(); renderPxList(); });
+document.addEventListener('DOMContentLoaded', function(){
+  initAutosave();
+  // Load patients from Supabase if logged in
+  var token=localStorage.getItem('fisioIA_token');
+  if(token){cargarPacientes();}
+});
 
 // ─── PWA SERVICE WORKER ───────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
