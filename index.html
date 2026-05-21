@@ -3127,11 +3127,16 @@ function verDetallePaciente(id) {
     container.insertBefore(detailEl, tabsWrapper);
   }
 
+  // Build plan map for session rendering
+  const sessionPlanMap = {};
+  sesiones.forEach(s => { sessionPlanMap[s.id] = s.plan || ''; });
+  window._sessionPlanMap = sessionPlanMap;
+
   const sesionesHTML = sesiones.length === 0
     ? '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:1rem;">Aún no hay sesiones registradas para este paciente. Genera un plan para crear la primera.</p>'
     : sesiones.slice().reverse().map((s, i) => `
         <div class="session-item">
-          <div class="session-item-header" onclick="toggleSession('sess-${s.id}')">
+          <div class="session-item-header" onclick="toggleSession('sess-${s.id}', window._sessionPlanMap && window._sessionPlanMap['${s.id}'])">
             <div class="session-item-left">
               <div class="session-num">${sesiones.length - i}</div>
               <div>
@@ -3147,7 +3152,7 @@ function verDetallePaciente(id) {
               <button class="historial-btn-sm" onclick="analizarProgreso('${id}','${s.id}')">📊 Analizar progreso</button>
               <button class="historial-btn-sm danger" onclick="eliminarSesion('${id}','${s.id}')">Eliminar</button>
             </div>
-            <div class="session-plan-text">${s.plan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>
+            <div class="session-plan-text" id="plan-text-${s.id}"></div>
           </div>
         </div>`).join('');
 
@@ -3188,9 +3193,16 @@ function cerrarDetalle() {
   if (el) el.remove();
 }
 
-function toggleSession(id) {
-  const body = document.getElementById(id);
-  if (body) body.classList.toggle('open');
+function toggleSession(sesId, planText) {
+  const body = document.getElementById(sesId);
+  if (body) {
+    body.classList.toggle('open');
+    // Render plan text when opening
+    const planEl = document.getElementById('plan-text-' + sesId);
+    if (planEl && body.classList.contains('open') && planText) {
+      planEl.innerHTML = planText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
+  }
 }
 
 function copiarSesion(sesId, pxId) {
