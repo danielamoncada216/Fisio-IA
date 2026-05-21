@@ -608,6 +608,266 @@
       .soap-section:nth-child(3) { border-bottom: 1px solid var(--border); }
     }
 
+
+
+    /* DISCLAIMER */
+    .disclaimer-banner {
+      background: linear-gradient(135deg, #FFF8E1 0%, #FFF3CD 100%);
+      border: 1px solid #F59E0B;
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .disclaimer-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: #F59E0B; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0; font-size: 18px;
+    }
+    .disclaimer-text { flex: 1; }
+    .disclaimer-title { font-size: 13px; font-weight: 700; color: #92400E; margin-bottom: 3px; }
+    .disclaimer-body { font-size: 12px; color: #78350F; line-height: 1.6; }
+
+    /* LOGIN DISCLAIMER */
+    .login-disclaimer {
+      background: #FFF8E1; border: 1px solid #F59E0B;
+      border-radius: 8px; padding: 10px 14px;
+      margin-top: 12px; font-size: 11px;
+      color: #78350F; line-height: 1.5; text-align: center;
+    }
+
+    /* PATIENT SYSTEM */
+    .patient-panel {
+      position: fixed; top: 0; left: -480px; width: 460px; height: 100vh;
+      background: var(--white); border-right: 1px solid var(--border);
+      box-shadow: 8px 0 32px rgba(0,0,0,0.1);
+      z-index: 300; transition: left 0.3s cubic-bezier(0.16,1,0.3,1);
+      display: flex; flex-direction: column;
+    }
+    .patient-panel.open { left: 0; }
+    .patient-panel-header {
+      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; background: var(--gray-50);
+    }
+    .patient-panel-title { font-size: 14px; font-weight: 600; }
+    .patient-panel-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+    .patient-panel-close {
+      width: 28px; height: 28px; border-radius: 8px; border: none;
+      background: var(--gray-200); cursor: pointer; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gray-600); transition: background 0.12s;
+    }
+    .patient-panel-close:hover { background: var(--gray-200); color: var(--gray-900); }
+
+    .patient-search-bar {
+      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .patient-search-input {
+      width: 100%; padding: 9px 12px; border-radius: 8px;
+      border: 1px solid var(--border-strong); font-family: 'DM Sans', sans-serif;
+      font-size: 13px; color: var(--gray-900); background: var(--white);
+    }
+    .patient-search-input:focus { outline: none; border-color: var(--neuro); box-shadow: 0 0 0 3px rgba(15,110,86,0.1); }
+
+    .patient-list { flex: 1; overflow-y: auto; padding: 0.75rem; }
+    .patient-empty { text-align: center; padding: 2rem 1rem; color: var(--gray-400); font-size: 13px; }
+
+    .patient-item {
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; cursor: pointer; transition: all 0.12s;
+      background: var(--white); margin-bottom: 8px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .patient-item:hover { border-color: var(--neuro); background: var(--neuro-light); }
+    .patient-item.active { border-color: var(--neuro); background: var(--neuro-light); }
+    .patient-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--neuro); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 600; flex-shrink: 0;
+    }
+    .patient-item-info { flex: 1; min-width: 0; }
+    .patient-item-name { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+    .patient-item-meta { font-size: 11px; color: var(--gray-600); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .patient-item-badge {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 20px; text-transform: uppercase; flex-shrink: 0;
+    }
+
+    .patient-panel-footer {
+      padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0;
+    }
+    .btn-new-patient {
+      width: 100%; padding: 10px; border-radius: 8px;
+      background: var(--neuro); color: white; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-new-patient:hover { background: var(--teal-800); }
+
+    /* PATIENT MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 400; display: none; align-items: center; justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: var(--white); border-radius: 16px;
+      width: 100%; max-width: 560px; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+      animation: loginIn 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .modal-header {
+      padding: 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--white); z-index: 1;
+    }
+    .modal-title { font-size: 16px; font-weight: 600; }
+    .modal-close {
+      width: 30px; height: 30px; border-radius: 8px; border: none;
+      background: var(--gray-100); cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-body { padding: 1.5rem; }
+    .modal-footer {
+      padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+      display: flex; gap: 8px; justify-content: flex-end;
+      position: sticky; bottom: 0; background: var(--white);
+    }
+    .btn-modal-primary {
+      padding: 10px 24px; border-radius: 8px; border: none;
+      background: var(--neuro); color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-modal-primary:hover { background: var(--teal-800); }
+    .btn-modal-secondary {
+      padding: 10px 20px; border-radius: 8px;
+      border: 1px solid var(--border-strong);
+      background: transparent; color: var(--gray-600);
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-modal-secondary:hover { color: var(--gray-900); border-color: var(--gray-900); }
+
+    /* PATIENT DETAIL VIEW */
+    .patient-detail {
+      background: var(--white); border-radius: var(--radius-md);
+      border: 1px solid var(--border); margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm); overflow: hidden;
+    }
+    .patient-detail-header {
+      padding: 1.25rem 1.5rem; background: var(--neuro);
+      color: white; display: flex; align-items: center;
+      justify-content: space-between; gap: 1rem;
+    }
+    .patient-detail-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; flex-shrink: 0;
+    }
+    .patient-detail-name { font-size: 16px; font-weight: 600; }
+    .patient-detail-meta { font-size: 12px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+    .patient-detail-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-patient-action {
+      padding: 6px 14px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.4);
+      background: transparent; color: white; font-family: 'DM Sans', sans-serif;
+      font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.12s;
+    }
+    .btn-patient-action:hover { background: rgba(255,255,255,0.15); }
+    .btn-patient-action.primary { background: white; color: var(--neuro); border-color: white; }
+    .btn-patient-action.primary:hover { background: var(--neuro-light); }
+
+    .patient-detail-body { padding: 1.25rem 1.5rem; }
+    .patient-info-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin-bottom: 1.25rem;
+    }
+    .patient-info-item label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-400); display: block; margin-bottom: 3px; }
+    .patient-info-item span { font-size: 13px; color: var(--gray-900); font-weight: 500; }
+
+    .patient-goal-box {
+      background: var(--neuro-light); border-radius: 10px;
+      padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+      border-left: 3px solid var(--neuro);
+    }
+    .patient-goal-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--neuro); margin-bottom: 6px; }
+    .patient-goal-text { font-size: 13px; color: var(--gray-900); line-height: 1.6; }
+
+    /* SESSION HISTORY */
+    .session-list { display: flex; flex-direction: column; gap: 10px; }
+    .session-item {
+      border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden; transition: all 0.15s;
+    }
+    .session-item-header {
+      padding: 12px 14px; display: flex; align-items: center;
+      justify-content: space-between; cursor: pointer;
+      background: var(--gray-50); transition: background 0.12s;
+    }
+    .session-item-header:hover { background: var(--gray-100); }
+    .session-item-left { display: flex; align-items: center; gap: 10px; }
+    .session-num {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--neuro); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .session-date { font-size: 13px; font-weight: 600; }
+    .session-dx { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+    .session-badge {
+      font-size: 10px; font-weight: 600; padding: 3px 10px;
+      border-radius: 20px; text-transform: uppercase;
+    }
+    .session-body { display: none; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+    .session-body.open { display: block; }
+    .session-plan-text { font-size: 12.5px; line-height: 1.75; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+
+    /* PROGRESS COMPARISON */
+    .progress-section { margin-top: 1.25rem; }
+    .progress-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gray-600); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .progress-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .progress-card { border-radius: 10px; padding: 10px 12px; }
+    .progress-card.logros { background: #F0FBF6; border: 1px solid #A8EDD5; }
+    .progress-card.proceso { background: #FFF8E1; border: 1px solid #FFD54F; }
+    .progress-card.revisar { background: #FFF5F5; border: 1px solid #FED7D7; }
+    .progress-card-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .progress-card.logros .progress-card-title { color: #0F6E56; }
+    .progress-card.proceso .progress-card-title { color: #F59E0B; }
+    .progress-card.revisar .progress-card-title { color: #C53030; }
+    .progress-card ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .progress-card ul li { font-size: 11.5px; line-height: 1.4; color: var(--gray-900); }
+    .progress-loading { text-align: center; padding: 1rem; font-size: 12px; color: var(--gray-400); }
+
+    /* ACTIVE PATIENT BANNER */
+    .active-patient-banner {
+      background: linear-gradient(135deg, var(--neuro) 0%, #1a8a6e 100%);
+      border-radius: var(--radius-md); padding: 12px 16px;
+      margin-bottom: 1rem; display: none;
+      align-items: center; justify-content: space-between; gap: 12px;
+      color: white; box-shadow: 0 4px 16px rgba(15,110,86,0.25);
+    }
+    .active-patient-banner.visible { display: flex; }
+    .active-patient-banner-left { display: flex; align-items: center; gap: 10px; }
+    .active-patient-banner-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .active-patient-banner-name { font-size: 13px; font-weight: 600; }
+    .active-patient-banner-meta { font-size: 11px; color: rgba(255,255,255,0.75); }
+    .active-patient-banner-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    @media (max-width: 640px) {
+      .patient-panel { width: 100%; left: -100%; }
+      .patient-info-grid { grid-template-columns: 1fr 1fr; }
+      .progress-grid { grid-template-columns: 1fr; }
+    }
+
     /* PRINT / PDF PROFESIONAL */
     @media print {
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -743,6 +1003,105 @@
 <body>
 
 
+
+<!-- PATIENT PANEL -->
+<div class="historial-overlay" id="patient-overlay" onclick="cerrarPacientes()"></div>
+<div class="patient-panel" id="patient-panel">
+  <div class="patient-panel-header">
+    <div>
+      <div class="patient-panel-title">👥 Mis pacientes</div>
+      <div class="patient-panel-sub">Gestiona el seguimiento de cada paciente</div>
+    </div>
+    <button class="patient-panel-close" onclick="cerrarPacientes()">✕</button>
+  </div>
+  <div class="patient-search-bar">
+    <input class="patient-search-input" id="patient-search" placeholder="🔍 Buscar paciente..." oninput="filtrarPacientes(this.value)">
+  </div>
+  <div class="patient-list" id="patient-list">
+    <div class="patient-empty">Aún no tienes pacientes registrados.<br>Crea el primero con el botón de abajo.</div>
+  </div>
+  <div class="patient-panel-footer">
+    <button class="btn-new-patient" onclick="abrirModalPaciente()">+ Nuevo paciente</button>
+  </div>
+</div>
+
+<!-- NEW/EDIT PATIENT MODAL -->
+<div class="modal-overlay" id="patient-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="patient-modal-title">Nuevo paciente</div>
+      <button class="modal-close" onclick="cerrarModalPaciente()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid2" style="margin-bottom:14px;">
+        <div class="field">
+          <label>Nombre completo *</label>
+          <input type="text" id="px-nombre" placeholder="Nombre y apellidos">
+        </div>
+        <div class="field">
+          <label>Número de identificación</label>
+          <input type="text" id="px-id" placeholder="CC / TI / Pasaporte">
+        </div>
+      </div>
+      <div class="grid3" style="margin-bottom:14px;">
+        <div class="field">
+          <label>Fecha de nacimiento</label>
+          <input type="date" id="px-nacimiento">
+        </div>
+        <div class="field">
+          <label>Sexo</label>
+          <select id="px-sexo">
+            <option value="">Seleccionar</option>
+            <option>Masculino</option>
+            <option>Femenino</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Teléfono / contacto</label>
+          <input type="text" id="px-telefono" placeholder="ej. 300 123 4567">
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Diagnóstico principal</label>
+        <input type="text" id="px-diagnostico" placeholder="ej. ACV isquémico, Parálisis cerebral espástica...">
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>🎯 Meta funcional del paciente</label>
+        <textarea id="px-meta" placeholder="¿Qué quiere lograr este paciente? ¿Qué actividades significativas quiere recuperar? (ej. quiere volver a bailar salsa con su esposa, quiere poder cargar a su nieto, quiere volver a cocinar de forma independiente...)" style="min-height:80px;"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>👤 Roles en la vida (familiar, laboral, social)</label>
+        <textarea id="px-roles" placeholder="ej. Padre de familia de 3 hijos, trabaja como contador, es el cocinero principal del hogar, le encanta jugar fútbol los domingos..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="field">
+        <label>Notas adicionales</label>
+        <textarea id="px-notas" placeholder="Información relevante adicional..." style="min-height:50px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="cerrarModalPaciente()">Cancelar</button>
+      <button class="btn-modal-primary" id="px-save-btn" onclick="guardarPaciente()">Guardar paciente</button>
+    </div>
+  </div>
+</div>
+
+<!-- REEVALUATION MODAL -->
+<div class="modal-overlay" id="reeval-modal">
+  <div class="modal-card" style="max-width:640px;">
+    <div class="modal-header">
+      <div class="modal-title">📊 Análisis de progreso</div>
+      <button class="modal-close" onclick="cerrarReevalModal()">✕</button>
+    </div>
+    <div class="modal-body" id="reeval-body">
+      <div class="progress-loading">Analizando el progreso del paciente...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="cerrarReevalModal()">Cerrar</button>
+      <button class="btn-modal-primary" onclick="copiarProgreso()">Copiar análisis</button>
+    </div>
+  </div>
+</div>
+
 <!-- HISTORIAL OVERLAY -->
 <div class="historial-overlay" id="historial-overlay" onclick="cerrarHistorial()"></div>
 
@@ -828,6 +1187,9 @@
 
     <div class="login-error" id="login-error"></div>
     <div class="login-footer" id="login-footer">Solo para uso profesional autorizado</div>
+    <div class="login-disclaimer">
+      ⚠️ FisioIA es una herramienta de <strong>apoyo clínico</strong>. Puede cometer errores. Siempre revisa y valida los planes generados con tu criterio profesional antes de aplicarlos.
+    </div>
   </div>
 </div>
 
@@ -846,6 +1208,7 @@
       <span class="autosave-label" id="autosave-label">Autoguardado</span>
     </div>
     <span class="nav-badge">Basado en evidencia</span>
+    <button onclick="abrirPacientes()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:var(--neuro);color:white;cursor:pointer;transition:all 0.12s;">👥 Pacientes</button>
     <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
     <span id="nav-user-email" style="font-size:11px;color:var(--gray-400);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
     <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Salir</button>
@@ -853,6 +1216,32 @@
 </nav>
 
 <div class="container">
+
+  <!-- DISCLAIMER BANNER -->
+  <div class="disclaimer-banner">
+    <div class="disclaimer-icon">⚠️</div>
+    <div class="disclaimer-text">
+      <div class="disclaimer-title">Herramienta de apoyo clínico — no reemplaza tu criterio profesional</div>
+      <div class="disclaimer-body">
+        FisioIA puede cometer errores. Los planes generados son propuestas basadas en evidencia que <strong>deben ser revisados, ajustados y validados</strong> por el fisioterapeuta tratante antes de aplicarse. El juicio clínico del profesional siempre tiene prioridad. No tomes decisiones clínicas basadas únicamente en el output de esta herramienta.
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIVE PATIENT BANNER -->
+  <div class="active-patient-banner" id="active-patient-banner">
+    <div class="active-patient-banner-left">
+      <div class="active-patient-banner-avatar" id="banner-avatar"></div>
+      <div>
+        <div class="active-patient-banner-name" id="banner-name"></div>
+        <div class="active-patient-banner-meta" id="banner-meta"></div>
+      </div>
+    </div>
+    <div class="active-patient-banner-actions">
+      <button class="btn-patient-action" onclick="verDetallePaciente(activePacienteId)">Ver historial</button>
+      <button class="btn-patient-action" onclick="desactivarPaciente()" style="border-color:rgba(255,255,255,0.3);">✕ Desvincular</button>
+    </div>
+  </div>
 
   <!-- TABS -->
   <div class="tabs-wrapper">
@@ -1726,7 +2115,24 @@ function construirPrompt(tab, d) {
     ? Object.entries(d.escalas).map(([k,v]) => `${k}: ${v}`).join(' | ')
     : 'No especificadas';
 
-  const base = `Eres un asistente clínico especializado en fisioterapia. Genera un plan de tratamiento fisioterapéutico completo, estructurado y basado en evidencia científica actualizada para la especialidad de ${d.especialidad}. Usa lenguaje técnico apropiado para comunicación entre profesionales de salud en Colombia. Responde en español colombiano.`;
+  // Get active patient context
+  let patientContext = '';
+  if (activePacienteId) {
+    const px = getPacientes().find(p => p.id === activePacienteId);
+    if (px) {
+      patientContext = `
+CONTEXTO PERSONAL DEL PACIENTE (MUY IMPORTANTE — el plan debe orientarse hacia estas metas):
+- Nombre: ${px.nombre}
+- Meta funcional personal: ${px.meta || 'No especificada'}
+- Roles en la vida: ${px.roles || 'No especificados'}
+- Sesiones previas registradas: ${(px.sesiones||[]).length}
+${(px.sesiones||[]).length > 0 ? '- NOTA: Este paciente ya tiene sesiones previas. Considera la progresión en el plan.' : ''}
+
+El plan DEBE considerar estas metas funcionales personales. La rehabilitación debe orientarse a que el paciente pueda volver a sus roles y actividades significativas. Si la meta es bailar, el tratamiento debe progresar hacia esa meta. Si es cocinar, si es cargar a un familiar — el plan debe tener ese norte claro.`;
+    }
+  }
+
+  const base = `Eres un asistente clínico especializado en fisioterapia. Genera un plan de tratamiento fisioterapéutico completo, estructurado y basado en evidencia científica actualizada para la especialidad de ${d.especialidad}. Usa lenguaje técnico apropiado para comunicación entre profesionales de salud en Colombia. Responde en español colombiano.${patientContext}`;
 
   const estructura = `
 Genera el plan con EXACTAMENTE esta estructura:
@@ -1949,6 +2355,7 @@ async function generarPlan(tab) {
           <div class="result-header-left">
             <div class="result-dot" style="background:${cfg.color}"></div>
             <span class="result-label">Plan de tratamiento generado</span>
+            <span style="font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;background:#FFF8E1;color:#92400E;border:1px solid #F59E0B;">⚠️ Revisa antes de aplicar</span>
             <span class="result-specialty-badge" style="background:${cfg.light};color:${cfg.color};border:1px solid ${cfg.color}33">${cfg.label}</span>
           </div>
           <div class="result-actions">
@@ -2012,8 +2419,13 @@ async function generarPlan(tab) {
         </div>
       </div>`;
 
-    // Save to historial
-    guardarEnHistorial(tab, recopilarDatos(tab), texto);
+    // Save to historial and patient session
+    const datosActuales = recopilarDatos(tab);
+    guardarEnHistorial(tab, datosActuales, texto);
+    guardarSesionEnPaciente(tab, datosActuales, texto);
+    if (activePacienteId) {
+      setTimeout(() => verDetallePaciente(activePacienteId), 500);
+    }
     // Generate SOAP note asynchronously
     generarSOAP(tab, prefix, recopilarDatos(tab));
 
@@ -2150,9 +2562,7 @@ function imprimirPlan(tabPrefix) {
 
     <div class="pdf-footer">
       <div class="pdf-disclaimer">
-        Este documento fue generado con asistencia de inteligencia artificial como apoyo clínico.
-        No reemplaza el juicio profesional del fisioterapeuta tratante.
-        Debe ser revisado, ajustado y validado por el profesional responsable antes de su implementación.
+        ⚠️ AVISO IMPORTANTE: Este documento fue generado con asistencia de inteligencia artificial (FisioIA) como herramienta de apoyo clínico. La IA puede cometer errores. Este plan NO reemplaza el juicio clínico del fisioterapeuta tratante y DEBE ser revisado, ajustado y validado por el profesional responsable antes de su implementación. El fisioterapeuta asume la responsabilidad clínica del tratamiento aplicado.
       </div>
       <div class="pdf-firma-box">
         <div class="pdf-firma-line"></div>
@@ -2551,7 +2961,7 @@ function initAutosave() {
   });
   renderHistorial();
 }
-document.addEventListener('DOMContentLoaded', initAutosave);
+// initAutosave called from patient system DOMContentLoaded
 
 // ─── PWA SERVICE WORKER ───────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
@@ -2602,6 +3012,420 @@ async function instalarPWA() {
   if (banner) banner.remove();
 }
 
+
+
+// ─── PATIENT SYSTEM ───────────────────────────────────────────────────────────
+let activePacienteId = null;
+let pacientesData = [];
+let editingPacienteId = null;
+
+function getPacientes() {
+  try { return JSON.parse(localStorage.getItem('fisioIA_pacientes') || '[]'); } catch { return []; }
+}
+function savePacientes(p) {
+  localStorage.setItem('fisioIA_pacientes', JSON.stringify(p));
+}
+
+function calcularEdad(fechaNac) {
+  if (!fechaNac) return '';
+  const hoy = new Date();
+  const nac = new Date(fechaNac);
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return edad + ' años';
+}
+
+function getInitials(name) {
+  return name.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+}
+
+// OPEN / CLOSE PANEL
+function abrirPacientes() {
+  renderPacientesList();
+  document.getElementById('patient-panel').classList.add('open');
+  document.getElementById('patient-overlay').classList.add('open');
+}
+function cerrarPacientes() {
+  document.getElementById('patient-panel').classList.remove('open');
+  document.getElementById('patient-overlay').classList.remove('open');
+}
+
+// RENDER LIST
+function renderPacientesList(filter = '') {
+  const pacientes = getPacientes();
+  pacientesData = pacientes;
+  const list = document.getElementById('patient-list');
+  const filtered = filter
+    ? pacientes.filter(p => p.nombre.toLowerCase().includes(filter.toLowerCase()) || (p.diagnostico||'').toLowerCase().includes(filter.toLowerCase()))
+    : pacientes;
+
+  if (filtered.length === 0) {
+    list.innerHTML = filter
+      ? '<div class="patient-empty">No se encontraron pacientes.</div>'
+      : '<div class="patient-empty">Aún no tienes pacientes registrados.<br>Crea el primero con el botón de abajo.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => {
+    const edad = calcularEdad(p.nacimiento);
+    const sesiones = (p.sesiones || []).length;
+    const isActive = p.id === activePacienteId;
+    const color = isActive ? 'var(--neuro)' : 'var(--gray-600)';
+    return `
+      <div class="patient-item${isActive ? ' active' : ''}" onclick="seleccionarPaciente('${p.id}')">
+        <div class="patient-avatar" style="background:${isActive ? 'var(--neuro)' : '#5F6368'}">${getInitials(p.nombre)}</div>
+        <div class="patient-item-info">
+          <div class="patient-item-name">${p.nombre}</div>
+          <div class="patient-item-meta">${p.diagnostico || 'Sin diagnóstico'} ${edad ? '· '+edad : ''} · ${sesiones} sesión${sesiones !== 1 ? 'es' : ''}</div>
+        </div>
+        ${isActive ? '<span class="patient-item-badge" style="background:var(--neuro-light);color:var(--neuro)">Activo</span>' : ''}
+      </div>`;
+  }).join('');
+}
+
+function filtrarPacientes(val) { renderPacientesList(val); }
+
+// SELECT PATIENT
+function seleccionarPaciente(id) {
+  activePacienteId = id;
+  const p = getPacientes().find(px => px.id === id);
+  if (!p) return;
+
+  // Update banner
+  document.getElementById('active-patient-banner').classList.add('visible');
+  document.getElementById('banner-avatar').textContent = getInitials(p.nombre);
+  document.getElementById('banner-name').textContent = p.nombre;
+  document.getElementById('banner-meta').textContent = `${p.diagnostico || ''} ${calcularEdad(p.nacimiento) ? '· '+calcularEdad(p.nacimiento) : ''}`;
+
+  cerrarPacientes();
+  verDetallePaciente(id);
+}
+
+function desactivarPaciente() {
+  activePacienteId = null;
+  document.getElementById('active-patient-banner').classList.remove('visible');
+}
+
+// VIEW PATIENT DETAIL
+function verDetallePaciente(id) {
+  const p = getPacientes().find(px => px.id === id);
+  if (!p) return;
+  activePacienteId = id;
+
+  const edad = calcularEdad(p.nacimiento);
+  const sesiones = p.sesiones || [];
+
+  // Create or update detail card
+  let detailEl = document.getElementById('patient-detail-card');
+  if (!detailEl) {
+    detailEl = document.createElement('div');
+    detailEl.id = 'patient-detail-card';
+    detailEl.className = 'patient-detail';
+    const container = document.querySelector('.container');
+    const tabsWrapper = document.querySelector('.tabs-wrapper');
+    container.insertBefore(detailEl, tabsWrapper);
+  }
+
+  const sesionesHTML = sesiones.length === 0
+    ? '<p style="font-size:13px;color:var(--gray-400);text-align:center;padding:1rem;">Aún no hay sesiones registradas para este paciente. Genera un plan para crear la primera.</p>'
+    : sesiones.slice().reverse().map((s, i) => `
+        <div class="session-item">
+          <div class="session-item-header" onclick="toggleSession('sess-${s.id}')">
+            <div class="session-item-left">
+              <div class="session-num">${sesiones.length - i}</div>
+              <div>
+                <div class="session-date">${s.fecha} — ${s.especialidad}</div>
+                <div class="session-dx">${s.dx_medico || s.dx_fisio || ''}</div>
+              </div>
+            </div>
+            <span class="session-badge" style="background:${s.color+'22'};color:${s.color}">${s.especialidad}</span>
+          </div>
+          <div class="session-body" id="sess-${s.id}">
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+              <button class="historial-btn-sm" onclick="copiarSesion('${s.id}','${id}')">Copiar plan</button>
+              <button class="historial-btn-sm" onclick="analizarProgreso('${id}','${s.id}')">📊 Analizar progreso</button>
+              <button class="historial-btn-sm danger" onclick="eliminarSesion('${id}','${s.id}')">Eliminar</button>
+            </div>
+            <div class="session-plan-text">${s.plan.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>
+          </div>
+        </div>`).join('');
+
+  detailEl.innerHTML = `
+    <div class="patient-detail-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="patient-detail-avatar">${getInitials(p.nombre)}</div>
+        <div>
+          <div class="patient-detail-name">${p.nombre}</div>
+          <div class="patient-detail-meta">${p.diagnostico || 'Sin diagnóstico'} ${edad ? '· '+edad : ''} · ${sesiones.length} sesión${sesiones.length !== 1 ? 'es' : ''}</div>
+        </div>
+      </div>
+      <div class="patient-detail-actions">
+        <button class="btn-patient-action" onclick="editarPaciente('${id}')">✏️ Editar</button>
+        <button class="btn-patient-action" onclick="cerrarDetalle()">✕</button>
+      </div>
+    </div>
+    <div class="patient-detail-body">
+      <div class="patient-info-grid">
+        <div class="patient-info-item"><label>Identificación</label><span>${p.identificacion || '—'}</span></div>
+        <div class="patient-info-item"><label>Edad</label><span>${edad || '—'}</span></div>
+        <div class="patient-info-item"><label>Sexo</label><span>${p.sexo || '—'}</span></div>
+        <div class="patient-info-item"><label>Teléfono</label><span>${p.telefono || '—'}</span></div>
+        <div class="patient-info-item"><label>Sesiones</label><span>${sesiones.length}</span></div>
+        <div class="patient-info-item"><label>Registrado</label><span>${p.fechaCreacion || '—'}</span></div>
+      </div>
+      ${p.meta ? `<div class="patient-goal-box"><div class="patient-goal-label">🎯 Meta funcional</div><div class="patient-goal-text">${p.meta}</div></div>` : ''}
+      ${p.roles ? `<div class="patient-goal-box" style="border-left-color:#1A5FA8;background:#E1EDFA"><div class="patient-goal-label" style="color:#1A5FA8">👤 Roles en la vida</div><div class="patient-goal-text">${p.roles}</div></div>` : ''}
+      <div class="progress-header" style="margin-top:1rem;">📋 Historial de sesiones</div>
+      <div class="session-list">${sesionesHTML}</div>
+    </div>`;
+
+  detailEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cerrarDetalle() {
+  const el = document.getElementById('patient-detail-card');
+  if (el) el.remove();
+}
+
+function toggleSession(id) {
+  const body = document.getElementById(id);
+  if (body) body.classList.toggle('open');
+}
+
+function copiarSesion(sesId, pxId) {
+  const p = getPacientes().find(px => px.id === pxId);
+  const s = (p?.sesiones || []).find(s => s.id === sesId);
+  if (s) navigator.clipboard.writeText(s.plan);
+}
+
+function eliminarSesion(pxId, sesId) {
+  let pacientes = getPacientes();
+  const px = pacientes.find(p => p.id === pxId);
+  if (!px) return;
+  px.sesiones = (px.sesiones || []).filter(s => s.id !== sesId);
+  savePacientes(pacientes);
+  verDetallePaciente(pxId);
+}
+
+// SAVE PLAN TO PATIENT SESSION
+function guardarSesionEnPaciente(tab, datos, planTexto) {
+  if (!activePacienteId) return;
+  const cfg = specConfig[tab];
+  let pacientes = getPacientes();
+  const px = pacientes.find(p => p.id === activePacienteId);
+  if (!px) return;
+  if (!px.sesiones) px.sesiones = [];
+  px.sesiones.push({
+    id: Date.now().toString(),
+    fecha: new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }),
+    tab, especialidad: cfg?.label || tab,
+    color: cfg?.color || '#0F6E56',
+    dx_medico: datos.dx_medico || '',
+    dx_fisio: datos.dx_fisio || '',
+    plan: planTexto
+  });
+  savePacientes(pacientes);
+}
+
+// ANALYZE PROGRESS
+async function analizarProgreso(pxId, sesId) {
+  const p = getPacientes().find(px => px.id === pxId);
+  if (!p) return;
+  const sesiones = p.sesiones || [];
+  if (sesiones.length < 1) { alert('Se necesita al menos una sesión para analizar el progreso.'); return; }
+
+  document.getElementById('reeval-modal').classList.add('open');
+  document.getElementById('reeval-body').innerHTML = '<div class="progress-loading">🔍 Analizando el progreso de ' + p.nombre + '...</div>';
+
+  const ultimaSesion = sesiones[sesiones.length - 1];
+  const sesionAnterior = sesiones.length > 1 ? sesiones[sesiones.length - 2] : null;
+
+  const prompt = `Eres un fisioterapeuta clínico experto en rehabilitación centrada en la persona. Analiza el progreso de este paciente y genera un análisis estructurado.
+
+DATOS DEL PACIENTE:
+- Nombre: ${p.nombre}
+- Diagnóstico: ${p.diagnostico || 'N/E'}
+- Meta funcional: ${p.meta || 'No especificada'}
+- Roles en la vida: ${p.roles || 'No especificados'}
+- Total de sesiones: ${sesiones.length}
+
+PLAN MÁS RECIENTE (Sesión ${sesiones.length} — ${ultimaSesion.fecha}):
+${ultimaSesion.plan.substring(0, 1500)}
+
+${sesionAnterior ? `PLAN ANTERIOR (Sesión ${sesiones.length - 1} — ${sesionAnterior.fecha}):
+${sesionAnterior.plan.substring(0, 800)}` : 'Esta es la primera sesión registrada.'}
+
+Genera un análisis de progreso en JSON con exactamente estas claves:
+{
+  "resumen": "Resumen ejecutivo del estado actual del paciente en 2-3 oraciones, considerando su meta funcional personal",
+  "logros": ["Logro 1 alcanzado o en vía de alcanzarse", "Logro 2", "Logro 3"],
+  "en_proceso": ["Objetivo que está progresando pero no completado", "Otro en proceso"],
+  "revisar": ["Área sin cambio o que necesita ajuste de enfoque", "Otra área a revisar"],
+  "nueva_direccion": "Recomendación concreta para las próximas sesiones, considerando la meta funcional del paciente (${p.meta || 'recuperar funcionalidad'})",
+  "proyeccion": "Proyección realista hacia la meta funcional personal del paciente"
+}
+
+Responde ÚNICAMENTE el JSON, sin texto adicional, sin markdown.`;
+
+  try {
+    const resp = await fetch('/api/generar-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+    const data = await resp.json();
+    const clean = (data.plan || '').replace(/```json|```/g, '').trim();
+    const analysis = JSON.parse(clean);
+
+    document.getElementById('reeval-body').innerHTML = `
+      <div style="margin-bottom:1rem;padding:1rem;background:var(--neuro-light);border-radius:10px;border-left:3px solid var(--neuro);">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--neuro);margin-bottom:6px;">Resumen del progreso</div>
+        <p style="font-size:13px;line-height:1.65;color:var(--gray-900);">${analysis.resumen}</p>
+      </div>
+      <div class="progress-grid" style="margin-bottom:1rem;">
+        <div class="progress-card logros">
+          <div class="progress-card-title">✅ Logros</div>
+          <ul>${(analysis.logros||[]).map(l => `<li>• ${l}</li>`).join('')}</ul>
+        </div>
+        <div class="progress-card proceso">
+          <div class="progress-card-title">🔄 En proceso</div>
+          <ul>${(analysis.en_proceso||[]).map(l => `<li>• ${l}</li>`).join('')}</ul>
+        </div>
+        <div class="progress-card revisar">
+          <div class="progress-card-title">⚠️ Revisar</div>
+          <ul>${(analysis.revisar||[]).map(l => `<li>• ${l}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div style="padding:1rem;background:#F0FBF6;border-radius:10px;border-left:3px solid var(--neuro);margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--neuro);margin-bottom:6px;">🧭 Nueva dirección recomendada</div>
+        <p style="font-size:13px;line-height:1.65;">${analysis.nueva_direccion}</p>
+      </div>
+      <div style="padding:1rem;background:#E1EDFA;border-radius:10px;border-left:3px solid #1A5FA8;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#1A5FA8;margin-bottom:6px;">🎯 Proyección hacia la meta funcional</div>
+        <p style="font-size:13px;line-height:1.65;">${analysis.proyeccion}</p>
+      </div>`;
+
+    // Store for copy
+    window._lastProgressText = `ANÁLISIS DE PROGRESO — ${p.nombre}
+
+Resumen: ${analysis.resumen}
+
+Logros:
+${(analysis.logros||[]).map(l=>'• '+l).join('
+')}
+
+En proceso:
+${(analysis.en_proceso||[]).map(l=>'• '+l).join('
+')}
+
+Revisar:
+${(analysis.revisar||[]).map(l=>'• '+l).join('
+')}
+
+Nueva dirección: ${analysis.nueva_direccion}
+
+Proyección: ${analysis.proyeccion}`;
+
+  } catch(e) {
+    document.getElementById('reeval-body').innerHTML = '<div style="color:#C53030;padding:1rem;">Error al generar el análisis. Intenta nuevamente.</div>';
+  }
+}
+
+function copiarProgreso() {
+  if (window._lastProgressText) {
+    navigator.clipboard.writeText(window._lastProgressText);
+    const btn = event.target;
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => btn.textContent = 'Copiar análisis', 2000);
+  }
+}
+
+function cerrarReevalModal() {
+  document.getElementById('reeval-modal').classList.remove('open');
+}
+
+// NEW / EDIT PATIENT MODAL
+function abrirModalPaciente(id = null) {
+  editingPacienteId = id;
+  const modal = document.getElementById('patient-modal');
+  const title = document.getElementById('patient-modal-title');
+
+  if (id) {
+    const p = getPacientes().find(px => px.id === id);
+    if (p) {
+      title.textContent = 'Editar paciente';
+      document.getElementById('px-nombre').value = p.nombre || '';
+      document.getElementById('px-id').value = p.identificacion || '';
+      document.getElementById('px-nacimiento').value = p.nacimiento || '';
+      document.getElementById('px-sexo').value = p.sexo || '';
+      document.getElementById('px-telefono').value = p.telefono || '';
+      document.getElementById('px-diagnostico').value = p.diagnostico || '';
+      document.getElementById('px-meta').value = p.meta || '';
+      document.getElementById('px-roles').value = p.roles || '';
+      document.getElementById('px-notas').value = p.notas || '';
+    }
+  } else {
+    title.textContent = 'Nuevo paciente';
+    ['px-nombre','px-id','px-telefono','px-diagnostico','px-meta','px-roles','px-notas'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    document.getElementById('px-nacimiento').value = '';
+    document.getElementById('px-sexo').value = '';
+  }
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('px-nombre').focus(), 100);
+}
+
+function cerrarModalPaciente() {
+  document.getElementById('patient-modal').classList.remove('open');
+  editingPacienteId = null;
+}
+
+function guardarPaciente() {
+  const nombre = document.getElementById('px-nombre').value.trim();
+  if (!nombre) { alert('El nombre del paciente es obligatorio.'); return; }
+
+  let pacientes = getPacientes();
+  const pacienteData = {
+    nombre,
+    identificacion: document.getElementById('px-id').value.trim(),
+    nacimiento: document.getElementById('px-nacimiento').value,
+    sexo: document.getElementById('px-sexo').value,
+    telefono: document.getElementById('px-telefono').value.trim(),
+    diagnostico: document.getElementById('px-diagnostico').value.trim(),
+    meta: document.getElementById('px-meta').value.trim(),
+    roles: document.getElementById('px-roles').value.trim(),
+    notas: document.getElementById('px-notas').value.trim(),
+  };
+
+  if (editingPacienteId) {
+    const idx = pacientes.findIndex(p => p.id === editingPacienteId);
+    if (idx > -1) {
+      pacientes[idx] = { ...pacientes[idx], ...pacienteData };
+    }
+  } else {
+    pacienteData.id = Date.now().toString();
+    pacienteData.fechaCreacion = new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+    pacienteData.sesiones = [];
+    pacientes.unshift(pacienteData);
+  }
+
+  savePacientes(pacientes);
+  cerrarModalPaciente();
+  renderPacientesList();
+
+  if (!editingPacienteId) {
+    seleccionarPaciente(pacienteData.id);
+  } else {
+    verDetallePaciente(editingPacienteId);
+  }
+}
+
+function editarPaciente(id) { abrirModalPaciente(id); }
+
+// Init patients on load
+document.addEventListener('DOMContentLoaded', () => {
+  initAutosave();
+});
 
 // ─── OTRO DIAGNÓSTICO TOGGLE ──────────────────────────────────────────────────
 function toggleOtroDx() {
