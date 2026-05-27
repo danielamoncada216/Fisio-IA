@@ -2188,7 +2188,10 @@ async function generarPlan(tab) {
     const texto = data.plan || '';
     const html = texto
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">');
+      .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">')
+      .replace(/(https?:\/\/[\S]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:var(--neuro);text-decoration:underline;word-break:break-all;">$1</a>')
+      .replace(/\b(10\.\d{4,}[\/\w.-]+)/g, '<a href="https://doi.org/$1" target="_blank" rel="noopener" style="color:var(--neuro);text-decoration:underline;">DOI: $1</a>')
+      .replace(/PMID:\s*(\d+)/g, '<a href="https://pubmed.ncbi.nlm.nih.gov/$1" target="_blank" rel="noopener" style="color:var(--neuro);text-decoration:underline;">PMID: $1</a>');
 
     document.getElementById(`${prefix}-resultado`).innerHTML = `
       <div class="result-card">
@@ -2819,6 +2822,7 @@ function verDetalle(id){
       '<div><div class="pdh-name">'+p.nombre+'</div>'+
       '<div class="pdh-meta">'+(p.diagnostico||'Sin diagnostico')+(edad?' - '+edad:'')+' - '+ses.length+' sesion'+(ses.length!==1?'es':'')+'</div></div></div>'+
       '<div class="pdh-actions">'+
+        '<button class="btn-pdh" onclick="abrirRevalModal(\''+id+'\')" style="background:rgba(255,255,255,0.2);">📋 Revaluación</button>'+
         '<button class="btn-pdh" onclick="abrirModalPaciente(\''+id+'\')">Editar</button>'+
         '<button class="btn-pdh" onclick="cerrarDetalle()">x</button>'+
       '</div></div>'+
