@@ -827,6 +827,29 @@
       .escala-btn { font-size: 11px; padding: 5px 10px; }
     }
 
+
+    .obj-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--white);
+      cursor: pointer; transition: all 0.12s; margin-bottom: 4px;
+    }
+    .obj-item:hover { border-color: var(--neuro); background: var(--neuro-light); }
+    .obj-item.checked { border-color: var(--neuro); background: var(--neuro-light); }
+    .obj-checkbox {
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+      border: 2px solid var(--border-strong); margin-top: 1px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--white); transition: all 0.12s;
+    }
+    .obj-item.checked .obj-checkbox { background: var(--neuro); border-color: var(--neuro); }
+    .obj-checkbox-check { color: white; font-size: 11px; display: none; }
+    .obj-item.checked .obj-checkbox-check { display: block; }
+    .obj-text { font-size: 13px; color: var(--gray-900); line-height: 1.5; }
+    .reval-result-section { margin-bottom: 1rem; border-radius: 10px; overflow: hidden; }
+    .reval-result-header { padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: white; }
+    .reval-result-body { padding: 12px 14px; font-size: 13px; line-height: 1.7; }
+
   </style>
 </head>
 <body>
@@ -896,6 +919,64 @@
     </div>
   </div>
 </div>
+
+<!-- REVALUACIÓN MODAL -->
+<div class="modal-overlay" id="reval-modal" style="z-index:450;">
+  <div class="modal-card" style="max-width:680px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">📋 Revaluación del paciente</div>
+        <div style="font-size:11px;color:var(--gray-400);margin-top:2px;" id="reval-px-name"></div>
+      </div>
+      <button class="modal-close" onclick="cerrarRevalModal()">x</button>
+    </div>
+    <div class="modal-body">
+      <!-- Step 1 -->
+      <div id="reval-step1">
+        <div style="margin-bottom:1.25rem;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <span style="width:3px;height:13px;background:var(--neuro);border-radius:2px;display:inline-block;"></span>
+            Objetivos de la ultima sesion — marca los alcanzados
+          </div>
+          <div id="objectives-checklist" style="display:flex;flex-direction:column;gap:6px;">
+            <div style="font-size:13px;color:var(--gray-400);padding:1rem;text-align:center;">Cargando objetivos...</div>
+          </div>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--gray-600);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+            <span style="width:3px;height:13px;background:var(--neuro);border-radius:2px;display:inline-block;"></span>
+            Nuevos hallazgos clinicos
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>Estado actual del paciente</label>
+            <textarea id="reval-hallazgos" placeholder="Describe los hallazgos actuales: cambios en tono, fuerza, marcha, equilibrio, dolor, funcionalidad..." style="min-height:80px;"></textarea>
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>Cambios observados desde la ultima sesion</label>
+            <textarea id="reval-cambios" placeholder="ej. Mejoro el equilibrio en sedente, sigue con dificultad en la marcha, redujo el dolor de 7 a 4/10..." style="min-height:65px;"></textarea>
+          </div>
+          <div class="field">
+            <label>Tiempo transcurrido desde la primera evaluacion</label>
+            <input type="text" id="reval-tiempo" placeholder="ej. 4 semanas, 2 meses...">
+          </div>
+        </div>
+      </div>
+      <!-- Step 2: Results -->
+      <div id="reval-step2" style="display:none;">
+        <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;">
+          <button class="btn-modal-secondary" onclick="volverStep1()">← Volver</button>
+          <button class="btn-modal-primary" onclick="copiarRevaluacion()" style="margin-left:auto;">Copiar revaluacion</button>
+        </div>
+        <div id="reval-results"></div>
+      </div>
+    </div>
+    <div class="modal-footer" id="reval-footer">
+      <button class="btn-modal-secondary" onclick="cerrarRevalModal()">Cancelar</button>
+      <button class="btn-modal-primary" id="reval-gen-btn" onclick="generarRevaluacion()">Generar revaluacion →</button>
+    </div>
+  </div>
+</div>
+
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-card">
