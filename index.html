@@ -1089,31 +1089,121 @@
 
     <div class="card">
       <div class="card-title"><span class="card-title-bar neuro-bar"></span>Hallazgos de la evaluación</div>
-      <div class="grid2">
-        <div class="field">
-          <label>Tono muscular</label>
-          <select id="n-tono">
-            <option value="">Seleccionar</option>
-            <option>Normal</option>
-            <option>Hipertonía leve (MAS 1)</option>
-            <option>Hipertonía moderada (MAS 2)</option>
-            <option>Hipertonía severa (MAS 3-4)</option>
-            <option>Hipotonía</option>
-            <option>Fluctuante</option>
-          </select>
+      <!-- TONO MUSCULAR POR SEGMENTO -->
+      <div class="field">
+        <label>Tono muscular</label>
+        <div class="grid2" style="margin-bottom:8px;">
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Hemicuerpo / segmento afectado</label>
+            <select id="n-tono">
+              <option value="">Seleccionar</option>
+              <option>Normal</option>
+              <option>Hipertonía leve (MAS 1)</option>
+              <option>Hipertonía moderada (MAS 1+)</option>
+              <option>Hipertonía moderada-severa (MAS 2)</option>
+              <option>Hipertonía severa (MAS 3)</option>
+              <option>Hipertonía muy severa (MAS 4)</option>
+              <option>Hipotonía</option>
+              <option>Fluctuante / distónico</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Hemicuerpo / segmento no afectado</label>
+            <select id="n-tono-contra">
+              <option value="">Seleccionar</option>
+              <option>Normal</option>
+              <option>Hipertonía leve (MAS 1)</option>
+              <option>Hipertonía moderada (MAS 1+)</option>
+              <option>Hipertonía moderada-severa (MAS 2)</option>
+              <option>Hipertonía severa (MAS 3)</option>
+              <option>Hipotonía</option>
+              <option>Fluctuante</option>
+            </select>
+          </div>
         </div>
-        <div class="field">
-          <label>Fuerza muscular (MRC global)</label>
-          <select id="n-fuerza">
-            <option value="">Seleccionar</option>
-            <option>0 — Sin contracción</option>
-            <option>1 — Contracción visible sin movimiento</option>
-            <option>2 — Movimiento sin gravedad</option>
-            <option>3 — Movimiento contra gravedad</option>
-            <option>4 — Movimiento contra resistencia parcial</option>
-            <option>5 — Fuerza normal</option>
-          </select>
+        <input type="text" id="n-tono-zona" placeholder="Especifica segmentos más afectados (ej. espasticidad mayor en flexores de codo y plantiflexores...)">
+      </div>
+
+      <!-- FUERZA MUSCULAR MODIFICADA POR SEGMENTO -->
+      <div class="field">
+        <label>Fuerza muscular — Escala MRC Modificada (incluye +)</label>
+        <div class="grid2" style="margin-bottom:8px;">
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro superior afectado</label>
+            <select id="n-fuerza-ms-afect">
+              <option value="">Seleccionar</option>
+              <option>0 — Sin contracción</option>
+              <option>1 — Contracción visible sin movimiento</option>
+              <option>2- — Movimiento incompleto sin gravedad</option>
+              <option>2 — Movimiento completo sin gravedad</option>
+              <option>2+ — Movimiento contra gravedad parcial</option>
+              <option>3- — Movimiento contra gravedad incompleto</option>
+              <option>3 — Movimiento completo contra gravedad</option>
+              <option>3+ — Movimiento contra resistencia mínima</option>
+              <option>4- — Movimiento contra resistencia leve</option>
+              <option>4 — Movimiento contra resistencia moderada</option>
+              <option>4+ — Movimiento contra resistencia fuerte</option>
+              <option>5 — Fuerza normal</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro superior no afectado</label>
+            <select id="n-fuerza-ms-no">
+              <option value="">Seleccionar</option>
+              <option>0 — Sin contracción</option>
+              <option>1 — Contracción visible sin movimiento</option>
+              <option>2- — Movimiento incompleto sin gravedad</option>
+              <option>2 — Movimiento completo sin gravedad</option>
+              <option>2+ — Movimiento contra gravedad parcial</option>
+              <option>3- — Movimiento contra gravedad incompleto</option>
+              <option>3 — Movimiento completo contra gravedad</option>
+              <option>3+ — Movimiento contra resistencia mínima</option>
+              <option>4- — Movimiento contra resistencia leve</option>
+              <option>4 — Movimiento contra resistencia moderada</option>
+              <option>4+ — Movimiento contra resistencia fuerte</option>
+              <option>5 — Fuerza normal</option>
+            </select>
+          </div>
         </div>
+        <div class="grid2" style="margin-bottom:8px;">
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro inferior afectado</label>
+            <select id="n-fuerza-mi-afect">
+              <option value="">Seleccionar</option>
+              <option>0 — Sin contracción</option>
+              <option>1 — Contracción visible sin movimiento</option>
+              <option>2- — Movimiento incompleto sin gravedad</option>
+              <option>2 — Movimiento completo sin gravedad</option>
+              <option>2+ — Movimiento contra gravedad parcial</option>
+              <option>3- — Movimiento contra gravedad incompleto</option>
+              <option>3 — Movimiento completo contra gravedad</option>
+              <option>3+ — Movimiento contra resistencia mínima</option>
+              <option>4- — Movimiento contra resistencia leve</option>
+              <option>4 — Movimiento contra resistencia moderada</option>
+              <option>4+ — Movimiento contra resistencia fuerte</option>
+              <option>5 — Fuerza normal</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro inferior no afectado</label>
+            <select id="n-fuerza-mi-no">
+              <option value="">Seleccionar</option>
+              <option>0 — Sin contracción</option>
+              <option>1 — Contracción visible sin movimiento</option>
+              <option>2- — Movimiento incompleto sin gravedad</option>
+              <option>2 — Movimiento completo sin gravedad</option>
+              <option>2+ — Movimiento contra gravedad parcial</option>
+              <option>3- — Movimiento contra gravedad incompleto</option>
+              <option>3 — Movimiento completo contra gravedad</option>
+              <option>3+ — Movimiento contra resistencia mínima</option>
+              <option>4- — Movimiento contra resistencia leve</option>
+              <option>4 — Movimiento contra resistencia moderada</option>
+              <option>4+ — Movimiento contra resistencia fuerte</option>
+              <option>5 — Fuerza normal</option>
+            </select>
+          </div>
+        </div>
+        <input type="text" id="n-fuerza-detalle" placeholder="Grupos musculares con mayor compromiso (ej. deltoides 3+, cuádriceps 4-, plantiflexores 2...)">
       </div>
       <div class="field">
         <label>Control postural y equilibrio</label>
@@ -1837,11 +1927,14 @@ function recopilarDatos(tab) {
     return {
       especialidad: 'Neurológico', edad: g('n-edad'), sexo: g('n-sexo'), fase: g('n-fase'),
       dx_medico: dxFinal, dx_fisio: g('n-dx_fisio'), evolucion: g('n-evolucion'),
-      tono: g('n-tono'), fuerza: g('n-fuerza'), equilibrio: g('n-equilibrio'),
-      marcha: g('n-marcha'), dolor: g('n-dolor'), dolor_zona: g('n-dolor_zona'),
+      tono_afect: g('n-tono'), tono_contra: g('n-tono-contra'), tono_zona: g('n-tono-zona'),
+      fuerza_ms_afect: g('n-fuerza-ms-afect'), fuerza_ms_no: g('n-fuerza-ms-no'),
+      fuerza_mi_afect: g('n-fuerza-mi-afect'), fuerza_mi_no: g('n-fuerza-mi-no'),
+      fuerza_detalle: g('n-fuerza-detalle'),
+      equilibrio: g('n-equilibrio'), marcha: g('n-marcha'),
+      dolor: g('n-dolor'), dolor_zona: g('n-dolor_zona'),
       sens_superficial: g('n-sens-superficial'), sens_profunda: g('n-sens-profunda'),
-      sensibilidad_zona: g('n-sensibilidad_zona'),
-      cognicion: g('n-cognicion'),
+      sensibilidad_zona: g('n-sensibilidad_zona'), cognicion: g('n-cognicion'),
       otros: g('n-otros'), escalas: scores, contexto: g('n-contexto'),
       frecuencia: g('n-frecuencia'), objetivos_px: g('n-objetivos_px'), adicional: g('n-adicional')
     };
@@ -1950,11 +2043,14 @@ Indicadores de progreso: [métricas]
 ---
 
 **REFERENCIAS DE EVIDENCIA**
-1. [Autor (año). Título. Fuente.]
-2. [Autor (año). Título. Fuente.]
-3. [Autor (año). Título. Fuente.]
-4. [Autor (año). Título. Fuente.]
-5. [Autor (año). Título. Fuente.]`;
+Incluye 5 referencias reales y verificables en este formato exacto:
+1. [Apellido, A. (año). Título del artículo. Revista, volumen(número), páginas. DOI o PMID si existe]
+2. [Apellido, A. (año). Título del artículo. Revista, volumen(número), páginas. DOI o PMID si existe]
+3. [Apellido, A. (año). Título del artículo. Revista, volumen(número), páginas. DOI o PMID si existe]
+4. [Apellido, A. (año). Guía clínica o revisión sistemática. Organización/Revista.]
+5. [Apellido, A. (año). Título. Cochrane Database of Systematic Reviews o similar.]
+
+IMPORTANTE: Las referencias deben ser reales, publicadas y relevantes para el diagnóstico específico del paciente. Incluye el DOI cuando sea posible para que el profesional pueda verificarlas.`;
 
   if (tab === 'neuro') return `${base}
 
@@ -2318,6 +2414,239 @@ function imprimirPlan(tabPrefix) {
 </html>`);
   ventana.document.close();
 }
+
+
+// ─── RETRY WRAPPER FOR GEMINI ────────────────────────────────────────────────
+async function fetchConReintento(prompt, intentos) {
+  intentos = intentos || 3;
+  for (var i = 0; i < intentos; i++) {
+    try {
+      var resp = await fetch('/api/generar-plan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({prompt: prompt})
+      });
+      var data = await resp.json();
+      if (data.plan) return data.plan;
+      if (data.error && data.error.indexOf('high demand') > -1 && i < intentos - 1) {
+        await new Promise(function(r){ setTimeout(r, 3000); });
+        continue;
+      }
+      return data.plan || '';
+    } catch(e) {
+      if (i < intentos - 1) await new Promise(function(r){ setTimeout(r, 2000); });
+    }
+  }
+  return '';
+}
+
+// ─── REVALUACIÓN SYSTEM ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// REVALUACIÓN SYSTEM
+// ═══════════════════════════════════════════════════════════════
+var revalPxId = null;
+var revalLastText = '';
+
+function extraerObjetivos(planTexto) {
+  var objetivos = [];
+  if (!planTexto) return objetivos;
+  var lines = planTexto.split('\n');
+  var enObjetivos = false;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (line.toLowerCase().indexOf('objetivo') > -1 && (line.indexOf('corto') > -1 || line.indexOf('mediano') > -1 || line.indexOf('largo') > -1 || line.indexOf('plazo') > -1)) {
+      enObjetivos = true;
+      continue;
+    }
+    if (enObjetivos && line.startsWith('-') && line.length > 5) {
+      var obj = line.replace(/^-\s*/, '').replace(/\*\*/g, '').trim();
+      if (obj.length > 10) objetivos.push(obj);
+    }
+    if (enObjetivos && line.startsWith('**') && line.toLowerCase().indexOf('plan') > -1) break;
+    if (enObjetivos && line.startsWith('**') && line.toLowerCase().indexOf('intervenci') > -1) break;
+  }
+  return objetivos.slice(0, 12);
+}
+
+function abrirRevalModal(pxId) {
+  revalPxId = pxId;
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  if (!p.sesiones || !p.sesiones.length) {
+    alert('Este paciente necesita al menos una sesión registrada para hacer una revaluación.');
+    return;
+  }
+
+  document.getElementById('reval-px-name').textContent = p.nombre + ' · ' + (p.diagnostico || '');
+  document.getElementById('reval-hallazgos').value = '';
+  document.getElementById('reval-cambios').value = '';
+  document.getElementById('reval-tiempo').value = '';
+  document.getElementById('reval-step1').style.display = 'block';
+  document.getElementById('reval-step2').style.display = 'none';
+  document.getElementById('reval-footer').style.display = 'flex';
+
+  // Extract objectives from last session
+  var ultimaSesion = p.sesiones[p.sesiones.length - 1];
+  var objetivos = extraerObjetivos(ultimaSesion.plan || '');
+  var checklist = document.getElementById('objectives-checklist');
+
+  if (!objetivos.length) {
+    checklist.innerHTML = '<div style="font-size:13px;color:var(--gray-400);padding:1rem;text-align:center;">No se pudieron extraer objetivos automáticamente. Descríbelos en el campo de hallazgos.</div>';
+  } else {
+    checklist.innerHTML = objetivos.map(function(obj, i) {
+      return '<div class="obj-item" id="obj-' + i + '" onclick="toggleObj(' + i + ')">' +
+        '<div class="obj-checkbox"><span class="obj-checkbox-check">✓</span></div>' +
+        '<div class="obj-text">' + obj + '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  document.getElementById('reval-modal').classList.add('open');
+}
+
+function toggleObj(i) {
+  var item = document.getElementById('obj-' + i);
+  if (item) item.classList.toggle('checked');
+}
+
+function cerrarRevalModal() {
+  document.getElementById('reval-modal').classList.remove('open');
+  revalPxId = null;
+}
+
+function volverStep1() {
+  document.getElementById('reval-step1').style.display = 'block';
+  document.getElementById('reval-step2').style.display = 'none';
+  document.getElementById('reval-footer').style.display = 'flex';
+}
+
+async function generarRevaluacion() {
+  var p = getPacientes().find(function(x){ return x.id === revalPxId; });
+  if (!p) return;
+
+  var hallazgos = document.getElementById('reval-hallazgos').value.trim();
+  var cambios = document.getElementById('reval-cambios').value.trim();
+  var tiempo = document.getElementById('reval-tiempo').value.trim();
+
+  if (!hallazgos && !cambios) {
+    alert('Por favor describe los hallazgos actuales del paciente.');
+    return;
+  }
+
+  // Get checked/unchecked objectives
+  var alcanzados = [];
+  var noAlcanzados = [];
+  document.querySelectorAll('.obj-item').forEach(function(item) {
+    var text = item.querySelector('.obj-text');
+    if (text) {
+      if (item.classList.contains('checked')) alcanzados.push(text.textContent);
+      else noAlcanzados.push(text.textContent);
+    }
+  });
+
+  var btn = document.getElementById('reval-gen-btn');
+  btn.disabled = true;
+  btn.textContent = 'Generando...';
+
+  var ultimaSesion = p.sesiones[p.sesiones.length - 1];
+
+  var prompt = 'Eres un fisioterapeuta clínico experto en rehabilitación. Genera una revaluación clínica completa y estructurada.\n\n' +
+    'DATOS DEL PACIENTE:\n' +
+    '- Nombre: ' + p.nombre + '\n' +
+    '- Diagnóstico: ' + (p.diagnostico || 'N/E') + '\n' +
+    '- Meta funcional personal: ' + (p.meta || 'No especificada') + '\n' +
+    '- Roles en la vida: ' + (p.roles || 'No especificados') + '\n' +
+    '- Tiempo desde primera evaluación: ' + (tiempo || 'No especificado') + '\n' +
+    '- Total sesiones: ' + p.sesiones.length + '\n\n' +
+    'OBJETIVOS ALCANZADOS (' + alcanzados.length + '):\n' + (alcanzados.length ? alcanzados.map(function(o){return '✓ '+o;}).join('\n') : 'Ninguno marcado') + '\n\n' +
+    'OBJETIVOS NO ALCANZADOS (' + noAlcanzados.length + '):\n' + (noAlcanzados.length ? noAlcanzados.map(function(o){return '✗ '+o;}).join('\n') : 'Ninguno') + '\n\n' +
+    'HALLAZGOS ACTUALES:\n' + hallazgos + '\n\n' +
+    'CAMBIOS OBSERVADOS:\n' + (cambios || 'No especificados') + '\n\n' +
+    'PLAN ORIGINAL (resumen):\n' + (ultimaSesion.plan || '').substring(0, 800) + '\n\n' +
+    'Genera la revaluación en JSON con exactamente estas claves:\n' +
+    '{\n' +
+    '  "potenciacion": "Para los objetivos alcanzados: nuevas metas más desafiantes para potenciar los logros y seguir progresando. 3-4 oraciones específicas.",\n' +
+    '  "alternativas": "Para los objetivos no alcanzados: estrategias alternativas de intervención, cambios de enfoque o técnicas diferentes que podrían funcionar mejor. 3-4 oraciones.",\n' +
+    '  "meseta": "Análisis honesto de la meseta terapéutica: si existe, hasta dónde puede llegar este paciente según su diagnóstico, tiempo de evolución y respuesta al tratamiento. 3-4 oraciones realistas.",\n' +
+    '  "nuevos_objetivos": ["Nuevo objetivo SMART 1 basado en la revaluación", "Nuevo objetivo SMART 2", "Nuevo objetivo SMART 3", "Nuevo objetivo SMART 4"],\n' +
+    '  "plan_ajustado": "Plan de intervención ajustado para las próximas 4-8 semanas considerando los logros, las dificultades y la meta funcional personal del paciente. 4-5 oraciones.",\n' +
+    '  "proyeccion_funcional": "Proyección realista y honesta hacia la meta funcional personal del paciente. Si quiere bailar, cocinar, caminar — qué tan cerca está y qué falta. 3-4 oraciones."\n' +
+    '}\n\n' +
+    'Responde ÚNICAMENTE el JSON, sin texto adicional, sin markdown.';
+
+  try {
+    var resp = await fetch('/api/generar-plan', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: prompt})
+    });
+    var data = await resp.json();
+    var clean = (data.plan || '').replace(/```json|```/g, '').trim();
+    var r = JSON.parse(clean);
+
+    revalLastText = 'REVALUACIÓN — ' + p.nombre + '\n' +
+      'Fecha: ' + new Date().toLocaleDateString('es-CO') + '\n\n' +
+      'OBJETIVOS ALCANZADOS:\n' + (alcanzados.length ? alcanzados.join('\n') : 'Ninguno') + '\n\n' +
+      'OBJETIVOS NO ALCANZADOS:\n' + (noAlcanzados.length ? noAlcanzados.join('\n') : 'Ninguno') + '\n\n' +
+      '✅ POTENCIACIÓN DE LOGROS:\n' + r.potenciacion + '\n\n' +
+      '🔄 ESTRATEGIAS ALTERNATIVAS:\n' + r.alternativas + '\n\n' +
+      '📊 ANÁLISIS DE MESETA TERAPÉUTICA:\n' + r.meseta + '\n\n' +
+      '🎯 NUEVOS OBJETIVOS:\n' + (r.nuevos_objetivos||[]).join('\n') + '\n\n' +
+      '📋 PLAN AJUSTADO:\n' + r.plan_ajustado + '\n\n' +
+      '🌟 PROYECCIÓN FUNCIONAL:\n' + r.proyeccion_funcional;
+
+    document.getElementById('reval-results').innerHTML =
+      '<div class="reval-result-section reval-alcanzados">' +
+        '<div class="reval-result-header">✅ Potenciación de logros alcanzados</div>' +
+        '<div class="reval-result-body">' + r.potenciacion + '</div>' +
+      '</div>' +
+      '<div class="reval-result-section reval-no-alcanzados">' +
+        '<div class="reval-result-header">🔄 Estrategias alternativas para objetivos pendientes</div>' +
+        '<div class="reval-result-body">' + r.alternativas + '</div>' +
+      '</div>' +
+      '<div class="reval-result-section reval-meseta">' +
+        '<div class="reval-result-header">📊 Análisis de meseta terapéutica</div>' +
+        '<div class="reval-result-body">' + r.meseta + '</div>' +
+      '</div>' +
+      '<div class="reval-result-section reval-alternativas">' +
+        '<div class="reval-result-header">🎯 Nuevos objetivos ajustados</div>' +
+        '<div class="reval-result-body"><ul style="padding-left:1rem;">' +
+          (r.nuevos_objetivos||[]).map(function(o){return '<li style="margin-bottom:6px;font-size:13px;">'+o+'</li>';}).join('') +
+        '</ul></div>' +
+      '</div>' +
+      '<div class="reval-result-section" style="border-radius:10px;overflow:hidden;">' +
+        '<div class="reval-result-header" style="background:#0F6E56;color:white;">📋 Plan de intervención ajustado</div>' +
+        '<div class="reval-result-body" style="background:#F0FBF6;">' + r.plan_ajustado + '</div>' +
+      '</div>' +
+      '<div class="reval-result-section reval-proyeccion">' +
+        '<div class="reval-result-header">🌟 Proyección hacia la meta funcional personal</div>' +
+        '<div class="reval-result-body">' + r.proyeccion_funcional + '</div>' +
+      '</div>';
+
+    // Save revaluation as a special session
+    guardarSesionEnPaciente('reval', {dx_medico: 'Revaluación', dx_fisio: ''}, revalLastText);
+
+    document.getElementById('reval-step1').style.display = 'none';
+    document.getElementById('reval-step2').style.display = 'block';
+    document.getElementById('reval-footer').style.display = 'none';
+
+  } catch(e) {
+    alert('Error al generar la revaluación. Intenta nuevamente.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generar revaluación →';
+}
+
+function copiarRevaluacion() {
+  if (revalLastText) {
+    navigator.clipboard.writeText(revalLastText);
+    var btn = event.target;
+    btn.textContent = '¡Copiado!';
+    setTimeout(function(){ btn.textContent = 'Copiar revaluación'; }, 2000);
+  }
+}
+
 
 // ─── PATIENT SYSTEM ─────────────────────────────────────────────────────────
 var activePxId = null;
