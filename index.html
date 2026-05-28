@@ -850,6 +850,99 @@
     .reval-result-header { padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: white; }
     .reval-result-body { padding: 12px 14px; font-size: 13px; line-height: 1.7; }
 
+
+    /* SESSIONS TRACKING */
+    .session-counter-box {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--gray-50); border-radius: 10px;
+      border: 1px solid var(--border); padding: 12px 16px; margin-bottom: 1rem;
+    }
+    .session-counter-left { display: flex; align-items: center; gap: 12px; }
+    .session-counter-num {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: var(--neuro); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; flex-shrink: 0;
+    }
+    .session-counter-label { font-size: 13px; font-weight: 600; color: var(--gray-900); }
+    .session-counter-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+    .session-counter-actions { display: flex; gap: 6px; align-items: center; }
+    .btn-session-add {
+      padding: 7px 16px; border-radius: 20px; border: none;
+      background: var(--neuro); color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .btn-session-add:hover { filter: brightness(0.88); }
+    .btn-session-sub {
+      width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-strong);
+      background: var(--white); color: var(--gray-600);
+      font-family: 'DM Sans', sans-serif; font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    .btn-session-sub:hover { border-color: #C53030; color: #C53030; }
+
+    /* ADMIN PANEL */
+    .admin-panel {
+      position: fixed; inset: 0; background: var(--white);
+      z-index: 500; display: none; flex-direction: column;
+    }
+    .admin-panel.open { display: flex; }
+    .admin-nav {
+      background: var(--neuro); color: white;
+      padding: 0 2rem; height: 58px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .admin-nav-title { font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .admin-close-btn {
+      padding: 7px 16px; border-radius: 20px;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      background: transparent; color: white;
+      font-family: 'DM Sans', sans-serif; font-size: 13px;
+      cursor: pointer;
+    }
+    .admin-content { flex: 1; overflow-y: auto; padding: 2rem; max-width: 1000px; margin: 0 auto; width: 100%; }
+    .admin-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 2rem; }
+    .admin-stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .admin-stat-num { font-size: 32px; font-weight: 700; color: var(--neuro); line-height: 1; margin-bottom: 4px; }
+    .admin-stat-label { font-size: 12px; color: var(--gray-600); }
+    .admin-section-title {
+      font-size: 13px; font-weight: 600; color: var(--gray-900);
+      margin-bottom: 1rem; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .admin-table th {
+      text-align: left; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--gray-400); padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-table td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--gray-900); }
+    .admin-table tr:hover td { background: var(--gray-50); }
+    .badge-active { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: var(--neuro-light); color: var(--neuro); }
+    .badge-inactive { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: #FFF5F5; color: #C53030; }
+    .badge-admin { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; background: #FDF0E1; color: #7C4D1E; }
+    .btn-toggle-user {
+      font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px; cursor: pointer; border: none;
+      transition: all 0.12s;
+    }
+    .btn-toggle-active { background: #FFF5F5; color: #C53030; }
+    .btn-toggle-inactive { background: var(--neuro-light); color: var(--neuro); }
+    .admin-loading { text-align: center; padding: 3rem; color: var(--gray-400); font-size: 13px; }
+
+    @media (max-width: 640px) {
+      .admin-stats { grid-template-columns: repeat(2,1fr); }
+      .admin-content { padding: 1rem; }
+    }
+
   </style>
 </head>
 <body>
@@ -916,6 +1009,78 @@
     <div class="modal-footer">
       <button class="btn-modal-secondary" onclick="document.getElementById('progress-modal').classList.remove('open')">Cerrar</button>
       <button class="btn-modal-primary" onclick="copiarAnalisis()">Copiar analisis</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ADMIN PANEL -->
+<div class="admin-panel" id="admin-panel">
+  <div class="admin-nav">
+    <div class="admin-nav-title">⚙️ Panel de Administración — FisioIA</div>
+    <button class="admin-close-btn" onclick="cerrarAdmin()">✕ Salir</button>
+  </div>
+  <div class="admin-content">
+    <div class="admin-stats" id="admin-stats">
+      <div class="admin-stat-card"><div class="admin-stat-num" id="stat-users">--</div><div class="admin-stat-label">Usuarios registrados</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-num" id="stat-active">--</div><div class="admin-stat-label">Usuarios activos</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-num" id="stat-plans">--</div><div class="admin-stat-label">Planes generados hoy</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-num" id="stat-patients">--</div><div class="admin-stat-label">Pacientes registrados</div></div>
+    </div>
+    <div style="margin-bottom:2rem;">
+      <div class="admin-section-title">
+        <span>Usuarios</span>
+        <button onclick="cargarAdminData()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 14px;border-radius:20px;border:1px solid var(--border-strong);background:transparent;cursor:pointer;">🔄 Actualizar</button>
+      </div>
+      <div id="admin-users-table"><div class="admin-loading">Cargando usuarios...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION REGISTER MODAL -->
+<div class="modal-overlay" id="session-modal" style="z-index:460;">
+  <div class="modal-card" style="max-width:480px;">
+    <div class="modal-header">
+      <div class="modal-title">📅 Registrar sesión</div>
+      <button class="modal-close" onclick="cerrarSessionModal()">x</button>
+    </div>
+    <div class="modal-body">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <div style="font-size:48px;font-weight:700;color:var(--neuro);" id="session-modal-num">0</div>
+        <div style="font-size:13px;color:var(--gray-600);">sesiones registradas</div>
+      </div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Fecha de la sesión</label>
+        <input type="date" id="session-date">
+      </div>
+      <div class="field" style="margin-bottom:12px;">
+        <label>Notas de la sesión (opcional)</label>
+        <textarea id="session-notes" placeholder="ej. El paciente toleró bien la carga, mejoró el equilibrio en bipedestación, aumentó ROM de hombro..." style="min-height:70px;"></textarea>
+      </div>
+      <div style="background:var(--neuro-light);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--neuro);">
+        💡 Cada sesión registrada ayuda a la IA a entender el progreso real del paciente en la revaluación.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="cerrarSessionModal()">Cancelar</button>
+      <button class="btn-modal-primary" onclick="guardarSesionManual()">Registrar sesión</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONSENT MODAL -->
+<div class="modal-overlay" id="consent-modal" style="z-index:460;">
+  <div class="modal-card" style="max-width:640px;">
+    <div class="modal-header">
+      <div class="modal-title">📄 Consentimiento informado</div>
+      <button class="modal-close" onclick="document.getElementById('consent-modal').classList.remove('open')">x</button>
+    </div>
+    <div class="modal-body" id="consent-body">
+      <div style="font-size:13px;color:var(--gray-400);text-align:center;padding:1rem;">Cargando...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-secondary" onclick="document.getElementById('consent-modal').classList.remove('open')">Cerrar</button>
+      <button class="btn-modal-primary" onclick="imprimirConsentimiento()">Imprimir / PDF</button>
     </div>
   </div>
 </div>
@@ -1067,6 +1232,7 @@
     <button onclick="abrirPacientes()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:var(--neuro);color:white;border:none;cursor:pointer;font-weight:600;">Pacientes</button>
     <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
     <span id="nav-user-email" style="font-size:11px;color:var(--gray-400);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    <button id="admin-nav-btn" onclick="abrirAdmin()" style="display:none;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:#7C4D1E;color:white;border:none;cursor:pointer;font-weight:600;">⚙️ Admin</button>
     <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Salir</button>
   </div>
 </nav>
@@ -2524,6 +2690,249 @@ async function fetchConReintento(prompt, intentos) {
   return '';
 }
 
+// ─── ADMIN + SESSIONS + CONSENT ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// ADMIN SYSTEM
+// ═══════════════════════════════════════════════════════════════
+var ADMIN_EMAILS = ['danielamoncada216@gmail.com', 'ft.mariadelangelo@gmail.com'];
+
+function isAdmin() {
+  var email = localStorage.getItem('fisioIA_email') || '';
+  return ADMIN_EMAILS.indexOf(email.toLowerCase()) > -1;
+}
+
+function checkAdminBtn() {
+  var btn = document.getElementById('admin-nav-btn');
+  if (btn) btn.style.display = isAdmin() ? 'inline-block' : 'none';
+}
+
+function abrirAdmin() {
+  if (!isAdmin()) { alert('No tienes permisos de administrador.'); return; }
+  document.getElementById('admin-panel').classList.add('open');
+  cargarAdminData();
+}
+
+function cerrarAdmin() {
+  document.getElementById('admin-panel').classList.remove('open');
+}
+
+async function cargarAdminData() {
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) return;
+
+  // Load users from Supabase auth admin endpoint
+  try {
+    // Get all patients count
+    var rPx = await fetch(SUPABASE_URL + '/rest/v1/pacientes?select=id,user_id', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    var allPx = rPx.ok ? await rPx.json() : [];
+
+    // Get usage logs if table exists
+    var rLogs = await fetch(SUPABASE_URL + '/rest/v1/plan_logs?select=id,user_email,created_at&order=created_at.desc&limit=100', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    var logs = rLogs.ok ? await rLogs.json() : [];
+
+    // Count today's plans
+    var today = new Date().toISOString().split('T')[0];
+    var todayLogs = logs.filter(function(l) { return l.created_at && l.created_at.startsWith(today); });
+
+    // Get users from admin API
+    var rUsers = await fetch(SUPABASE_URL + '/auth/v1/admin/users', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+
+    var users = [];
+    if (rUsers.ok) {
+      var userData = await rUsers.json();
+      users = userData.users || [];
+    }
+
+    // Update stats
+    document.getElementById('stat-users').textContent = users.length || '--';
+    document.getElementById('stat-active').textContent = users.filter(function(u) { return !u.banned_until; }).length || '--';
+    document.getElementById('stat-plans').textContent = todayLogs.length;
+    document.getElementById('stat-patients').textContent = allPx.length;
+
+    // Render users table
+    renderUsersTable(users, logs);
+
+  } catch(e) {
+    console.log('Admin load error:', e);
+    document.getElementById('admin-users-table').innerHTML = '<div class="admin-loading">Error al cargar datos. Verifica permisos de administrador.</div>';
+  }
+}
+
+function renderUsersTable(users, logs) {
+  var container = document.getElementById('admin-users-table');
+  if (!users.length) {
+    container.innerHTML = '<div class="admin-loading">No se encontraron usuarios. Verifica que tengas permisos de servicio en Supabase.</div>';
+    return;
+  }
+
+  var rows = users.map(function(u) {
+    var email = u.email || '--';
+    var creado = u.created_at ? new Date(u.created_at).toLocaleDateString('es-CO') : '--';
+    var ultimoLogin = u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString('es-CO') : 'Nunca';
+    var isBanned = u.banned_until && new Date(u.banned_until) > new Date();
+    var isAdminUser = ADMIN_EMAILS.indexOf(email.toLowerCase()) > -1;
+    var userPlans = logs.filter(function(l) { return l.user_email === email; }).length;
+
+    return '<tr>' +
+      '<td>' + email + '</td>' +
+      '<td>' + creado + '</td>' +
+      '<td>' + ultimoLogin + '</td>' +
+      '<td>' + userPlans + '</td>' +
+      '<td>' +
+        (isAdminUser ? '<span class="badge-admin">Admin</span> ' : '') +
+        (isBanned ? '<span class="badge-inactive">Inactivo</span>' : '<span class="badge-active">Activo</span>') +
+      '</td>' +
+      '<td>' +
+        (isAdminUser ? '--' : '<button class="btn-toggle-user ' + (isBanned ? 'btn-toggle-inactive' : 'btn-toggle-active') + '" onclick="toggleUser(\'' + u.id + '\', ' + isBanned + ')">' + (isBanned ? 'Activar' : 'Desactivar') + '</button>') +
+      '</td>' +
+    '</tr>';
+  }).join('');
+
+  container.innerHTML = '<table class="admin-table">' +
+    '<thead><tr>' +
+      '<th>Email</th><th>Registrado</th><th>Último acceso</th><th>Planes</th><th>Estado</th><th>Acción</th>' +
+    '</tr></thead>' +
+    '<tbody>' + rows + '</tbody>' +
+  '</table>';
+}
+
+async function toggleUser(userId, isBanned) {
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) return;
+  var action = isBanned ? 'unban' : 'ban';
+  try {
+    var body = isBanned ? { ban_duration: 'none' } : { ban_duration: '876000h' };
+    var r = await fetch(SUPABASE_URL + '/auth/v1/admin/users/' + userId, {
+      method: 'PUT',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (r.ok) { cargarAdminData(); }
+    else { alert('Error al ' + action + ' el usuario.'); }
+  } catch(e) { alert('Error de conexión.'); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MANUAL SESSIONS TRACKING
+// ═══════════════════════════════════════════════════════════════
+var sessionModalPxId = null;
+
+function abrirSessionModal(pxId) {
+  sessionModalPxId = pxId;
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  document.getElementById('session-modal-num').textContent = (p.sesionesCount || 0) + 1;
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('session-date').value = today;
+  document.getElementById('session-notes').value = '';
+  document.getElementById('session-modal').classList.add('open');
+}
+
+function cerrarSessionModal() {
+  document.getElementById('session-modal').classList.remove('open');
+  sessionModalPxId = null;
+}
+
+async function guardarSesionManual() {
+  if (!sessionModalPxId) return;
+  var fecha = document.getElementById('session-date').value;
+  var notas = document.getElementById('session-notes').value.trim();
+  if (!fecha) { alert('Selecciona la fecha de la sesión.'); return; }
+
+  var pacientes = getPacientes();
+  var p = pacientes.find(function(x){ return x.id === sessionModalPxId; });
+  if (!p) return;
+
+  if (!p.sesionesCount) p.sesionesCount = 0;
+  if (!p.sesionesLog) p.sesionesLog = [];
+
+  p.sesionesCount++;
+  p.sesionesLog.push({
+    num: p.sesionesCount,
+    fecha: new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}),
+    notas: notas
+  });
+
+  savePacientes(pacientes);
+  await updatePacienteDB(sessionModalPxId, { sesionesCount: p.sesionesCount, sesionesLog: p.sesionesLog });
+
+  cerrarSessionModal();
+  verDetalle(sessionModalPxId);
+}
+
+function ajustarSesiones(pxId, delta) {
+  if (delta < 0 && !confirm('¿Quieres restar una sesión?')) return;
+  var pacientes = getPacientes();
+  var p = pacientes.find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  p.sesionesCount = Math.max(0, (p.sesionesCount || 0) + delta);
+  savePacientes(pacientes);
+  updatePacienteDB(pxId, { sesionesCount: p.sesionesCount });
+  verDetalle(pxId);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONSENTIMIENTO INFORMADO
+// ═══════════════════════════════════════════════════════════════
+function abrirConsentimiento(pxId) {
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  var edad = calcEdad(p.nacimiento);
+  var fecha = new Date().toLocaleDateString('es-CO', {day:'2-digit',month:'long',year:'numeric'});
+
+  document.getElementById('consent-body').innerHTML =
+    '<div id="consent-printable" style="font-family:serif;font-size:13px;line-height:1.8;color:#111;">' +
+      '<div style="text-align:center;margin-bottom:1.5rem;">' +
+        '<div style="font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">CONSENTIMIENTO INFORMADO</div>' +
+        '<div style="font-size:13px;margin-top:4px;">Fisioterapia — Proceso de Rehabilitación</div>' +
+        '<div style="font-size:12px;color:#555;margin-top:2px;">FisioIA · Herramienta de apoyo clínico</div>' +
+      '</div>' +
+      '<p>Yo, <strong>' + p.nombre + '</strong>, identificado(a) con ' + (p.identificacion ? 'documento N° <strong>' + p.identificacion + '</strong>' : 'documento de identidad') + ', de <strong>' + (edad || 'edad registrada') + '</strong>, en pleno uso de mis facultades mentales, de manera libre, voluntaria e informada, manifiesto lo siguiente:</p>' +
+      '<p style="margin-top:1rem;"><strong>1. INFORMACIÓN RECIBIDA</strong><br>He sido informado(a) de manera clara y comprensible sobre mi diagnóstico: <strong>' + (p.diagnostico || 'diagnóstico pendiente') + '</strong>, el proceso de rehabilitación fisioterapéutica propuesto, sus objetivos, procedimientos, beneficios esperados, posibles riesgos y alternativas disponibles.</p>' +
+      '<p style="margin-top:1rem;"><strong>2. CONSENTIMIENTO AL TRATAMIENTO</strong><br>Autorizo al fisioterapeuta tratante a realizar la evaluación y el tratamiento fisioterapéutico correspondiente a mi condición de salud, incluyendo técnicas de terapia manual, ejercicio terapéutico, electroterapia y demás procedimientos propios de la fisioterapia.</p>' +
+      '<p style="margin-top:1rem;"><strong>3. USO DE HERRAMIENTAS DE APOYO</strong><br>Entiendo que el profesional puede utilizar herramientas tecnológicas de apoyo clínico (como FisioIA) para estructurar planes de tratamiento, y que dichos planes son siempre revisados y validados por el fisioterapeuta responsable antes de su aplicación.</p>' +
+      '<p style="margin-top:1rem;"><strong>4. CONFIDENCIALIDAD</strong><br>Entiendo que mi información de salud es confidencial y será manejada conforme a la Ley 1581 de 2012 de Protección de Datos Personales de Colombia.</p>' +
+      '<p style="margin-top:1rem;"><strong>5. RETIRO DEL CONSENTIMIENTO</strong><br>Sé que tengo derecho a retirar este consentimiento en cualquier momento sin que ello afecte mi atención, y que puedo solicitar información adicional cuando lo considere necesario.</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem;">' +
+        '<div style="text-align:center;">' +
+          '<div style="border-bottom:1px solid #111;height:40px;margin-bottom:6px;"></div>' +
+          '<div style="font-size:12px;font-weight:700;">' + p.nombre.toUpperCase() + '</div>' +
+          '<div style="font-size:11px;color:#555;">Paciente / Representante legal</div>' +
+          '<div style="font-size:11px;color:#555;">CC: ' + (p.identificacion || '__________________') + '</div>' +
+        '</div>' +
+        '<div style="text-align:center;">' +
+          '<div style="border-bottom:1px solid #111;height:40px;margin-bottom:6px;"></div>' +
+          '<div style="font-size:12px;font-weight:700;">FISIOTERAPEUTA TRATANTE</div>' +
+          '<div style="font-size:11px;color:#555;">Firma y sello</div>' +
+          '<div style="font-size:11px;color:#555;">TP: __________________</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="text-align:center;margin-top:1.5rem;font-size:11px;color:#777;">Fecha: ' + fecha + '</div>' +
+    '</div>';
+
+  document.getElementById('consent-modal').classList.add('open');
+}
+
+function imprimirConsentimiento() {
+  var printContent = document.getElementById('consent-printable');
+  if (!printContent) return;
+  var ventana = window.open('', '_blank', 'width=800,height=700');
+  ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Consentimiento Informado</title>' +
+    '<style>body{font-family:serif;font-size:13px;line-height:1.8;color:#111;padding:40px;max-width:700px;margin:0 auto;}' +
+    '@media print{body{padding:20px;}}</style></head><body>' +
+    printContent.innerHTML +
+    '<scr' + 'ipt>window.onload=function(){window.print();}<\/scr' + 'ipt></body></html>');
+  ventana.document.close();
+}
+
+
+
 // ─── REVALUACIÓN SYSTEM ──────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
 // REVALUACIÓN SYSTEM
@@ -2536,19 +2945,66 @@ function extraerObjetivos(planTexto) {
   if (!planTexto) return objetivos;
   var lines = planTexto.split('\n');
   var enObjetivos = false;
+  var enIntervencion = false;
+
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
-    if (line.toLowerCase().indexOf('objetivo') > -1 && (line.indexOf('corto') > -1 || line.indexOf('mediano') > -1 || line.indexOf('largo') > -1 || line.indexOf('plazo') > -1)) {
+    var lineLow = line.toLowerCase();
+
+    // Detectar sección de objetivos — múltiples formatos posibles
+    if (lineLow.indexOf('objetivo') > -1 && (
+      lineLow.indexOf('corto') > -1 || lineLow.indexOf('mediano') > -1 ||
+      lineLow.indexOf('largo') > -1 || lineLow.indexOf('terapéutico') > -1 ||
+      lineLow.indexOf('terapeutico') > -1 || lineLow.indexOf('smart') > -1 ||
+      lineLow.indexOf('plazo') > -1
+    )) {
       enObjetivos = true;
+      enIntervencion = false;
       continue;
     }
-    if (enObjetivos && line.startsWith('-') && line.length > 5) {
-      var obj = line.replace(/^-\s*/, '').replace(/\*\*/g, '').trim();
-      if (obj.length > 10) objetivos.push(obj);
+
+    // Detectar fin de sección de objetivos
+    if (enObjetivos && (
+      lineLow.indexOf('plan de intervenci') > -1 ||
+      lineLow.indexOf('intervenci') > -1 ||
+      lineLow.indexOf('consideraci') > -1 ||
+      lineLow.indexOf('referencia') > -1 ||
+      lineLow.indexOf('pronóstico') > -1 ||
+      lineLow.indexOf('pronostico') > -1
+    ) && (line.startsWith('**') || line.startsWith('#'))) {
+      break;
     }
-    if (enObjetivos && line.startsWith('**') && line.toLowerCase().indexOf('plan') > -1) break;
-    if (enObjetivos && line.startsWith('**') && line.toLowerCase().indexOf('intervenci') > -1) break;
+
+    // Capturar líneas que son objetivos (empiezan con - o * o número)
+    if (enObjetivos) {
+      var isItem = line.match(/^[-*•]\s+.+/) || line.match(/^\d+\.\s+.+/);
+      if (isItem && line.length > 15) {
+        var obj = line
+          .replace(/^[-*•\d.]\s*/, '')
+          .replace(/\*\*/g, '')
+          .trim();
+        if (obj.length > 10 && objetivos.indexOf(obj) === -1) {
+          objetivos.push(obj);
+        }
+      }
+    }
   }
+
+  // Si no encontró objetivos con el método anterior, buscar cualquier línea con guión después de "objetivo"
+  if (objetivos.length === 0) {
+    var inAnyObj = false;
+    for (var j = 0; j < lines.length; j++) {
+      var l = lines[j].trim();
+      if (l.toLowerCase().indexOf('objetivo') > -1) { inAnyObj = true; continue; }
+      if (inAnyObj && l.match(/^[-*•]\s+.{10,}/)) {
+        var o = l.replace(/^[-*•]\s*/, '').replace(/\*\*/g, '').trim();
+        if (o.length > 10) objetivos.push(o);
+        if (objetivos.length >= 9) break;
+      }
+      if (inAnyObj && l.length === 0 && objetivos.length > 2) break;
+    }
+  }
+
   return objetivos.slice(0, 12);
 }
 
@@ -2901,8 +3357,9 @@ function verDetalle(id){
     '<div class="pdh"><div style="display:flex;align-items:center;gap:12px;">'+
       '<div class="pdh-avatar">'+getInitials(p.nombre)+'</div>'+
       '<div><div class="pdh-name">'+p.nombre+'</div>'+
-      '<div class="pdh-meta">'+(p.diagnostico||'Sin diagnostico')+(edad?' - '+edad:'')+' - '+ses.length+' sesion'+(ses.length!==1?'es':'')+'</div></div></div>'+
+      '<div class="pdh-meta">'+(p.diagnostico||'Sin diagnostico')+(edad?' - '+edad:'')+' · '+(p.sesionesCount||0)+' sesiones · '+ses.length+' plan'+(ses.length!==1?'es':'')+'</div></div></div>'+
       '<div class="pdh-actions">'+
+        '<button class="btn-pdh" onclick="abrirConsentimiento(\''+id+'\')">📄 Consentimiento</button>'+
         '<button class="btn-pdh" onclick="abrirRevalModal(\''+id+'\')" style="background:rgba(255,255,255,0.2);">📋 Revaluación</button>'+
         '<button class="btn-pdh" onclick="abrirModalPaciente(\''+id+'\')">Editar</button>'+
         '<button class="btn-pdh" onclick="cerrarDetalle()">x</button>'+
@@ -2916,7 +3373,20 @@ function verDetalle(id){
         '<div class="px-info-item"><label>Sesiones</label><span>'+ses.length+'</span></div>'+
         '<div class="px-info-item"><label>Registrado</label><span>'+(p.fechaCreacion||'--')+'</span></div>'+
       '</div>'+metaBox+rolesBox+
-      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-600);margin:1rem 0 10px;">Historial de sesiones</div>'+
+      '<div class="session-counter-box">'+
+      '<div class="session-counter-left">'+
+        '<div class="session-counter-num">'+(p.sesionesCount||0)+'</div>'+
+        '<div>'+
+          '<div class="session-counter-label">Sesiones realizadas</div>'+
+          '<div class="session-counter-sub">Registradas manualmente por el fisioterapeuta</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="session-counter-actions">'+
+        '<button class="btn-session-sub" onclick="ajustarSesiones(\''+id+'\', -1)" title="Restar sesión">−</button>'+
+        '<button class="btn-session-add" onclick="abrirSessionModal(\''+id+'\')">+ Registrar sesión</button>'+
+      '</div>'+
+    '</div>'+
+    '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--gray-600);margin:1rem 0 10px;">Historial de planes generados</div>'+
       '<div>'+sesHTML+'</div>'+
     '</div>';
   det.scrollIntoView({behavior:'smooth',block:'start'});
@@ -3162,8 +3632,8 @@ function entrarApp(email) {
   document.getElementById('login-screen').classList.add('hidden');
   const navEmail = document.getElementById('nav-user-email');
   if (navEmail) navEmail.textContent = email;
-  // Load patients from Supabase
   cargarPacientes();
+  checkAdminBtn();
 }
 
 function cerrarSesion() {
