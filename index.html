@@ -3782,6 +3782,7 @@ function entrarApp(email) {
   if (navEmail) navEmail.textContent = email;
   cargarPacientes();
   checkAdminBtn();
+  setTimeout(cargarInvitacionesPendientes, 800);
 }
 
 function cerrarSesion() {
@@ -4567,12 +4568,7 @@ async function guardarPlanEnDB(pacienteId, profesion, planTexto, evaluacionData)
   } catch(e) { /* No crítico */ }
 }
 
-// ── Hook en entrarApp para cargar invitaciones ────────────────────────────────
-const _entrarAppOriginal = entrarApp;
-function entrarApp(email) {
-  _entrarAppOriginal(email);
-  setTimeout(cargarInvitacionesPendientes, 800);
-}
+// invitaciones se cargan desde entrarApp directamente
 </script>
 </body>
 </html>
