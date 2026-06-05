@@ -166,6 +166,45 @@
     .tab-btn.active[data-tab="ortho"] { background: var(--ortho-light); color: var(--ortho); font-weight: 600; }
     .tab-btn.active[data-tab="geria"] { background: var(--geria-light); color: var(--geria); font-weight: 600; }
     .tab-btn.active[data-tab="pedia"] { background: var(--pedia-light); color: var(--pedia); font-weight: 600; }
+    /* ── Tabs profesiones nuevas ── */
+    :root {
+      --fono: #185FA5;
+      --fono-light: #E6F1FB;
+      --fono-mid: #85B7EB;
+      --to: #BA7517;
+      --to-light: #FAEEDA;
+      --to-mid: #EF9F27;
+      --psico: #534AB7;
+      --psico-light: #EEEDFE;
+      --psico-mid: #AFA9EC;
+    }
+    .tab-btn[data-tab="fono"] .tab-icon { background: var(--fono-light); }
+    .tab-btn[data-tab="fono"] .tab-icon svg { fill: var(--fono); }
+    .tab-btn[data-tab="to"] .tab-icon { background: var(--to-light); }
+    .tab-btn[data-tab="to"] .tab-icon svg { fill: var(--to); }
+    .tab-btn[data-tab="psico"] .tab-icon { background: var(--psico-light); }
+    .tab-btn[data-tab="psico"] .tab-icon svg { fill: var(--psico); }
+    .tab-btn.active[data-tab="fono"] { background: var(--fono-light); color: var(--fono); font-weight: 600; }
+    .tab-btn.active[data-tab="to"]   { background: var(--to-light);   color: var(--to);   font-weight: 600; }
+    .tab-btn.active[data-tab="psico"]{ background: var(--psico-light);color: var(--psico);font-weight: 600; }
+    .tab-panel[data-tab="fono"] .field input:focus,
+    .tab-panel[data-tab="fono"] .field select:focus,
+    .tab-panel[data-tab="fono"] .field textarea:focus { border-color: var(--fono); }
+    .tab-panel[data-tab="to"] .field input:focus,
+    .tab-panel[data-tab="to"] .field select:focus,
+    .tab-panel[data-tab="to"] .field textarea:focus { border-color: var(--to); }
+    .tab-panel[data-tab="psico"] .field input:focus,
+    .tab-panel[data-tab="psico"] .field select:focus,
+    .tab-panel[data-tab="psico"] .field textarea:focus { border-color: var(--psico); }
+    .tab-panel[data-tab="fono"]  .tag:hover,
+    .tab-panel[data-tab="fono"]  .tag.sel  { border-color:var(--fono); color:var(--fono); background:var(--fono-light); font-weight:500; }
+    .tab-panel[data-tab="to"]    .tag:hover,
+    .tab-panel[data-tab="to"]    .tag.sel  { border-color:var(--to);   color:var(--to);   background:var(--to-light);   font-weight:500; }
+    .tab-panel[data-tab="psico"] .tag:hover,
+    .tab-panel[data-tab="psico"] .tag.sel  { border-color:var(--psico);color:var(--psico);background:var(--psico-light);font-weight:500; }
+    .tab-btn[data-tab="fono"]  .tab-icon { background:var(--fono-light);  }
+    .tab-btn[data-tab="to"]    .tab-icon { background:var(--to-light);    }
+    .tab-btn[data-tab="psico"] .tab-icon { background:var(--psico-light); }
 
     /* TAB PANELS */
     .tab-panel { display: none; }
@@ -1394,6 +1433,31 @@
     </div>
   </div>
 
+  <!-- TABS PROFESIONES NUEVAS (visibles según profesión del usuario) -->
+  <div class="tabs-wrapper" id="tabs-profesiones-nuevas" style="display:none;">
+    <div class="tabs-label">Tu área de evaluación</div>
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" id="tab-btn-fono" data-tab="fono" onclick="switchTabProf('fono')" role="tab" style="display:none;">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zm-1 3a1 1 0 0 1 2 0v8a1 1 0 0 1-2 0V4zm9 8h-2a7 7 0 0 1-14 0H2a9 9 0 0 0 8 8.94V23h4v-2.06A9 9 0 0 0 22 12z"/></svg>
+        </span>
+        Fonoaudiología
+      </button>
+      <button class="tab-btn active" id="tab-btn-to" data-tab="to" onclick="switchTabProf('to')" role="tab" style="display:none;">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </span>
+        Terapia Ocupacional
+      </button>
+      <button class="tab-btn active" id="tab-btn-psico" data-tab="psico" onclick="switchTabProf('psico')" role="tab" style="display:none;">
+        <span class="tab-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 1 9 9c0 3.07-1.54 5.78-3.9 7.4L16 20H8l-1.1-1.6A9 9 0 0 1 3 11 9 9 0 0 1 12 2zm0 2a7 7 0 0 0-7 7 7 7 0 0 0 2.81 5.57l.69 1h6.99l.7-1A7 7 0 0 0 19 11a7 7 0 0 0-7-7zm1 2v4h2l-3 4-3-4h2V6h2z"/></svg>
+        </span>
+        Psicología
+      </button>
+    </div>
+  </div>
+
   <!-- ═══════════════════════════════════════════ -->
   <!-- TAB: NEUROLÓGICO -->
   <!-- ═══════════════════════════════════════════ -->
@@ -2155,6 +2219,473 @@
     <div id="p-resultado"></div>
   </div>
 
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TAB: FONOAUDIOLOGÍA                        -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-fono" data-tab="fono" style="display:none;">
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--fono);"></span>Datos del paciente</div>
+      <div class="grid3">
+        <div class="field"><label>Edad</label><input type="number" id="fo-edad" placeholder="ej. 45" min="0" max="120"></div>
+        <div class="field"><label>Sexo</label>
+          <select id="fo-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select>
+        </div>
+        <div class="field"><label>Fase clínica</label>
+          <select id="fo-fase"><option value="">Seleccionar</option><option>Aguda (0-4 semanas)</option><option>Subaguda (1-6 meses)</option><option>Crónica (más de 6 meses)</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--fono);"></span>Diagnóstico</div>
+      <div class="field"><label>Diagnóstico médico</label><input type="text" id="fo-dx_medico" placeholder="ej. ACV isquémico, TBI, Parkinson, cáncer de cabeza y cuello..."></div>
+      <div class="field"><label>Diagnóstico fonoaudiológico</label><input type="text" id="fo-dx_fisio" placeholder="ej. Disfagia orofaríngea severa, afasia no fluente, disartria espástica..."></div>
+      <div class="field"><label>Tiempo de evolución</label><input type="text" id="fo-evolucion" placeholder="ej. 3 semanas desde el evento"></div>
+      <div class="field"><label>Área principal de intervención</label>
+        <select id="fo-area">
+          <option value="">Seleccionar</option>
+          <option>Deglución / Disfagia</option>
+          <option>Lenguaje expresivo y comprensivo (Afasia)</option>
+          <option>Habla / Disartria</option>
+          <option>Voz / Disfonía</option>
+          <option>Comunicación aumentativa y alternativa (CAA)</option>
+          <option>Cognición comunicativa</option>
+          <option>Múltiples áreas</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--fono);"></span>Evaluación de deglución</div>
+      <div class="grid3">
+        <div class="field"><label>Nivel de consistencia tolerada</label>
+          <select id="fo-consistencia">
+            <option value="">Seleccionar (IDDSI)</option>
+            <option>Nivel 0 - Líquido delgado</option>
+            <option>Nivel 1 - Levemente espeso</option>
+            <option>Nivel 2 - Poco espeso</option>
+            <option>Nivel 3 - Moderadamente espeso</option>
+            <option>Nivel 4 - Extremadamente espeso / Puré</option>
+            <option>Nivel 5 - Picado y húmedo</option>
+            <option>Nivel 6 - Blando y tamaño mordida</option>
+            <option>Nivel 7 - Normal</option>
+            <option>Ninguna vía oral</option>
+          </select>
+        </div>
+        <div class="field"><label>Signos de aspiración</label>
+          <select id="fo-aspiracion">
+            <option value="">Seleccionar</option>
+            <option>Sin signos de aspiración</option>
+            <option>Aspiración silente sospechada</option>
+            <option>Aspiración clínica evidente</option>
+            <option>Aspiración confirmada por VFS/FEES</option>
+          </select>
+        </div>
+        <div class="field"><label>Fase oral comprometida</label>
+          <select id="fo-fase-oral">
+            <option value="">Seleccionar</option>
+            <option>Sin compromiso</option>
+            <option>Leve</option>
+            <option>Moderado</option>
+            <option>Severo</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Fase faríngea comprometida</label>
+          <select id="fo-fase-faringe">
+            <option value="">Seleccionar</option>
+            <option>Sin compromiso</option><option>Leve</option><option>Moderado</option><option>Severo</option>
+          </select>
+        </div>
+        <div class="field"><label>Alimentación actual</label>
+          <select id="fo-alimentacion">
+            <option value="">Seleccionar</option>
+            <option>Vía oral exclusiva</option>
+            <option>Vía oral parcial + SNG</option>
+            <option>SNG exclusiva</option>
+            <option>Gastrostomía (PEG)</option>
+            <option>NPT</option>
+          </select>
+        </div>
+        <div class="field"><label>EAT-10 (0-40)</label><input type="number" id="fo-eat10" placeholder="0-40" min="0" max="40"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--fono);"></span>Evaluación del lenguaje y comunicación</div>
+      <div class="grid3">
+        <div class="field"><label>Comprensión auditiva</label>
+          <select id="fo-comprension">
+            <option value="">Seleccionar</option>
+            <option>Conservada</option><option>Levemente comprometida</option>
+            <option>Moderadamente comprometida</option><option>Severamente comprometida</option>
+          </select>
+        </div>
+        <div class="field"><label>Expresión verbal</label>
+          <select id="fo-expresion">
+            <option value="">Seleccionar</option>
+            <option>Conservada</option><option>Levemente comprometida</option>
+            <option>Moderadamente comprometida</option><option>No funcional</option>
+          </select>
+        </div>
+        <div class="field"><label>Tipo de afasia (si aplica)</label>
+          <select id="fo-afasia">
+            <option value="">No aplica / No evaluada</option>
+            <option>Broca (no fluente)</option><option>Wernicke (fluente)</option>
+            <option>Global</option><option>Conducción</option><option>Transcortical motora</option>
+            <option>Transcortical sensorial</option><option>Anómica</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Disartria</label>
+          <select id="fo-disartria">
+            <option value="">No presenta</option>
+            <option>Espástica</option><option>Flácida</option><option>Atáxica</option>
+            <option>Hipoquinética (Parkinson)</option><option>Mixta</option>
+          </select>
+        </div>
+        <div class="field"><label>Inteligibilidad del habla</label>
+          <select id="fo-inteligibilidad">
+            <option value="">Seleccionar</option>
+            <option>Normal</option><option>Leve reducción</option>
+            <option>Reducción moderada</option><option>Habla no inteligible</option>
+          </select>
+        </div>
+        <div class="field"><label>Voz</label>
+          <select id="fo-voz">
+            <option value="">Normal</option>
+            <option>Disfonía leve</option><option>Disfonía moderada</option>
+            <option>Afonía</option><option>Voz húmeda / gorgojeante</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Comunicación alternativa en uso</label>
+        <input type="text" id="fo-caa" placeholder="ej. tablero de comunicación, app, señas, escritura...">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--fono);"></span>Contexto y objetivos</div>
+      <div class="field"><label>Escalas aplicadas</label>
+        <input type="text" id="fo-escalas" placeholder="ej. FOIS: 3, EAT-10: 28, WAB-R: 60%...">
+      </div>
+      <div class="field"><label>Objetivos del paciente / familia</label>
+        <textarea id="fo-objetivos_px" placeholder="ej. Poder comer en familia, comunicarse con sus hijos, volver a trabajar..."></textarea>
+      </div>
+      <div class="field"><label>Contexto (red de apoyo, cuidador, entorno)</label>
+        <textarea id="fo-contexto" placeholder="ej. Vive con esposa, cuidador presente, acceso a terapia 3 veces/semana..."></textarea>
+      </div>
+      <div class="field"><label>Frecuencia de sesiones disponible</label>
+        <input type="text" id="fo-frecuencia" placeholder="ej. 3 sesiones semanales de 45 minutos">
+      </div>
+      <div class="field"><label>Observaciones adicionales</label>
+        <textarea id="fo-adicional" placeholder="Interconsultas, equipos de videoendoscopia, otros hallazgos relevantes..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="fo-btn-gen" onclick="generarPlanProfesion('fono')" style="background:var(--fono);">Generar plan de fonoaudiología</button>
+    <button class="btn-secondary" onclick="limpiarFormularioProf('fono')">Limpiar formulario</button>
+    <div id="fo-resultado"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TAB: TERAPIA OCUPACIONAL                   -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-to" data-tab="to" style="display:none;">
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--to);"></span>Datos del paciente</div>
+      <div class="grid3">
+        <div class="field"><label>Edad</label><input type="number" id="to-edad" placeholder="ej. 38" min="0" max="120"></div>
+        <div class="field"><label>Sexo</label>
+          <select id="to-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select>
+        </div>
+        <div class="field"><label>Fase clínica</label>
+          <select id="to-fase"><option value="">Seleccionar</option><option>Aguda (0-4 semanas)</option><option>Subaguda (1-6 meses)</option><option>Crónica (más de 6 meses)</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--to);"></span>Diagnóstico</div>
+      <div class="field"><label>Diagnóstico médico</label><input type="text" id="to-dx_medico" placeholder="ej. ACV, fractura de cadera, artritis reumatoide, TBI..."></div>
+      <div class="field"><label>Diagnóstico ocupacional</label><input type="text" id="to-dx_fisio" placeholder="ej. Disfunción en AVD por hemiparesia, alteración en roles ocupacionales por dolor crónico..."></div>
+      <div class="field"><label>Tiempo de evolución</label><input type="text" id="to-evolucion" placeholder="ej. 2 meses desde cirugía"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--to);"></span>Perfil ocupacional y AVD</div>
+      <div class="field"><label>Roles ocupacionales significativos</label>
+        <div class="tags">
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Trabajador/a">Trabajador/a</span>
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Cuidador/a">Cuidador/a</span>
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Padre/Madre">Padre/Madre</span>
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Estudiante">Estudiante</span>
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Voluntario/a">Voluntario/a</span>
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Ama/o de casa">Ama/o de casa</span>
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Pensionado/a">Pensionado/a</span>
+          <span class="tag" onclick="this.classList.toggle('sel')" data-val="Deportista">Deportista</span>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Independencia en AVD básicas</label>
+          <select id="to-avd-basicas">
+            <option value="">Seleccionar</option>
+            <option>Independiente</option>
+            <option>Supervisión</option>
+            <option>Asistencia mínima (75% esfuerzo propio)</option>
+            <option>Asistencia moderada (50% esfuerzo propio)</option>
+            <option>Asistencia máxima (25% esfuerzo propio)</option>
+            <option>Dependiente total</option>
+          </select>
+        </div>
+        <div class="field"><label>Independencia en AIVD</label>
+          <select id="to-aivd">
+            <option value="">Seleccionar</option>
+            <option>Independiente</option><option>Con dificultad leve</option>
+            <option>Con dificultad moderada</option><option>Dependiente</option>
+          </select>
+        </div>
+        <div class="field"><label>FIM total (18-126)</label><input type="number" id="to-fim" placeholder="18-126" min="18" max="126"></div>
+      </div>
+      <div class="field"><label>AVD más comprometidas (describir)</label>
+        <textarea id="to-avd-detalle" placeholder="ej. Vestido de miembro superior afecto, preparación de alimentos, manejo de dinero, conducción..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--to);"></span>Función de miembro superior y cognición</div>
+      <div class="grid3">
+        <div class="field"><label>Función mano dominante</label>
+          <select id="to-mano">
+            <option value="">Seleccionar</option>
+            <option>Normal</option><option>Leve compromiso</option>
+            <option>Moderado compromiso</option><option>Severo compromiso</option><option>Sin función</option>
+          </select>
+        </div>
+        <div class="field"><label>Coordinación fina</label>
+          <select id="to-coordinacion">
+            <option value="">Seleccionar</option>
+            <option>Conservada</option><option>Levemente afectada</option>
+            <option>Moderadamente afectada</option><option>Severamente afectada</option>
+          </select>
+        </div>
+        <div class="field"><label>Cognición funcional</label>
+          <select id="to-cognicion">
+            <option value="">Seleccionar</option>
+            <option>Conservada</option><option>Leve déficit atencional</option>
+            <option>Déficit memoria trabajo</option><option>Déficit ejecutivo</option>
+            <option>Déficit cognitivo global</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Percepción / praxis</label>
+          <select id="to-percepcion">
+            <option value="">Sin compromiso</option>
+            <option>Hemi-inatención</option><option>Apraxia ideomotora</option>
+            <option>Apraxia del vestido</option><option>Agnosia</option>
+          </select>
+        </div>
+        <div class="field"><label>Dolor que limita AVD (0-10)</label><input type="number" id="to-dolor" placeholder="0-10" min="0" max="10"></div>
+        <div class="field"><label>Fatiga (0-10)</label><input type="number" id="to-fatiga" placeholder="0-10" min="0" max="10"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--to);"></span>Entorno y contexto</div>
+      <div class="field"><label>Barreras del entorno físico</label>
+        <textarea id="to-barreras" placeholder="ej. Casa sin rampa, baño sin agarraderas, vive en segundo piso, no tiene silla de ruedas adaptada..."></textarea>
+      </div>
+      <div class="field"><label>Ayudas técnicas en uso</label>
+        <input type="text" id="to-ayudas" placeholder="ej. Silla de ruedas, ortesis de muñeca, engrosador de cubiertos, tabla de transferencia...">
+      </div>
+      <div class="field"><label>Regreso al trabajo / escuela (si aplica)</label>
+        <select id="to-retorno">
+          <option value="">No aplica</option>
+          <option>Meta a corto plazo (menos de 1 mes)</option>
+          <option>Meta a mediano plazo (1-3 meses)</option>
+          <option>Meta a largo plazo (más de 3 meses)</option>
+          <option>No es una meta actual</option>
+        </select>
+      </div>
+      <div class="field"><label>Objetivos del paciente / familia</label>
+        <textarea id="to-objetivos_px" placeholder="ej. Volver a cocinar, retomar el trabajo, cuidar a sus hijos, ser independiente en el baño..."></textarea>
+      </div>
+      <div class="field"><label>Red de apoyo y cuidadores</label>
+        <textarea id="to-contexto" placeholder="ej. Esposo presente, hijos apoyan, no tiene cuidador formal, vive solo..."></textarea>
+      </div>
+      <div class="field"><label>Frecuencia de sesiones disponible</label>
+        <input type="text" id="to-frecuencia" placeholder="ej. 2 sesiones semanales de 60 minutos">
+      </div>
+      <div class="field"><label>Observaciones adicionales</label>
+        <textarea id="to-adicional" placeholder="Interconsultas, evaluaciones complementarias, otros tratamientos en curso..."></textarea>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="to-btn-gen" onclick="generarPlanProfesion('to')" style="background:var(--to);">Generar plan de terapia ocupacional</button>
+    <button class="btn-secondary" onclick="limpiarFormularioProf('to')">Limpiar formulario</button>
+    <div id="to-resultado"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TAB: PSICOLOGÍA                            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tab-panel" id="panel-psico" data-tab="psico" style="display:none;">
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--psico);"></span>Datos del paciente</div>
+      <div class="grid3">
+        <div class="field"><label>Edad</label><input type="number" id="ps-edad" placeholder="ej. 42" min="0" max="120"></div>
+        <div class="field"><label>Sexo</label>
+          <select id="ps-sexo"><option value="">Seleccionar</option><option>Masculino</option><option>Femenino</option></select>
+        </div>
+        <div class="field"><label>Escolaridad</label>
+          <select id="ps-escolaridad">
+            <option value="">Seleccionar</option>
+            <option>Primaria</option><option>Secundaria</option>
+            <option>Técnico/Tecnólogo</option><option>Universitario</option><option>Posgrado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--psico);"></span>Diagnóstico y motivo de consulta</div>
+      <div class="field"><label>Diagnóstico médico de base</label>
+        <input type="text" id="ps-dx_medico" placeholder="ej. ACV, cáncer, dolor crónico, amputación, TBI...">
+      </div>
+      <div class="field"><label>Motivo de interconsulta / consulta psicológica</label>
+        <textarea id="ps-motivo" placeholder="ej. Dificultad de adaptación al diagnóstico, baja adherencia al tratamiento, sintomatología depresiva, duelo por pérdida funcional..."></textarea>
+      </div>
+      <div class="field"><label>Tiempo de evolución de la condición médica</label>
+        <input type="text" id="ps-evolucion" placeholder="ej. 6 meses desde diagnóstico de cáncer"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--psico);"></span>Evaluación del estado emocional</div>
+      <div class="grid3">
+        <div class="field"><label>Estado de ánimo predominante</label>
+          <select id="ps-animo">
+            <option value="">Seleccionar</option>
+            <option>Eutímico</option><option>Depresivo leve</option>
+            <option>Depresivo moderado</option><option>Depresivo severo</option>
+            <option>Ansioso leve</option><option>Ansioso moderado</option>
+            <option>Ansioso severo</option><option>Mixto ansioso-depresivo</option>
+            <option>Irritable / disfórico</option>
+          </select>
+        </div>
+        <div class="field"><label>PHQ-9 (0-27)</label><input type="number" id="ps-phq9" placeholder="0-27" min="0" max="27"></div>
+        <div class="field"><label>GAD-7 (0-21)</label><input type="number" id="ps-gad7" placeholder="0-21" min="0" max="21"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Ideación suicida</label>
+          <select id="ps-suicidio">
+            <option value="">Seleccionar</option>
+            <option>Ausente</option>
+            <option>Ideación pasiva (sin plan)</option>
+            <option>Ideación activa sin plan</option>
+            <option>Ideación activa con plan</option>
+          </select>
+        </div>
+        <div class="field"><label>Calidad del sueño</label>
+          <select id="ps-sueno">
+            <option value="">Seleccionar</option>
+            <option>Conservada</option><option>Insomnio leve</option>
+            <option>Insomnio moderado</option><option>Insomnio severo</option>
+            <option>Hipersomnia</option>
+          </select>
+        </div>
+        <div class="field"><label>Apetito</label>
+          <select id="ps-apetito">
+            <option value="">Seleccionar</option>
+            <option>Normal</option><option>Reducido</option>
+            <option>Aumentado</option><option>Sin apetito</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--psico);"></span>Adaptación y afrontamiento</div>
+      <div class="grid3">
+        <div class="field"><label>Fase de adaptación al diagnóstico</label>
+          <select id="ps-adaptacion">
+            <option value="">Seleccionar</option>
+            <option>Negación</option><option>Ira / enojo</option>
+            <option>Negociación</option><option>Depresión / tristeza</option>
+            <option>Aceptación parcial</option><option>Aceptación e integración</option>
+          </select>
+        </div>
+        <div class="field"><label>Estrategias de afrontamiento</label>
+          <select id="ps-afrontamiento">
+            <option value="">Seleccionar</option>
+            <option>Adaptativas (busca apoyo, resuelve activamente)</option>
+            <option>Mixtas</option>
+            <option>Predominantemente evitativas</option>
+            <option>Desadaptativas (negación, abuso de sustancias)</option>
+          </select>
+        </div>
+        <div class="field"><label>Adherencia al tratamiento médico</label>
+          <select id="ps-adherencia">
+            <option value="">Seleccionar</option>
+            <option>Alta adherencia</option>
+            <option>Adherencia parcial</option>
+            <option>Baja adherencia</option>
+            <option>No adherente</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label>Red de apoyo social</label>
+          <select id="ps-apoyo">
+            <option value="">Seleccionar</option>
+            <option>Amplia y funcional</option>
+            <option>Moderada</option>
+            <option>Escasa</option>
+            <option>Ausente / aislamiento social</option>
+          </select>
+        </div>
+        <div class="field"><label>Antecedentes psiquiátricos / psicológicos</label>
+          <input type="text" id="ps-antecedentes" placeholder="ej. Depresión mayor (2018), sin tratamiento actual...">
+        </div>
+        <div class="field"><label>Medicación psicoactiva actual</label>
+          <input type="text" id="ps-medicacion" placeholder="ej. Sertralina 50mg, Alprazolam 0.5mg PRN...">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-bar" style="background:var(--psico);"></span>Impacto funcional y contexto</div>
+      <div class="field"><label>Impacto psicológico en el tratamiento de rehabilitación</label>
+        <textarea id="ps-impacto" placeholder="ej. El paciente evita las sesiones de fisioterapia por miedo al dolor, llora durante los ejercicios, verbaliza que no mejorará..."></textarea>
+      </div>
+      <div class="field"><label>Pérdidas relacionadas con la condición</label>
+        <textarea id="ps-perdidas" placeholder="ej. Pérdida del rol laboral, independencia, imagen corporal, roles familiares, relaciones sociales..."></textarea>
+      </div>
+      <div class="field"><label>Recursos personales / fortalezas</label>
+        <textarea id="ps-fortalezas" placeholder="ej. Alta motivación, familia unida, fe religiosa, sentido del humor, experiencia previa superando adversidades..."></textarea>
+      </div>
+      <div class="field"><label>Objetivos terapéuticos del paciente</label>
+        <textarea id="ps-objetivos_px" placeholder="ej. Manejar la ansiedad ante los procedimientos médicos, aceptar el nuevo estado funcional, retomar actividades significativas..."></textarea>
+      </div>
+      <div class="field"><label>Frecuencia de sesiones disponible</label>
+        <input type="text" id="ps-frecuencia" placeholder="ej. 1 sesión semanal de 50 minutos">
+      </div>
+      <div class="field"><label>Observaciones adicionales</label>
+        <textarea id="ps-adicional" placeholder="Interconsulta psiquiátrica, aspectos de confidencialidad, otros..."></textarea>
+      </div>
+    </div>
+
+    <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;padding:12px 16px;margin-bottom:1rem;font-size:12px;color:#92400E;">
+      ⚠️ <strong>Nota de confidencialidad:</strong> El plan generado incluye una sección de hallazgos para compartir con el equipo interdisciplinario. La información sensible que el psicólogo decida mantener confidencial no debe incluirse en el informe compartido. Aplique los protocolos éticos de su institución.
+    </div>
+
+    <button class="btn-primary" id="ps-btn-gen" onclick="generarPlanProfesion('psico')" style="background:var(--psico);">Generar plan psicológico</button>
+    <button class="btn-secondary" onclick="limpiarFormularioProf('psico')">Limpiar formulario</button>
+    <div id="ps-resultado"></div>
+  </div>
 </div><!-- /container -->
 
 <script>
@@ -3845,15 +4376,7 @@ function aplicarProfesion(prof) {
   // Para fisioterapia: todo normal (tabs neuro, ortho, geria, pedia visibles)
   // Para otras profesiones: mostrar aviso de módulo en desarrollo
   if (prof !== 'fisioterapia') {
-    const tabsWrapper = document.querySelector('.tabs-wrapper');
-    if (tabsWrapper) {
-      const aviso = document.createElement('div');
-      aviso.style.cssText = 'background:' + cfg.bg + ';border:1px solid ' + cfg.color + '40;border-radius:12px;padding:14px 18px;margin-bottom:1rem;';
-      aviso.innerHTML = '<div style="font-size:14px;font-weight:600;color:' + cfg.color + ';margin-bottom:4px;">' + cfg.icono + ' Módulo de ' + cfg.label + '</div>' +
-        '<div style="font-size:12px;color:#6B7280;line-height:1.5;">Tu perfil está configurado como <strong>' + cfg.label + '</strong>. ' +
-        'Los módulos específicos de tu área están en desarrollo. Por ahora puedes ver los expedientes de los pacientes que te compartan y colaborar en el equipo interdisciplinario.</div>';
-      tabsWrapper.parentNode.insertBefore(aviso, tabsWrapper);
-    }
+    setTimeout(function() { mostrarTabsProfesion(prof); }, 100);
   }
 }
 
@@ -4683,6 +5206,153 @@ async function guardarPlanEnDB(pacienteId, profesion, planTexto, evaluacionData)
 }
 
 // invitaciones se cargan desde entrarApp directamente
+
+// MÓDULO PROFESIONES NUEVAS
+
+const specConfigProf = {
+  fono:  { color: '#185FA5', light: '#E6F1FB', label: 'Fonoaudiología',      prefix: 'fo' },
+  to:    { color: '#BA7517', light: '#FAEEDA', label: 'Terapia Ocupacional', prefix: 'to' },
+  psico: { color: '#534AB7', light: '#EEEDFE', label: 'Psicología',          prefix: 'ps' }
+};
+
+var profActivaTab = null;
+
+function switchTabProf(tab) {
+  document.querySelectorAll('#tabs-profesiones-nuevas .tab-btn').forEach(b => b.classList.remove('active'));
+  ['fono','to','psico'].forEach(t => {
+    var p = document.getElementById('panel-' + t);
+    if (p) p.style.display = 'none';
+  });
+  var btn = document.getElementById('tab-btn-' + tab);
+  if (btn) btn.classList.add('active');
+  var panel = document.getElementById('panel-' + tab);
+  if (panel) panel.style.display = 'block';
+  profActivaTab = tab;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function limpiarFormularioProf(tab) {
+  var panel = document.getElementById('panel-' + tab);
+  if (!panel) return;
+  panel.querySelectorAll('input, select, textarea').forEach(function(el) { el.value = ''; });
+  panel.querySelectorAll('.tag.sel').forEach(function(t) { t.classList.remove('sel'); });
+  var prefix = specConfigProf[tab].prefix;
+  var res = document.getElementById(prefix + '-resultado');
+  if (res) res.innerHTML = '';
+}
+
+function recopilarDatosProf(tab) {
+  function g(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  if (tab === 'fono') return {
+    especialidad:'Fonoaudiología', edad:g('fo-edad'), sexo:g('fo-sexo'), fase:g('fo-fase'),
+    dx_medico:g('fo-dx_medico'), dx_fisio:g('fo-dx_fisio'), evolucion:g('fo-evolucion'),
+    area_principal:g('fo-area'), consistencia:g('fo-consistencia'), aspiracion:g('fo-aspiracion'),
+    fase_oral:g('fo-fase-oral'), fase_faringe:g('fo-fase-faringe'), alimentacion:g('fo-alimentacion'),
+    eat10:g('fo-eat10'), comprension:g('fo-comprension'), expresion:g('fo-expresion'),
+    afasia:g('fo-afasia'), disartria:g('fo-disartria'), inteligibilidad:g('fo-inteligibilidad'),
+    voz:g('fo-voz'), caa:g('fo-caa'), escalas:g('fo-escalas'),
+    objetivos_px:g('fo-objetivos_px'), contexto:g('fo-contexto'),
+    frecuencia:g('fo-frecuencia'), adicional:g('fo-adicional')
+  };
+  if (tab === 'to') {
+    var roles = [];
+    document.querySelectorAll('#panel-to .tag.sel').forEach(function(t) { roles.push(t.dataset.val || t.textContent); });
+    return {
+      especialidad:'Terapia Ocupacional', edad:g('to-edad'), sexo:g('to-sexo'), fase:g('to-fase'),
+      dx_medico:g('to-dx_medico'), dx_fisio:g('to-dx_fisio'), evolucion:g('to-evolucion'),
+      roles:roles.join(', '), avd_basicas:g('to-avd-basicas'), aivd:g('to-aivd'),
+      fim:g('to-fim'), avd_detalle:g('to-avd-detalle'), mano:g('to-mano'),
+      coordinacion:g('to-coordinacion'), cognicion:g('to-cognicion'), percepcion:g('to-percepcion'),
+      dolor:g('to-dolor'), fatiga:g('to-fatiga'), barreras:g('to-barreras'),
+      ayudas:g('to-ayudas'), retorno:g('to-retorno'), objetivos_px:g('to-objetivos_px'),
+      contexto:g('to-contexto'), frecuencia:g('to-frecuencia'), adicional:g('to-adicional')
+    };
+  }
+  if (tab === 'psico') return {
+    especialidad:'Psicología', edad:g('ps-edad'), sexo:g('ps-sexo'), escolaridad:g('ps-escolaridad'),
+    dx_medico:g('ps-dx_medico'), motivo:g('ps-motivo'), evolucion:g('ps-evolucion'),
+    animo:g('ps-animo'), phq9:g('ps-phq9'), gad7:g('ps-gad7'),
+    suicidio:g('ps-suicidio'), sueno:g('ps-sueno'), apetito:g('ps-apetito'),
+    adaptacion:g('ps-adaptacion'), afrontamiento:g('ps-afrontamiento'), adherencia:g('ps-adherencia'),
+    apoyo:g('ps-apoyo'), antecedentes:g('ps-antecedentes'), medicacion:g('ps-medicacion'),
+    impacto:g('ps-impacto'), perdidas:g('ps-perdidas'), fortalezas:g('ps-fortalezas'),
+    objetivos_px:g('ps-objetivos_px'), frecuencia:g('ps-frecuencia'), adicional:g('ps-adicional')
+  };
+  return {};
+}
+
+function buildPromptProf(tab, d) {
+  if (tab === 'fono') return 'Eres un asistente clinico especializado en fonoaudiologia. Genera un plan de tratamiento fonoaudiologico completo, basado en evidencia, en espanol colombiano.\n\nDATOS DE EVALUACION:\nPaciente: ' + (d.edad||'N/E') + ' anos, ' + (d.sexo||'N/E') + '\nDiagnostico medico: ' + (d.dx_medico||'N/E') + '\nDiagnostico fonoaudiologico: ' + (d.dx_fisio||'N/E') + '\nFase clinica: ' + (d.fase||'N/E') + ' | Evolucion: ' + (d.evolucion||'N/E') + '\nArea principal: ' + (d.area_principal||'N/E') + '\nDEGLUCION: Consistencia tolerada: ' + (d.consistencia||'N/E') + ' | Aspiracion: ' + (d.aspiracion||'N/E') + ' | Fase oral: ' + (d.fase_oral||'N/E') + ' | Fase faringea: ' + (d.fase_faringe||'N/E') + ' | Alimentacion: ' + (d.alimentacion||'N/E') + ' | EAT-10: ' + (d.eat10||'N/E') + '\nLENGUAJE: Comprension: ' + (d.comprension||'N/E') + ' | Expresion: ' + (d.expresion||'N/E') + ' | Afasia: ' + (d.afasia||'N/E') + '\nHABLA: Disartria: ' + (d.disartria||'N/E') + ' | Inteligibilidad: ' + (d.inteligibilidad||'N/E') + ' | Voz: ' + (d.voz||'N/E') + '\nCAA: ' + (d.caa||'Ninguna') + ' | Escalas: ' + (d.escalas||'N/E') + '\nObjetivos del paciente: ' + (d.objetivos_px||'N/E') + '\nContexto: ' + (d.contexto||'N/E') + ' | Frecuencia: ' + (d.frecuencia||'N/E') + '\n\nGenera el plan con secciones: PLAN DE TRATAMIENTO FONOAUDIOLOGICO, PRONOSTICO, OBJETIVOS TERAPEUTICOS (corto/mediano/largo plazo SMART), PLAN DE INTERVENCION (tecnicas con evidencia ASHA/RCSLT/Cochrane, frecuencia, indicadores), CONSIDERACIONES ESPECIALES, REFERENCIAS DE EVIDENCIA. Usa formato markdown con **negritas** y separadores ---.\n\nAl final incluye: Advertencia: Este plan fue generado por IA como apoyo clinico. Debe ser revisado por el fonoaudiologo tratante antes de aplicarse.';
+  if (tab === 'to') return 'Eres un asistente clinico especializado en terapia ocupacional. Genera un plan de tratamiento ocupacional completo, basado en evidencia, en espanol colombiano.\n\nDATOS DE EVALUACION:\nPaciente: ' + (d.edad||'N/E') + ' anos, ' + (d.sexo||'N/E') + '\nDiagnostico medico: ' + (d.dx_medico||'N/E') + '\nDiagnostico ocupacional: ' + (d.dx_fisio||'N/E') + '\nFase clinica: ' + (d.fase||'N/E') + ' | Evolucion: ' + (d.evolucion||'N/E') + '\nRoles ocupacionales: ' + (d.roles||'N/E') + '\nAVD basicas: ' + (d.avd_basicas||'N/E') + ' | AIVD: ' + (d.aivd||'N/E') + ' | FIM: ' + (d.fim||'N/E') + '\nAVD comprometidas: ' + (d.avd_detalle||'N/E') + '\nFuncion mano dominante: ' + (d.mano||'N/E') + ' | Coordinacion fina: ' + (d.coordinacion||'N/E') + '\nCognicion funcional: ' + (d.cognicion||'N/E') + ' | Percepcion/praxis: ' + (d.percepcion||'N/E') + '\nDolor: ' + (d.dolor||'N/E') + '/10 | Fatiga: ' + (d.fatiga||'N/E') + '/10\nBarreras entorno: ' + (d.barreras||'N/E') + ' | Ayudas tecnicas: ' + (d.ayudas||'N/E') + '\nRetorno trabajo/escuela: ' + (d.retorno||'N/E') + '\nObjetivos del paciente: ' + (d.objetivos_px||'N/E') + '\nContexto: ' + (d.contexto||'N/E') + ' | Frecuencia: ' + (d.frecuencia||'N/E') + '\n\nGenera el plan con secciones: PLAN DE TRATAMIENTO TERAPIA OCUPACIONAL, PERFIL OCUPACIONAL, PRONOSTICO, OBJETIVOS TERAPEUTICOS (centrados en participacion, SMART), PLAN DE INTERVENCION (abordaje MOHO/AOTA, evidencia, frecuencia), ADAPTACIONES Y TECNOLOGIA DE APOYO, CONSIDERACIONES ESPECIALES, REFERENCIAS DE EVIDENCIA. Usa formato markdown con **negritas** y separadores ---.\n\nAl final incluye: Advertencia: Este plan fue generado por IA. Debe ser revisado por el terapeuta ocupacional antes de aplicarse.';
+  if (tab === 'psico') return 'Eres un asistente clinico de apoyo a psicologos en rehabilitacion. Genera un plan de intervencion psicologica completo, basado en evidencia, en espanol colombiano. Incluye una seccion de hallazgos para compartir con el equipo interdisciplinario respetando la confidencialidad.\n\nDATOS DE EVALUACION:\nPaciente: ' + (d.edad||'N/E') + ' anos, ' + (d.sexo||'N/E') + ' | Escolaridad: ' + (d.escolaridad||'N/E') + '\nDiagnostico medico de base: ' + (d.dx_medico||'N/E') + '\nMotivo de interconsulta: ' + (d.motivo||'N/E') + '\nEvolucion: ' + (d.evolucion||'N/E') + '\nEstado de animo: ' + (d.animo||'N/E') + ' | PHQ-9: ' + (d.phq9||'N/E') + ' | GAD-7: ' + (d.gad7||'N/E') + '\nIdeacion suicida: ' + (d.suicidio||'N/E') + ' | Sueno: ' + (d.sueno||'N/E') + ' | Apetito: ' + (d.apetito||'N/E') + '\nAdaptacion al diagnostico: ' + (d.adaptacion||'N/E') + '\nAfrontamiento: ' + (d.afrontamiento||'N/E') + ' | Adherencia: ' + (d.adherencia||'N/E') + '\nRed de apoyo: ' + (d.apoyo||'N/E') + ' | Antecedentes: ' + (d.antecedentes||'N/E') + '\nMedicacion psicoactiva: ' + (d.medicacion||'N/E') + '\nImpacto en rehabilitacion: ' + (d.impacto||'N/E') + '\nPerdidas: ' + (d.perdidas||'N/E') + ' | Fortalezas: ' + (d.fortalezas||'N/E') + '\nObjetivos del paciente: ' + (d.objetivos_px||'N/E') + '\nFrecuencia: ' + (d.frecuencia||'N/E') + '\n\nGenera el plan con secciones: PLAN DE INTERVENCION PSICOLOGICA, PRONOSTICO (factores protectores y de riesgo), OBJETIVOS TERAPEUTICOS (SMART), PLAN DE INTERVENCION (TCC/ACT/EM con evidencia APA/Cochrane), IMPACTO SOBRE OTRAS AREAS (para el equipo), CONSIDERACIONES ESPECIALES (riesgo en terminos generales, derivacion psiquiatrica), REFERENCIAS DE EVIDENCIA. Usa formato markdown con **negritas** y separadores ---.\n\nAl final incluye: Advertencia: Este plan fue generado por IA. El psicologo debe revisar todo antes de cualquier uso clinico. La informacion sensible debe manejarse con los protocolos de confidencialidad de la institucion.';
+  return '';
+}
+
+async function generarPlanProfesion(tab) {
+  var cfg = specConfigProf[tab];
+  var d = recopilarDatosProf(tab);
+  var prefix = cfg.prefix;
+  if (!d.dx_medico && !d.dx_fisio && !d.motivo) {
+    alert('Por favor ingresa al menos el diagnostico o motivo de consulta.');
+    return;
+  }
+  var btn = document.getElementById(prefix + '-btn-gen');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generando plan...'; }
+  var resEl = document.getElementById(prefix + '-resultado');
+  if (resEl) resEl.innerHTML = '<div class="loading-card"><div class="spinner-wrap"><div class="spinner-bg"></div><div class="spinner" style="border-top-color:' + cfg.color + '"></div></div><div class="loading-title">Generando plan de ' + cfg.label + '...</div><div class="loading-sub">Analizando hallazgos y generando recomendaciones basadas en evidencia</div></div>';
+  try {
+    var prompt = buildPromptProf(tab, d);
+    var resp = await fetch('/api/generar-plan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt: prompt}) });
+    var data = await resp.json();
+    var planTexto = data.plan || '';
+    var html = planTexto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">');
+    if (resEl) resEl.innerHTML = '<div class="result-card"><div class="result-header"><div class="result-header-left"><div class="result-dot" style="background:' + cfg.color + '"></div><span class="result-label">Plan generado — ' + cfg.label + '</span></div><div class="result-actions"><button class="btn-action" onclick="imprimirPlanProf(\'' + tab + '\')">Imprimir / PDF</button><button class="btn-action" onclick="copiarPlanProf(\'' + tab + '\')">Copiar texto</button></div></div><div class="result-body" id="' + prefix + '-plan-texto">' + html + '</div></div>';
+    if (activePxId) {
+      var profDB = tab === 'to' ? 'terapia_ocupacional' : tab === 'psico' ? 'psicologia' : 'fonoaudiologia';
+      guardarPlanEnDB(activePxId, profDB, planTexto, d);
+    }
+    var h = getHistorial();
+    h.unshift({ id:Date.now(), fecha:new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}), hora:new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}), tab:tab, especialidad:cfg.label, color:cfg.color, light:cfg.light, dx_medico:d.dx_medico||d.motivo||'', dx_fisio:d.dx_fisio||'', edad:d.edad, sexo:d.sexo, plan:planTexto });
+    if (h.length > 50) h.splice(50);
+    localStorage.setItem('fisioIA_historial', JSON.stringify(h));
+  } catch(e) {
+    if (resEl) resEl.innerHTML = '<div style="color:#DC2626;padding:1rem;">Error al generar el plan. Verifica tu conexion e intenta nuevamente.</div>';
+  }
+  if (btn) { btn.disabled = false; btn.textContent = 'Generar plan de ' + cfg.label.toLowerCase(); }
+}
+
+function copiarPlanProf(tab) {
+  var el = document.getElementById(specConfigProf[tab].prefix + '-plan-texto');
+  if (!el) return;
+  navigator.clipboard.writeText(el.innerText);
+  alert('Plan copiado al portapapeles');
+}
+
+function imprimirPlanProf(tab) {
+  var cfg = specConfigProf[tab];
+  var planEl = document.getElementById(cfg.prefix + '-plan-texto');
+  if (!planEl) return;
+  var win = window.open('', '_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Plan ' + cfg.label + ' - FisioIA</title><style>body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;}strong{font-weight:600;}hr{border:none;border-top:1px solid #ddd;margin:1rem 0;}</style></head><body>' + planEl.innerHTML + '<p style="font-size:11px;color:#999;margin-top:2rem;">Generado por FisioIA - Herramienta de apoyo clinico. No reemplaza el criterio profesional.</p></body></html>');
+  win.document.close();
+  win.print();
+}
+
+function mostrarTabsProfesion(prof) {
+  var tabsFisio = document.querySelector('.tabs-wrapper:not(#tabs-profesiones-nuevas)');
+  var tabsNuevas = document.getElementById('tabs-profesiones-nuevas');
+  var panelesFisio = ['neuro','ortho','geria','pedia'];
+  if (prof === 'fonoaudiologia' || prof === 'terapia_ocupacional' || prof === 'psicologia') {
+    if (tabsFisio) tabsFisio.style.display = 'none';
+    panelesFisio.forEach(function(t) { var p = document.getElementById('panel-' + t); if (p) p.style.display = 'none'; });
+    if (tabsNuevas) tabsNuevas.style.display = 'block';
+    var tabKey = prof === 'fonoaudiologia' ? 'fono' : prof === 'terapia_ocupacional' ? 'to' : 'psico';
+    var tabBtn = document.getElementById('tab-btn-' + tabKey);
+    if (tabBtn) tabBtn.style.display = 'flex';
+    switchTabProf(tabKey);
+  }
+}
+
 </script>
 </body>
 </html>
