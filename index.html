@@ -1333,6 +1333,7 @@
       <span class="autosave-label" id="autosave-label">Autoguardado</span>
     </div>
     <span class="nav-badge">Basado en evidencia</span>
+    <span id="nav-prof-badge" style="display:none;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;"></span>
     <button onclick="abrirPacientes()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:var(--neuro);color:white;border:none;cursor:pointer;font-weight:600;">Pacientes</button>
     <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
     <span id="nav-user-email" style="font-size:11px;color:var(--gray-400);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
@@ -3776,13 +3777,126 @@ async function enviarRecuperacion() {
   }
 }
 
-function entrarApp(email) {
+async function entrarApp(email) {
   document.getElementById('login-screen').classList.add('hidden');
   const navEmail = document.getElementById('nav-user-email');
   if (navEmail) navEmail.textContent = email;
   cargarPacientes();
   checkAdminBtn();
   setTimeout(cargarInvitacionesPendientes, 800);
+  // Leer profesión del perfil y aplicarla
+  await cargarProfesionUsuario();
+}
+
+const PROF_CONFIG = {
+  fisioterapia:       { label: 'Fisioterapia',       icono: '🦾', color: '#1D9E75', bg: '#E1F5EE' },
+  fonoaudiologia:     { label: 'Fonoaudiología',     icono: '🗣️', color: '#185FA5', bg: '#E6F1FB' },
+  terapia_ocupacional:{ label: 'Terapia Ocupacional', icono: '🤲', color: '#BA7517', bg: '#FAEEDA' },
+  psicologia:         { label: 'Psicología',          icono: '🧠', color: '#534AB7', bg: '#EEEDFE' }
+};
+
+var miProfesion = 'fisioterapia'; // default
+
+async function cargarProfesionUsuario() {
+  const token = localStorage.getItem('fisioIA_token');
+  if (!token) return;
+  try {
+    // Obtener id del usuario actual
+    const rUser = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    const user = await rUser.json();
+    if (!user || !user.id) return;
+
+    // Buscar en tabla profiles
+    const rProf = await fetch(
+      SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=profession,full_name,is_admin',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
+    );
+    const profiles = await rProf.json();
+    const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null;
+
+    if (!profile || !profile.profession) {
+      // Si no tiene profesión asignada, mostrar selector de bienvenida
+      mostrarSelectorBienvenida(user.id, token);
+      return;
+    }
+
+    miProfesion = profile.profession;
+    aplicarProfesion(profile.profession);
+
+  } catch(e) { console.log('Error cargando profesión:', e); }
+}
+
+function aplicarProfesion(prof) {
+  const cfg = PROF_CONFIG[prof];
+  if (!cfg) return;
+
+  // Mostrar badge en nav
+  const badge = document.getElementById('nav-prof-badge');
+  if (badge) {
+    badge.textContent = cfg.icono + ' ' + cfg.label;
+    badge.style.background = cfg.bg;
+    badge.style.color = cfg.color;
+    badge.style.border = '1px solid ' + cfg.color + '40';
+    badge.style.display = 'inline-block';
+  }
+
+  // Para fisioterapia: todo normal (tabs neuro, ortho, geria, pedia visibles)
+  // Para otras profesiones: mostrar aviso de módulo en desarrollo
+  if (prof !== 'fisioterapia') {
+    const tabsWrapper = document.querySelector('.tabs-wrapper');
+    if (tabsWrapper) {
+      const aviso = document.createElement('div');
+      aviso.style.cssText = 'background:' + cfg.bg + ';border:1px solid ' + cfg.color + '40;border-radius:12px;padding:14px 18px;margin-bottom:1rem;';
+      aviso.innerHTML = '<div style="font-size:14px;font-weight:600;color:' + cfg.color + ';margin-bottom:4px;">' + cfg.icono + ' Módulo de ' + cfg.label + '</div>' +
+        '<div style="font-size:12px;color:#6B7280;line-height:1.5;">Tu perfil está configurado como <strong>' + cfg.label + '</strong>. ' +
+        'Los módulos específicos de tu área están en desarrollo. Por ahora puedes ver los expedientes de los pacientes que te compartan y colaborar en el equipo interdisciplinario.</div>';
+      tabsWrapper.parentNode.insertBefore(aviso, tabsWrapper);
+    }
+  }
+}
+
+function mostrarSelectorBienvenida(userId, token) {
+  // Si el usuario no tiene profesión, mostramos un overlay para que la seleccione
+  const overlay = document.createElement('div');
+  overlay.id = 'bienvenida-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:16px;padding:1.5rem;max-width:440px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,0.2);">
+      <div style="font-size:16px;font-weight:600;margin-bottom:6px;">👋 ¡Bienvenido a FisioIA!</div>
+      <div style="font-size:13px;color:#6B7280;margin-bottom:1.25rem;">Para personalizar tu experiencia, dinos cuál es tu profesión:</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem;">
+        ${Object.entries(PROF_CONFIG).map(([key, p]) => `
+          <button onclick="guardarProfesionBienvenida('${key}','${userId}','${token}')"
+            style="display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px;
+                   border:1.5px solid #E5E7EB;border-radius:10px;background:white;cursor:pointer;text-align:left;
+                   transition:all 0.15s;width:100%;"
+            onmouseover="this.style.borderColor='${p.color}';this.style.background='${p.bg}'"
+            onmouseout="this.style.borderColor='#E5E7EB';this.style.background='white'">
+            <span style="font-size:18px;">${p.icono}</span>
+            <span style="font-size:11px;font-weight:600;color:${p.color};">${p.label}</span>
+          </button>`).join('')}
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function guardarProfesionBienvenida(prof, userId, token) {
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/profiles', {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({ id: userId, profession: prof, is_active: true, is_admin: false })
+    });
+  } catch(e) {}
+  miProfesion = prof;
+  aplicarProfesion(prof);
+  const overlay = document.getElementById('bienvenida-overlay');
+  if (overlay) overlay.remove();
 }
 
 function cerrarSesion() {
