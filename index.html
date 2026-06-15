@@ -789,118 +789,6 @@
     .btn-hc-cancel { font-size:12px;padding:7px 16px;background:white;color:#6B7280;border:1px solid #D1D5DB;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif; }
     .hc-badge-row { display:flex;flex-wrap:wrap;gap:6px;margin-top:8px; }
     .hc-badge { font-size:11px;padding:3px 10px;border-radius:20px;background:#E1F5EE;color:#0F6E56;font-weight:500; }
-
-    /* ── FASE 2: Timeline clínica ── */
-    .timeline-wrap { position:relative; padding-left:28px; }
-    .timeline-line { position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--border);border-radius:2px; }
-    .tl-item { position:relative;margin-bottom:1rem; }
-    .tl-dot { position:absolute;left:-22px;top:4px;width:14px;height:14px;border-radius:50%;border:2px solid white;box-shadow:0 0 0 2px var(--border); }
-    .tl-dot.ingreso  { background:#1D9E75; box-shadow:0 0 0 2px #9FE1CB; }
-    .tl-dot.sesion   { background:#185FA5; box-shadow:0 0 0 2px #85B7EB; }
-    .tl-dot.reval    { background:#BA7517; box-shadow:0 0 0 2px #FAC775; }
-    .tl-dot.alta     { background:#534AB7; box-shadow:0 0 0 2px #AFA9EC; }
-    .tl-dot.manual   { background:#6B7280; box-shadow:0 0 0 2px #D1D5DB; }
-    .tl-card { background:white;border:0.5px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:box-shadow 0.15s; }
-    .tl-card:hover { box-shadow:0 2px 12px rgba(0,0,0,0.08); }
-    .tl-card-header { padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px; }
-    .tl-card-left { display:flex;align-items:center;gap:8px;flex:1;min-width:0; }
-    .tl-date { font-size:11px;color:var(--gray-400);white-space:nowrap;flex-shrink:0; }
-    .tl-title { font-size:12px;font-weight:600;color:var(--gray-900); }
-    .tl-sub { font-size:11px;color:var(--gray-400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-    .tl-badge { font-size:10px;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0; }
-    .tl-body { padding:12px 14px;border-top:0.5px solid #F3F4F6;display:none;font-size:12px;line-height:1.7;color:#374151; }
-    .tl-body.open { display:block; }
-    .tl-actions { display:flex;gap:6px;margin-top:8px;flex-wrap:wrap; }
-
-    /* ── Gráfica de progreso ── */
-    .grafica-wrap { background:white;border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:1rem; }
-    .grafica-title { font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between; }
-    .grafica-canvas { width:100%;height:160px;position:relative; }
-    .grafica-empty { text-align:center;color:var(--gray-400);font-size:12px;padding:2rem 0; }
-
-    /* ── Epicrisis ── */
-    .epicrisis-modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:510;display:none;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto; }
-    .epicrisis-modal-overlay.open { display:flex; }
-    .epicrisis-modal { background:white;border-radius:16px;width:100%;max-width:660px;margin:auto;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,0.2); }
-    .epi-header { padding:16px 20px;background:#534AB7;color:white;display:flex;align-items:center;justify-content:space-between; }
-    .epi-title { font-size:15px;font-weight:600; }
-    .epi-close { background:rgba(255,255,255,0.2);border:none;color:white;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center; }
-    .epi-body { padding:20px;max-height:70vh;overflow-y:auto; }
-    .epi-footer { padding:12px 20px;border-top:1px solid #F3F4F6;display:flex;gap:8px;justify-content:flex-end; }
-
-    /* ── Exportación HC PDF ── */
-    @media print {
-      .nav, .tabs-wrapper, #tabs-profesiones-nuevas, .active-patient-banner,
-      .equipo-section, #invitaciones-container, #equipo-inter-container,
-      .btn-pdh, .pdh-actions, .session-counter-actions,
-      .historial-btn-sm, .tl-actions, .btn-session-add, .btn-session-sub { display:none !important; }
-      .patient-detail { box-shadow:none !important; border:none !important; }
-      .hc-pdf-header { display:block !important; }
-      body { font-size:12px; }
-    }
-    .hc-pdf-header { display:none; background:var(--neuro);color:white;padding:16px 20px;margin-bottom:1rem;border-radius:10px; }
-
-
-    /* ── Freemium / Plan limits ── */
-    .plan-badge { font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap; }
-    .plan-badge.free { background:#F3F4F6;color:#374151; }
-    .plan-badge.pro  { background:#FEF3C7;color:#92400E; }
-    .plan-badge.clinica { background:#EEEDFE;color:#534AB7; }
-    .quota-bar-wrap { background:#F3F4F6;border-radius:20px;height:6px;margin-top:4px;overflow:hidden; }
-    .quota-bar { height:6px;border-radius:20px;background:var(--neuro);transition:width 0.3s; }
-    .quota-bar.warn { background:#EF9F27; }
-    .quota-bar.full { background:#E24B4A; }
-    .upgrade-banner { background:linear-gradient(135deg,#534AB7,#185FA5);color:white;border-radius:12px;padding:14px 18px;margin:10px 0;display:flex;align-items:center;justify-content:space-between;gap:10px; }
-    .upgrade-text { font-size:13px;font-weight:500; }
-    .upgrade-sub { font-size:11px;opacity:0.8;margin-top:2px; }
-    .btn-upgrade { font-size:12px;font-weight:600;padding:7px 16px;background:white;color:#534AB7;border:none;border-radius:20px;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:'DM Sans',sans-serif; }
-    /* ── FASE 3: Interconsultas ── */
-    .interconsulta-card { background:white;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px; }
-    .ic-header { display:flex;align-items:center;gap:8px;margin-bottom:6px; }
-    .ic-urgencia { font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px; }
-    .ic-urgencia.urgente    { background:#FCEBEB;color:#A32D2D; }
-    .ic-urgencia.prioritaria{ background:#FAEEDA;color:#854F0B; }
-    .ic-urgencia.rutina     { background:#E1F5EE;color:#0F6E56; }
-    .ic-estado { font-size:10px;padding:2px 8px;border-radius:20px;margin-left:auto; }
-    .ic-estado.pendiente   { background:#FEF3C7;color:#92400E; }
-    .ic-estado.en_proceso  { background:#E6F1FB;color:#185FA5; }
-    .ic-estado.respondida  { background:#E1F5EE;color:#0F6E56; }
-    .ic-motivo { font-size:12px;font-weight:500;color:#111827;margin-bottom:4px; }
-    .ic-meta { font-size:11px;color:#6B7280; }
-    .ic-respuesta { background:#F9FAFB;border-left:3px solid #1D9E75;padding:8px 10px;border-radius:0 6px 6px 0;font-size:12px;margin-top:8px;line-height:1.5; }
-
-    /* ── Adjuntos ── */
-    .adjunto-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:8px; }
-    .adjunto-item { border:0.5px solid var(--border);border-radius:8px;overflow:hidden;background:white;cursor:pointer;transition:box-shadow 0.15s; }
-    .adjunto-item:hover { box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-    .adjunto-thumb { height:80px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:28px; }
-    .adjunto-name { font-size:10px;padding:5px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#374151; }
-    .upload-drop { border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all 0.15s;background:white; }
-    .upload-drop:hover,.upload-drop.dragover { border-color:var(--neuro);background:var(--neuro-light); }
-    .upload-drop-icon { font-size:24px;margin-bottom:6px; }
-    .upload-drop-text { font-size:12px;color:#6B7280; }
-
-    /* ── Indicadores / Escalas ── */
-    .indicador-form { display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px; }
-    .indicador-row { display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px; }
-    .indicador-valor { font-size:18px;font-weight:700;color:var(--neuro);min-width:40px;text-align:right; }
-    .ind-escala-name { flex:1;color:#374151; }
-    .ind-fecha { color:#9CA3AF;font-size:11px;white-space:nowrap; }
-    .grafica-escalas-svg { width:100%;overflow-x:auto; }
-
-    /* ── Audit log ── */
-    .audit-item { display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:0.5px solid #F9FAFB;font-size:11px; }
-    .audit-icon { width:22px;height:22px;border-radius:50%;background:#F3F4F6;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px; }
-    .audit-accion { font-weight:500;color:#111827; }
-    .audit-meta { color:#9CA3AF;margin-top:1px; }
-
-    /* ── Tabs del expediente ── */
-    .exp-tabs { display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:1rem;overflow-x:auto; }
-    .exp-tab { font-size:12px;font-weight:500;padding:8px 16px;cursor:pointer;color:#6B7280;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif; }
-    .exp-tab:hover { color:#111827; }
-    .exp-tab.active { color:var(--neuro);border-bottom-color:var(--neuro);font-weight:600; }
-    .exp-panel { display:none; }
-    .exp-panel.active { display:block; }
     /* ── Panel equipo interdisciplinario ── */
     .equipo-section { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1rem; }
     .equipo-section-title { font-size: 13px; font-weight: 600; color: var(--gray-900); margin-bottom: 0.875rem; display: flex; align-items: center; justify-content: space-between; }
@@ -1665,7 +1553,7 @@
   <div id="equipo-inter-container" style="display:none;"></div>
   <div class="disclaimer-banner">
     <div style="font-size:20px;flex-shrink:0;">&#9888;</div>
-    <div><div class="disclaimer-title">Herramienta de apoyo clínico — no reemplaza tu criterio profesional</div><div class="disclaimer-body" id="disclaimer-body"><span id='disclaimer-body-text'>FisioIA puede cometer errores. Los planes generados deben ser <strong>revisados y validados</strong> por el profesional tratante antes de aplicarse.</span></div></div>
+    <div><div class="disclaimer-title">Herramienta de apoyo clínico — no reemplaza tu criterio profesional</div><div class="disclaimer-body" id="disclaimer-body">FisioIA puede cometer errores. Los planes generados deben ser <strong>revisados y validados</strong> por el profesional tratante antes de aplicarse.</div></div>
   </div>
   <!-- TABS -->
   <div class="tabs-wrapper">
@@ -3723,25 +3611,6 @@ async function renderUsersTable(users, logs) {
     '</tr>';
   }).join('');
 
-  // Calcular estadísticas por profesión
-  var statsPorProf = {};
-  Object.keys(PROF_CONFIG).forEach(function(k) { statsPorProf[k] = 0; });
-  Object.values(profCache).forEach(function(p) { if (p.profession && statsPorProf[p.profession] !== undefined) statsPorProf[p.profession]++; });
-
-  var statsHTML = '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem;">' +
-    Object.entries(statsPorProf).map(function(e) {
-      var cfg = PROF_CONFIG[e[0]];
-      return '<div style="background:' + cfg.bg + ';border:0.5px solid ' + cfg.color + '40;border-radius:10px;padding:10px 14px;">' +
-        '<div style="font-size:18px;">' + cfg.icono + '</div>' +
-        '<div style="font-size:20px;font-weight:700;color:' + cfg.color + ';">' + e[1] + '</div>' +
-        '<div style="font-size:11px;color:' + cfg.color + ';opacity:0.8;">' + cfg.label + '</div>' +
-      '</div>';
-    }).join('') +
-  '</div>';
-
-  var statsWrap = document.getElementById('admin-stats-prof');
-  if (statsWrap) statsWrap.innerHTML = statsHTML;
-
   container.innerHTML = '<table class="admin-table">' +
     '<thead><tr>' +
       '<th>Nombre / Email</th><th>Registrado</th><th>Último acceso</th><th>Profesión</th><th>Planes</th><th>Estado</th><th>Acción</th>' +
@@ -3859,7 +3728,7 @@ function abrirConsentimiento(pxId) {
     '<div id="consent-printable" style="font-family:serif;font-size:13px;line-height:1.8;color:#111;">' +
       '<div style="text-align:center;margin-bottom:1.5rem;">' +
         '<div style="font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">CONSENTIMIENTO INFORMADO</div>' +
-        '<div style="font-size:13px;margin-top:4px;">' + (PROF_CONFIG[miProfesion]||PROF_CONFIG.fisioterapia).label + ' — Proceso de Rehabilitación</div>' +
+        '<div style="font-size:13px;margin-top:4px;">Fisioterapia — Proceso de Rehabilitación</div>' +
         '<div style="font-size:12px;color:#555;margin-top:2px;">FisioIA · Herramienta de apoyo clínico</div>' +
       '</div>' +
       '<p>Yo, <strong>' + p.nombre + '</strong>, identificado(a) con ' + (p.identificacion ? 'documento N° <strong>' + p.identificacion + '</strong>' : 'documento de identidad') + ', de <strong>' + (edad || 'edad registrada') + '</strong>, en pleno uso de mis facultades mentales, de manera libre, voluntaria e informada, manifiesto lo siguiente:</p>' +
@@ -3877,7 +3746,7 @@ function abrirConsentimiento(pxId) {
         '</div>' +
         '<div style="text-align:center;">' +
           '<div style="border-bottom:1px solid #111;height:40px;margin-bottom:6px;"></div>' +
-          '<div style="font-size:12px;font-weight:700;">' + (PROF_CONFIG[miProfesion]||PROF_CONFIG.fisioterapia).label.toUpperCase() + ' TRATANTE</div>' +
+          '<div style="font-size:12px;font-weight:700;">FISIOTERAPEUTA TRATANTE</div>' +
           '<div style="font-size:11px;color:#555;">Firma y sello</div>' +
           '<div style="font-size:11px;color:#555;">TP: __________________</div>' +
         '</div>' +
@@ -3985,10 +3854,6 @@ function abrirRevalModal(pxId) {
     showToast('Este paciente necesita al menos una sesión registrada para hacer una revaluación.', 'warn');
     return;
   }
-  // Actualizar título del modal según profesión
-  var profCfg = PROF_CONFIG[miProfesion] || PROF_CONFIG.fisioterapia;
-  var tituloEl = document.querySelector('#reval-modal .modal-title');
-  if (tituloEl) tituloEl.textContent = 'Revaluación — ' + profCfg.label;
 
   document.getElementById('reval-px-name').textContent = p.nombre + ' · ' + (p.diagnostico || '');
   document.getElementById('reval-hallazgos').value = '';
@@ -4063,16 +3928,14 @@ async function generarRevaluacion() {
 
   var ultimaSesion = p.sesiones[p.sesiones.length - 1];
 
-  var profCfgReval = PROF_CONFIG[miProfesion] || PROF_CONFIG.fisioterapia;
-  var prompt = 'Eres un profesional clínico experto en ' + profCfgReval.label + '. Genera una revaluación clínica completa y estructurada.\n\n' +
+  var prompt = 'Eres un profesional clínico experto en rehabilitación. Genera una revaluación clínica completa y estructurada.\n\n' +
     'DATOS DEL PACIENTE:\n' +
     '- Nombre: ' + p.nombre + '\n' +
     '- Diagnóstico: ' + (p.diagnostico || 'N/E') + '\n' +
     '- Meta funcional personal: ' + (p.meta || 'No especificada') + '\n' +
     '- Roles en la vida: ' + (p.roles || 'No especificados') + '\n' +
     '- Tiempo desde primera evaluación: ' + (tiempo || 'No especificado') + '\n' +
-    '- Total sesiones: ' + p.sesiones.length + '\n' +
-    '- Área de intervención: ' + profCfgReval.label + '\n\n' +
+    '- Total sesiones: ' + p.sesiones.length + '\n\n' +
     'OBJETIVOS ALCANZADOS (' + alcanzados.length + '):\n' + (alcanzados.length ? alcanzados.map(function(o){return '✓ '+o;}).join('\n') : 'Ninguno marcado') + '\n\n' +
     'OBJETIVOS NO ALCANZADOS (' + noAlcanzados.length + '):\n' + (noAlcanzados.length ? noAlcanzados.map(function(o){return '✗ '+o;}).join('\n') : 'Ninguno') + '\n\n' +
     'HALLAZGOS ACTUALES:\n' + hallazgos + '\n\n' +
@@ -4631,17 +4494,6 @@ async function guardarPaciente(){
   if(btn){btn.disabled=true;btn.textContent='Guardando...';}
   var userId=localStorage.getItem('fisioIA_email')||'';
   var d={nombre:nombre,identificacion:document.getElementById('px-id').value.trim(),nacimiento:document.getElementById('px-nacimiento').value,sexo:document.getElementById('px-sexo').value,telefono:document.getElementById('px-telefono').value.trim(),diagnostico:document.getElementById('px-diagnostico').value.trim(),meta:document.getElementById('px-meta').value.trim(),roles:document.getElementById('px-roles').value.trim(),notas:document.getElementById('px-notas').value.trim(),sesiones:[]};
-  // Verificar límite de pacientes
-  if (!editingPxId) {
-    var pxCount = getPacientes().filter(function(p) { return !p._compartido; }).length;
-    var planCfgPx = PLANES[planActual] || PLANES.free;
-    if (pxCount >= planCfgPx.pacientes) {
-      mostrarBannerUpgrade('Alcanzaste el límite de ' + planCfgPx.pacientes + ' pacientes en el plan ' + planCfgPx.label + '.', 'Actualizar plan');
-      if(btn){btn.disabled=false;btn.textContent='Guardar paciente';}
-      cerrarModalPaciente();
-      return;
-    }
-  }
   var ok=false;
   if(editingPxId){
     var px=getPacientes(),p=px.find(function(x){return x.id===editingPxId;});
@@ -4811,7 +4663,6 @@ async function entrarApp(email) {
   checkAdminBtn();
   setTimeout(cargarInvitacionesPendientes, 800);
   setTimeout(actualizarBadgeNotificaciones, 1000);
-  setTimeout(cargarPlanUsuario, 1200);
   // Leer profesión del perfil y aplicarla
   await cargarProfesionUsuario();
 }
@@ -4874,11 +4725,6 @@ function aplicarProfesion(prof) {
 
   // Para fisioterapia: todo normal (tabs neuro, ortho, geria, pedia visibles)
   // Para otras profesiones: mostrar aviso de módulo en desarrollo
-  // Actualizar disclaimer según profesión
-  var discEl = document.getElementById('disclaimer-body-text');
-  if (discEl && cfg) {
-    discEl.innerHTML = 'FisioIA puede cometer errores. Los planes de <strong>' + cfg.label + '</strong> generados deben ser <strong>revisados y validados</strong> por el profesional tratante antes de aplicarse.';
-  }
   if (prof !== 'fisioterapia') {
     setTimeout(function() { mostrarTabsProfesion(prof); }, 200);
   }
@@ -5084,7 +4930,7 @@ async function generarSOAPProf(tab) {
       }).join('') +
       '</div>' +
       '<div style="padding:8px 14px;border-top:0.5px solid #E5E7EB;display:flex;gap:6px;">' +
-      '<button class="btn-action" onclick="copiarSOAPProf('' + tab + '')">Copiar nota SOAP</button></div>';
+      '<button class="btn-action" onclick="copiarSOAPProf(\' + tab + \')">Copiar nota SOAP</button></div>';
     resEl.appendChild(sc);
   }
 
@@ -5101,24 +4947,6 @@ async function generarSOAPProf(tab) {
       var el = document.getElementById(prefix + '-soap-' + k);
       if (el) el.textContent = soap[k.toUpperCase()] || 'No generado';
     });
-    // Guardar SOAP en Supabase si hay paciente activo
-    if (activePxId) {
-      var token2 = localStorage.getItem('fisioIA_token');
-      var uid2 = await getMiUserId();
-      if (token2 && uid2) {
-        fetch(SUPABASE_URL + '/rest/v1/sesiones_clinicas', {
-          method: 'POST',
-          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token2, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-          body: JSON.stringify({
-            patient_id: activePxId, user_id: uid2,
-            profession: tab === 'to' ? 'terapia_ocupacional' : tab === 'psico' ? 'psicologia' : tab === 'fono' ? 'fonoaudiologia' : 'fisioterapia',
-            fecha: new Date().toISOString().split('T')[0],
-            tipo: 'nota', especialidad: cfg.label,
-            soap_s: soap.S, soap_o: soap.O, soap_a: soap.A, soap_p: soap.P
-          })
-        }).catch(function(e) { console.log('SOAP save error:', e); });
-      }
-    }
   } catch(e) {
     ['s','o','a','p'].forEach(function(k) {
       var el = document.getElementById(prefix + '-soap-' + k);
@@ -5213,7 +5041,16 @@ function verPlanHistorial(id) {
     switchTabProf(entry.tab);
     const resEl = document.getElementById(prefix + '-resultado');
     if (resEl) {
-      resEl.innerHTML = '<div class="result-card"><div class="result-header"><div class="result-header-left"><div class="result-dot" style="background:' + cfg.color + '"></div><span class="result-label">Plan guardado — ' + entry.fecha + '</span><span class="result-specialty-badge" style="background:' + cfg.light + ';color:' + cfg.color + ';border:1px solid ' + cfg.color + '33">' + cfg.label + '</span></div><div class="result-actions"><button class="btn-action" onclick="imprimirPlanProf('' + entry.tab + '')">Imprimir / PDF</button><button class="btn-action" onclick="copiarPlanProf('' + entry.tab + '')">Copiar texto</button></div></div><div class="result-body" id="' + prefix + '-plan-texto">' + html + '</div></div>';
+      resEl.innerHTML = '<div class="result-card">'
+        + '<div class="result-header"><div class="result-header-left">'
+        + '<div class="result-dot" style="background:'+cfg.color+'"></div>'
+        + '<span class="result-label">Plan guardado \u2014 '+entry.fecha+'</span>'
+        + '<span class="result-specialty-badge" style="background:'+cfg.light+';color:'+cfg.color+';border:1px solid '+cfg.color+'33">'+cfg.label+'</span>'
+        + '</div><div class="result-actions">'
+        + '<button class="btn-action" onclick="imprimirPlanProf(\'' + entry.tab + '\')">Imprimir / PDF</button>'
+        + '<button class="btn-action" onclick="copiarPlanProf(\'' + entry.tab + '\')">Copiar texto</button>'
+        + '</div></div>'
+        + '<div class="result-body" id="' + prefix + '-plan-texto">' + html + '</div></div>';
       resEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     return;
@@ -5411,748 +5248,6 @@ function limpiarFormulario(tab) {
 
 
 // ══════════════════════════════════════════════════════════════════════
-// FASE 3 — Tabs expediente, Escalas, Interconsultas, Adjuntos, Audit
-// ══════════════════════════════════════════════════════════════════════
-
-// ── Switch tab del expediente ─────────────────────────────────────────
-function switchExpTab(pxId, tab) {
-  // Actualizar botones
-  var det = document.getElementById('px-detail-card');
-  if (!det) return;
-  det.querySelectorAll('.exp-tab').forEach(function(b) { b.classList.remove('active'); });
-  var activeBtn = det.querySelector('[onclick*="' + tab + '"]');
-  if (activeBtn) activeBtn.classList.add('active');
-
-  // Mostrar panel
-  ['resumen','evolucion','escalas','interconsultas','adjuntos','trazabilidad'].forEach(function(t) {
-    var p = document.getElementById('exp-' + t + '-' + pxId);
-    if (p) p.classList.toggle('active', t === tab);
-  });
-
-  // Cargar contenido lazy
-  if (tab === 'escalas')         cargarTabEscalas(pxId);
-  if (tab === 'interconsultas')  cargarTabInterconsultas(pxId);
-  if (tab === 'adjuntos')        cargarTabAdjuntos(pxId);
-  if (tab === 'trazabilidad')    cargarTabTrazabilidad(pxId);
-}
-
-// ── TAB ESCALAS — gráfica real de indicadores en el tiempo ────────────
-async function cargarTabEscalas(pxId) {
-  var cont = document.getElementById('escalas-content-' + pxId);
-  if (!cont) return;
-  var token = localStorage.getItem('fisioIA_token');
-
-  try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/indicadores_sesion?patient_id=eq.' + pxId + '&select=escala,valor,fecha,notas&order=fecha.asc',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var indicadores = await r.json();
-    if (!Array.isArray(indicadores)) indicadores = [];
-
-    // Agrupar por escala
-    var porEscala = {};
-    indicadores.forEach(function(ind) {
-      if (!porEscala[ind.escala]) porEscala[ind.escala] = [];
-      porEscala[ind.escala].push(ind);
-    });
-
-    var escalasKeys = Object.keys(porEscala);
-    var graficasHTML = '';
-
-    if (escalasKeys.length > 0) {
-      escalasKeys.forEach(function(escala) {
-        var puntos = porEscala[escala];
-        graficasHTML += renderGraficaEscala(escala, puntos);
-      });
-    } else {
-      graficasHTML = '<div class="grafica-empty">Sin indicadores registrados aún.</div>';
-    }
-
-    // Formulario para agregar indicador
-    var escalasDisponibles = {
-      fisioterapia: ['Barthel','Berg','NIHSS','Fugl-Meyer','MoCA','TUG','Tinetti','MAS','GMFCS','MRC','FIM'],
-      fonoaudiologia: ['FOIS','EAT-10','MASA','Frenchay','WAB'],
-      terapia_ocupacional: ['FIM','COPM','Lawton-Brody','LOTCA'],
-      psicologia: ['PHQ-9','GAD-7','BDI-II','MSPSS']
-    };
-    var escLista = escalasDisponibles[miProfesion] || escalasDisponibles.fisioterapia;
-
-    cont.innerHTML =
-      '<div style="background:#F9FAFB;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:1rem;">' +
-        '<div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Registrar nueva medición</div>' +
-        '<div class="indicador-form">' +
-          '<div class="hc-field"><label>Escala</label>' +
-            '<select id="ind-escala-' + pxId + '">' +
-              escLista.map(function(e) { return '<option value="' + e + '">' + e + '</option>'; }).join('') +
-            '</select>' +
-          '</div>' +
-          '<div class="hc-field"><label>Valor</label><input type="number" id="ind-valor-' + pxId + '" placeholder="ej. 60" style="font-size:13px;padding:7px 10px;border:1px solid #D1D5DB;border-radius:8px;"></div>' +
-          '<button onclick="guardarIndicador('' + pxId + '')" style="padding:7px 14px;background:var(--neuro);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;height:36px;align-self:end;">+ Agregar</button>' +
-        '</div>' +
-        '<div class="hc-field" style="margin-top:6px;"><label>Notas (opcional)</label><input type="text" id="ind-notas-' + pxId + '" placeholder="ej. Después de 4 semanas de intervención" style="font-size:12px;padding:6px 10px;border:1px solid #D1D5DB;border-radius:8px;width:100%;"></div>' +
-      '</div>' +
-      graficasHTML;
-  } catch(e) {
-    if (cont) cont.innerHTML = '<div class="grafica-empty">Error al cargar escalas.</div>';
-  }
-}
-
-function renderGraficaEscala(escala, puntos) {
-  if (!puntos || puntos.length === 0) return '';
-  var W = 460, H = 130, padX = 40, padY = 20;
-  var valores = puntos.map(function(p) { return parseFloat(p.valor); });
-  var minV = Math.min.apply(null, valores);
-  var maxV = Math.max.apply(null, valores);
-  var rango = maxV - minV || 1;
-  var stepX = (W - padX * 2) / Math.max(puntos.length - 1, 1);
-
-  var pts = puntos.map(function(p, i) {
-    var x = (padX + i * stepX).toFixed(1);
-    var y = (H - padY - ((parseFloat(p.valor) - minV) / rango) * (H - padY * 2)).toFixed(1);
-    return { x: x, y: y, val: p.valor, fecha: p.fecha };
-  });
-
-  var pathD = pts.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p.x + ',' + p.y; }).join(' ');
-  var areaD = pathD + ' L' + pts[pts.length-1].x + ',' + (H - padY) + ' L' + pts[0].x + ',' + (H - padY) + ' Z';
-
-  var color = '#1D9E75';
-  if (escala.includes('PHQ') || escala.includes('GAD') || escala.includes('NIHSS')) color = '#E24B4A';
-  else if (escala.includes('Barthel') || escala.includes('Berg') || escala.includes('FIM')) color = '#185FA5';
-
-  var circles = pts.map(function(p) {
-    return '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="' + color + '" stroke="white" stroke-width="2">' +
-           '<title>' + p.fecha + ': ' + p.val + '</title></circle>';
-  }).join('');
-
-  var xLabels = pts.map(function(p) {
-    var fechaCorta = p.fecha ? p.fecha.slice(5) : '';
-    return '<text x="' + p.x + '" y="' + (H - 4) + '" text-anchor="middle" font-size="8" fill="#9CA3AF">' + fechaCorta + '</text>';
-  }).join('');
-
-  var yLabels = '<text x="' + (padX - 4) + '" y="' + padY + '" text-anchor="end" font-size="9" fill="#9CA3AF">' + maxV + '</text>' +
-                '<text x="' + (padX - 4) + '" y="' + (H - padY) + '" text-anchor="end" font-size="9" fill="#9CA3AF">' + minV + '</text>';
-
-  var ultima = puntos[puntos.length - 1];
-  var primera = puntos[0];
-  var delta = parseFloat(ultima.valor) - parseFloat(primera.valor);
-  var deltaStr = (delta >= 0 ? '+' : '') + delta.toFixed(1);
-  var deltaColor = delta > 0 ? '#1D9E75' : delta < 0 ? '#E24B4A' : '#9CA3AF';
-  // Para escalas donde bajar es mejor (NIHSS, PHQ-9, GAD-7, EAT-10)
-  var escalasInversas = ['NIHSS','PHQ-9','PHQ9','GAD-7','GAD7','EAT-10','EAT10'];
-  var esInversa = escalasInversas.some(function(e) { return escala.includes(e); });
-  if (esInversa) deltaColor = delta < 0 ? '#1D9E75' : delta > 0 ? '#E24B4A' : '#9CA3AF';
-
-  return '<div class="grafica-wrap" style="margin-bottom:10px;">' +
-    '<div class="grafica-title">' +
-      '<span>' + escala + '</span>' +
-      '<span style="font-size:12px;font-weight:700;color:' + deltaColor + ';">' + deltaStr + ' pts · Última: ' + ultima.valor + '</span>' +
-    '</div>' +
-    '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:' + H + 'px;">' +
-      '<defs><linearGradient id="grad-' + escala.replace(/[^a-z0-9]/gi,'') + '" x1="0" y1="0" x2="0" y2="1">' +
-        '<stop offset="0%" stop-color="' + color + '" stop-opacity="0.25"/>' +
-        '<stop offset="100%" stop-color="' + color + '" stop-opacity="0.02"/>' +
-      '</linearGradient></defs>' +
-      '<path d="' + areaD + '" fill="url(#grad-' + escala.replace(/[^a-z0-9]/gi,'') + ')"/>' +
-      '<path d="' + pathD + '" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-      circles + xLabels + yLabels +
-    '</svg>' +
-  '</div>';
-}
-
-async function guardarIndicador(pxId) {
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  var escala = document.getElementById('ind-escala-' + pxId);
-  var valor = document.getElementById('ind-valor-' + pxId);
-  var notas = document.getElementById('ind-notas-' + pxId);
-
-  if (!escala || !valor || !valor.value) { showToast('Selecciona una escala e ingresa el valor.', 'warn'); return; }
-
-  try {
-    var r = await fetch(SUPABASE_URL + '/rest/v1/indicadores_sesion', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        patient_id: pxId, user_id: userId,
-        escala: escala.value, valor: parseFloat(valor.value),
-        fecha: new Date().toISOString().split('T')[0],
-        notas: notas ? notas.value : ''
-      })
-    });
-    if (r.ok) {
-      showToast('Indicador guardado.', 'ok');
-      valor.value = '';
-      if (notas) notas.value = '';
-      cargarTabEscalas(pxId);
-      registrarAudit(pxId, 'registrar_indicador', 'indicadores_sesion', null, { escala: escala.value });
-    } else { showToast('Error al guardar indicador.', 'err'); }
-  } catch(e) { showToast('Error de conexión.', 'err'); }
-}
-
-// ── TAB INTERCONSULTAS ────────────────────────────────────────────────
-async function cargarTabInterconsultas(pxId) {
-  var cont = document.getElementById('interconsultas-content-' + pxId);
-  if (!cont) return;
-  var token = localStorage.getItem('fisioIA_token');
-
-  try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/interconsultas_clinicas?patient_id=eq.' + pxId + '&select=*&order=created_at.desc',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var ics = await r.json();
-    if (!Array.isArray(ics)) ics = [];
-
-    var profOpciones = Object.entries(PROF_CONFIG)
-      .filter(function(e) { return e[0] !== miProfesion; })
-      .map(function(e) { return '<option value="' + e[0] + '">' + e[1].icono + ' ' + e[1].label + '</option>'; }).join('');
-
-    var listHTML = ics.length === 0
-      ? '<div class="grafica-empty">Sin interconsultas registradas.</div>'
-      : ics.map(function(ic) {
-          var profDest = PROF_CONFIG[ic.profession_dest] || { label: ic.profession_dest, icono: '👤', color: '#6B7280', bg: '#F3F4F6' };
-          return '<div class="interconsulta-card">' +
-            '<div class="ic-header">' +
-              '<span class="ic-urgencia ' + ic.urgencia + '">' + ic.urgencia.charAt(0).toUpperCase() + ic.urgencia.slice(1) + '</span>' +
-              '<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:' + profDest.bg + ';color:' + profDest.color + ';">' + profDest.icono + ' ' + profDest.label + '</span>' +
-              '<span class="ic-estado ' + ic.estado + '">' + ic.estado.replace('_',' ') + '</span>' +
-            '</div>' +
-            '<div class="ic-motivo">' + ic.motivo + '</div>' +
-            (ic.hallazgos ? '<div class="ic-meta" style="margin-top:4px;"><strong>Hallazgos:</strong> ' + ic.hallazgos + '</div>' : '') +
-            '<div class="ic-meta" style="margin-top:4px;">' + new Date(ic.created_at).toLocaleDateString('es-CO') + '</div>' +
-            (ic.respuesta ? '<div class="ic-respuesta"><strong>Respuesta:</strong> ' + ic.respuesta + '</div>' : '') +
-            (ic.estado === 'pendiente' && ic.profession_dest === miProfesion
-              ? '<div style="margin-top:8px;"><textarea id="resp-' + ic.id + '" placeholder="Escribe tu respuesta..." style="width:100%;font-size:12px;padding:6px 10px;border:1px solid #D1D5DB;border-radius:8px;font-family:'DM Sans',sans-serif;resize:vertical;min-height:60px;"></textarea>' +
-                '<button onclick="responderInterconsulta('' + ic.id + '','' + pxId + '')" style="margin-top:5px;padding:5px 14px;background:var(--neuro);color:white;border:none;border-radius:6px;font-size:11px;cursor:pointer;font-family:'DM Sans',sans-serif;">Responder</button></div>'
-              : '') +
-          '</div>';
-        }).join('');
-
-    cont.innerHTML =
-      '<div style="background:#F9FAFB;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:1rem;">' +
-        '<div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em;">Nueva interconsulta</div>' +
-        '<div class="hc-grid2" style="margin-bottom:8px;">' +
-          '<div class="hc-field"><label>Área a la que solicita</label><select id="ic-prof-' + pxId + '">' + profOpciones + '</select></div>' +
-          '<div class="hc-field"><label>Urgencia</label><select id="ic-urgencia-' + pxId + '"><option value="rutina">Rutina</option><option value="prioritaria">Prioritaria</option><option value="urgente">Urgente</option></select></div>' +
-        '</div>' +
-        '<div class="hc-field" style="margin-bottom:6px;"><label>Motivo de interconsulta</label><textarea id="ic-motivo-' + pxId + '" placeholder="¿Por qué solicita la interconsulta? ¿Qué necesita que el otro profesional evalúe?" style="min-height:60px;font-size:12px;padding:7px 10px;border:1px solid #D1D5DB;border-radius:8px;font-family:'DM Sans',sans-serif;resize:vertical;width:100%;"></textarea></div>' +
-        '<div class="hc-field" style="margin-bottom:8px;"><label>Hallazgos relevantes para compartir</label><input type="text" id="ic-hallazgos-' + pxId + '" placeholder="Información clínica que el colega debe conocer" style="font-size:12px;padding:7px 10px;border:1px solid #D1D5DB;border-radius:8px;width:100%;"></div>' +
-        '<button onclick="crearInterconsulta('' + pxId + '')" style="padding:7px 16px;background:var(--neuro);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Enviar interconsulta</button>' +
-      '</div>' +
-      listHTML;
-  } catch(e) {
-    if (cont) cont.innerHTML = '<div class="grafica-empty">Error al cargar interconsultas.</div>';
-  }
-}
-
-async function crearInterconsulta(pxId) {
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  var motivo = document.getElementById('ic-motivo-' + pxId);
-  var prof = document.getElementById('ic-prof-' + pxId);
-  var urgencia = document.getElementById('ic-urgencia-' + pxId);
-  var hallazgos = document.getElementById('ic-hallazgos-' + pxId);
-
-  if (!motivo || !motivo.value.trim()) { showToast('Escribe el motivo de la interconsulta.', 'warn'); return; }
-
-  try {
-    var r = await fetch(SUPABASE_URL + '/rest/v1/interconsultas_clinicas', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        patient_id: pxId, solicitante_id: userId,
-        profession_dest: prof ? prof.value : 'fisioterapia',
-        motivo: motivo.value.trim(),
-        hallazgos: hallazgos ? hallazgos.value.trim() : '',
-        urgencia: urgencia ? urgencia.value : 'rutina',
-        estado: 'pendiente'
-      })
-    });
-    if (r.ok) {
-      showToast('Interconsulta enviada al equipo.', 'ok');
-      motivo.value = '';
-      if (hallazgos) hallazgos.value = '';
-      cargarTabInterconsultas(pxId);
-      actualizarBadgeNotificaciones();
-      registrarAudit(pxId, 'crear_interconsulta', 'interconsultas_clinicas');
-    } else { showToast('Error al enviar interconsulta.', 'err'); }
-  } catch(e) { showToast('Error de conexión.', 'err'); }
-}
-
-async function responderInterconsulta(icId, pxId) {
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  var respEl = document.getElementById('resp-' + icId);
-  if (!respEl || !respEl.value.trim()) { showToast('Escribe tu respuesta.', 'warn'); return; }
-
-  try {
-    var r = await fetch(SUPABASE_URL + '/rest/v1/interconsultas_clinicas?id=eq.' + icId, {
-      method: 'PATCH',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ respuesta: respEl.value.trim(), estado: 'respondida', respondida_por: userId, respondida_at: new Date().toISOString() })
-    });
-    if (r.ok) {
-      showToast('Respuesta enviada.', 'ok');
-      cargarTabInterconsultas(pxId);
-    } else { showToast('Error al responder.', 'err'); }
-  } catch(e) { showToast('Error de conexión.', 'err'); }
-}
-
-// ── TAB ADJUNTOS ──────────────────────────────────────────────────────
-async function cargarTabAdjuntos(pxId) {
-  var cont = document.getElementById('adjuntos-content-' + pxId);
-  if (!cont) return;
-  var token = localStorage.getItem('fisioIA_token');
-
-  try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/adjuntos_clinicos?patient_id=eq.' + pxId + '&select=*&order=created_at.desc',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var adjuntos = await r.json();
-    if (!Array.isArray(adjuntos)) adjuntos = [];
-
-    var iconos = { imagen: '🖼️', examen: '📄', rx: '🩻', ecografia: '📡', otro: '📎' };
-
-    var listHTML = adjuntos.length === 0
-      ? '<div class="grafica-empty" style="margin-top:8px;">Sin archivos adjuntos.</div>'
-      : '<div class="adjunto-grid">' + adjuntos.map(function(adj) {
-          var icono = iconos[adj.tipo] || '📎';
-          return '<div class="adjunto-item" onclick="verAdjunto('' + (adj.storage_url||'') + '','' + adj.nombre + '')">' +
-            '<div class="adjunto-thumb">' + icono + '</div>' +
-            '<div class="adjunto-name" title="' + adj.nombre + '">' + adj.nombre + '</div>' +
-          '</div>';
-        }).join('') + '</div>';
-
-    cont.innerHTML =
-      '<div class="upload-drop" id="upload-drop-' + pxId + '" onclick="document.getElementById('upload-input-' + pxId + '').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleAdjuntoDrop(event,'' + pxId + '')">' +
-        '<div class="upload-drop-icon">📎</div>' +
-        '<div class="upload-drop-text">Haz clic o arrastra archivos aquí<br><span style="font-size:10px;color:#9CA3AF;">Imágenes, exámenes, RX, ecografías · Máx 10MB</span></div>' +
-        '<input type="file" id="upload-input-' + pxId + '" style="display:none;" accept="image/*,.pdf" onchange="subirAdjunto(event,'' + pxId + '')">' +
-      '</div>' +
-      listHTML;
-  } catch(e) {
-    if (cont) cont.innerHTML = '<div class="grafica-empty">Error al cargar adjuntos.</div>';
-  }
-}
-
-function handleAdjuntoDrop(event, pxId) {
-  event.preventDefault();
-  document.getElementById('upload-drop-' + pxId).classList.remove('dragover');
-  var files = event.dataTransfer.files;
-  if (files && files.length > 0) subirAdjuntoFile(files[0], pxId);
-}
-
-async function subirAdjunto(event, pxId) {
-  var file = event.target.files[0];
-  if (!file) return;
-  subirAdjuntoFile(file, pxId);
-}
-
-async function subirAdjuntoFile(file, pxId) {
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  if (!token || !userId) return;
-
-  if (file.size > 10 * 1024 * 1024) { showToast('El archivo es muy grande. Máximo 10MB.', 'warn'); return; }
-  var puedeAdjunto = await verificarLimitePlan('adjunto');
-  if (!puedeAdjunto) return;
-
-  showToast('Subiendo archivo...', 'info', 3000);
-
-  var ext = file.name.split('.').pop().toLowerCase();
-  var tipo = ['jpg','jpeg','png','gif','webp'].includes(ext) ? 'imagen' : ext === 'pdf' ? 'examen' : 'otro';
-  var storagePath = pxId + '/' + Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-
-  try {
-    // Subir a Supabase Storage
-    var uploadResp = await fetch(SUPABASE_URL + '/storage/v1/object/Adjuntos-clinicos/' + storagePath, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': file.type, 'x-upsert': 'true' },
-      body: file
-    });
-
-    var storageUrl = SUPABASE_URL + '/storage/v1/object/public/Adjuntos-clinicos/' + storagePath;
-
-    // Guardar metadata en tabla
-    await fetch(SUPABASE_URL + '/rest/v1/adjuntos_clinicos', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        patient_id: pxId, user_id: userId,
-        nombre: file.name, tipo: tipo,
-        storage_path: storagePath, storage_url: storageUrl,
-        mime_type: file.type, tamano_bytes: file.size
-      })
-    });
-
-    showToast('Archivo subido correctamente.', 'ok');
-    cargarTabAdjuntos(pxId);
-    registrarAudit(pxId, 'subir_adjunto', 'adjuntos_clinicos', null, { nombre: file.name, tipo: tipo });
-  } catch(e) {
-    showToast('Error al subir el archivo. Verifica que el bucket "adjuntos-clinicos" esté creado en Supabase Storage.', 'err', 5000);
-  }
-}
-
-function verAdjunto(url, nombre) {
-  if (!url) { showToast('URL del archivo no disponible.', 'warn'); return; }
-  window.open(url, '_blank');
-}
-
-// ── TAB TRAZABILIDAD ──────────────────────────────────────────────────
-async function cargarTabTrazabilidad(pxId) {
-  var cont = document.getElementById('trazabilidad-content-' + pxId);
-  if (!cont) return;
-  var token = localStorage.getItem('fisioIA_token');
-
-  try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/audit_log?patient_id=eq.' + pxId + '&select=accion,tabla,created_at,detalle&order=created_at.desc&limit=50',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var logs = await r.json();
-    if (!Array.isArray(logs)) logs = [];
-
-    var iconosAudit = {
-      'crear_sesion': '📝', 'guardar_hc': '📋', 'guardar_epicrisis': '🏁',
-      'subir_adjunto': '📎', 'crear_interconsulta': '💬', 'registrar_indicador': '📊',
-      'ver_hc': '👁️', 'eliminar_sesion': '🗑️'
-    };
-
-    var logsHTML = logs.length === 0
-      ? '<div class="grafica-empty">Sin actividad registrada aún.</div>'
-      : logs.map(function(log) {
-          var icono = iconosAudit[log.accion] || '•';
-          var accionLabel = log.accion.replace(/_/g, ' ');
-          var fecha = new Date(log.created_at).toLocaleString('es-CO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-          return '<div class="audit-item">' +
-            '<div class="audit-icon">' + icono + '</div>' +
-            '<div>' +
-              '<div class="audit-accion">' + accionLabel + (log.tabla ? ' · ' + log.tabla : '') + '</div>' +
-              '<div class="audit-meta">' + fecha + '</div>' +
-            '</div>' +
-          '</div>';
-        }).join('');
-
-    cont.innerHTML = '<div style="font-size:11px;color:#6B7280;margin-bottom:8px;">Registro de las últimas ' + logs.length + ' acciones en este expediente.</div>' + logsHTML;
-    // Registrar que se vio la HC
-    registrarAudit(pxId, 'ver_hc');
-  } catch(e) {
-    if (cont) cont.innerHTML = '<div class="grafica-empty">Error al cargar trazabilidad.</div>';
-  }
-}
-
-// ── Registrar audit log ───────────────────────────────────────────────
-async function registrarAudit(pxId, accion, tabla, registroId, detalle) {
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  if (!token || !userId || !pxId) return;
-  try {
-    fetch(SUPABASE_URL + '/rest/v1/audit_log', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        patient_id: pxId, user_id: userId,
-        accion: accion, tabla: tabla || null,
-        registro_id: registroId || null, detalle: detalle || null
-      })
-    });
-  } catch(e) {}
-}
-
-// ══════════════════════════════════════════════════════════════════════
-// FASE 2 — Línea de tiempo, gráfica, epicrisis, exportar HC
-// ══════════════════════════════════════════════════════════════════════
-
-// ── Gráfica de progreso de escalas (SVG inline) ──────────────────────
-function renderGraficaProgreso(sesiones) {
-  if (!sesiones || sesiones.length < 2) {
-    return '<div class="grafica-wrap"><div class="grafica-title">Progreso de sesiones</div><div class="grafica-empty">Se necesitan al menos 2 sesiones para ver la gráfica.</div></div>';
-  }
-
-  // Extraer número de sesión por fecha para la gráfica de cantidad
-  var labels = [];
-  var data = [];
-  var acumulado = 0;
-  var rev = sesiones.slice().reverse();
-  for (var i = 0; i < rev.length && i < 12; i++) {
-    acumulado++;
-    labels.push('#' + (i + 1));
-    data.push(acumulado);
-  }
-
-  var W = 500, H = 120, pad = 30;
-  var maxV = data.length;
-  var stepX = (W - pad * 2) / Math.max(data.length - 1, 1);
-
-  // Build SVG path
-  var pts = data.map(function(v, i) {
-    return [(pad + i * stepX).toFixed(1), (H - pad - ((v / maxV) * (H - pad * 2))).toFixed(1)];
-  });
-
-  var pathD = pts.map(function(p, i) { return (i === 0 ? 'M' : 'L') + p[0] + ',' + p[1]; }).join(' ');
-  var areaD = pathD + ' L' + pts[pts.length - 1][0] + ',' + (H - pad) + ' L' + pts[0][0] + ',' + (H - pad) + ' Z';
-
-  var circles = pts.map(function(p, i) {
-    return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="4" fill="#1D9E75" stroke="white" stroke-width="2"><title>Sesión ' + (i+1) + '</title></circle>';
-  }).join('');
-
-  var xLabels = labels.map(function(l, i) {
-    return '<text x="' + (pad + i * stepX).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9" fill="#9CA3AF">' + l + '</text>';
-  }).join('');
-
-  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:' + H + 'px;" xmlns="http://www.w3.org/2000/svg">' +
-    '<defs><linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1D9E75" stop-opacity="0.3"/><stop offset="100%" stop-color="#1D9E75" stop-opacity="0.02"/></linearGradient></defs>' +
-    '<path d="' + areaD + '" fill="url(#grad1)"/>' +
-    '<path d="' + pathD + '" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-    circles + xLabels +
-    '</svg>';
-
-  return '<div class="grafica-wrap">' +
-    '<div class="grafica-title"><span>Progreso de sesiones</span><span style="font-size:11px;color:#6B7280;">' + sesiones.length + ' sesión' + (sesiones.length !== 1 ? 'es' : '') + ' registradas</span></div>' +
-    '<div class="grafica-canvas">' + svg + '</div>' +
-    '</div>';
-}
-
-// ── Epicrisis ─────────────────────────────────────────────────────────
-var epicrisisPxId = null;
-
-function abrirEpicrisis(pxId) {
-  epicrisisPxId = pxId;
-  var p = getPacientes().find(function(x) { return x.id === pxId; });
-
-  // Crear modal si no existe
-  if (!document.getElementById('epicrisis-modal-overlay')) {
-    var mo = document.createElement('div');
-    mo.id = 'epicrisis-modal-overlay';
-    mo.className = 'epicrisis-modal-overlay';
-    mo.innerHTML =
-      '<div class="epicrisis-modal">' +
-        '<div class="epi-header">' +
-          '<div><div class="epi-title">🏁 Epicrisis — Nota de Alta</div>' +
-          '<div id="epi-px-sub" style="font-size:12px;opacity:0.8;margin-top:2px;"></div></div>' +
-          '<button class="epi-close" onclick="cerrarEpicrisis()">✕</button>' +
-        '</div>' +
-        '<div class="epi-body">' +
-          '<div class="hc-section">' +
-            '<div class="hc-section-title">Datos del alta</div>' +
-            '<div class="hc-grid2">' +
-              '<div class="hc-field"><label>Fecha de ingreso</label><input type="date" id="epi-fecha-ingreso"></div>' +
-              '<div class="hc-field"><label>Fecha de alta</label><input type="date" id="epi-fecha-alta" value="' + new Date().toISOString().split('T')[0] + '"></div>' +
-            '</div>' +
-            '<div class="hc-field" style="margin-top:8px;"><label>Estado al alta</label>' +
-              '<select id="epi-estado">' +
-                '<option value="alta_definitiva">Alta definitiva</option>' +
-                '<option value="alta_voluntaria">Alta voluntaria</option>' +
-                '<option value="referido">Referido a otro nivel</option>' +
-                '<option value="continua_otro_nivel">Continúa en otro nivel</option>' +
-                '<option value="fallecido">Fallecido</option>' +
-              '</select>' +
-            '</div>' +
-          '</div>' +
-          '<div class="hc-section">' +
-            '<div class="hc-section-title">Resumen clínico</div>' +
-            '<div class="hc-field" style="margin-bottom:8px;"><label>Diagnóstico al ingreso</label><input type="text" id="epi-dx-ingreso" placeholder="Diagnóstico con el que ingresó el paciente"></div>' +
-            '<div class="hc-field" style="margin-bottom:8px;"><label>Diagnóstico al egreso</label><input type="text" id="epi-dx-egreso" placeholder="Estado diagnóstico al momento del alta"></div>' +
-            '<div class="hc-field"><label>Resumen de la atención</label><textarea id="epi-resumen" style="min-height:80px;" placeholder="Descripción del proceso de rehabilitación, intervenciones realizadas, respuesta al tratamiento..."></textarea></div>' +
-          '</div>' +
-          '<div class="hc-section">' +
-            '<div class="hc-section-title">Logros y pendientes</div>' +
-            '<div class="hc-grid2">' +
-              '<div class="hc-field"><label>Logros alcanzados</label><textarea id="epi-logros" style="min-height:70px;" placeholder="Objetivos cumplidos, metas funcionales alcanzadas..."></textarea></div>' +
-              '<div class="hc-field"><label>Aspectos pendientes</label><textarea id="epi-pendientes" style="min-height:70px;" placeholder="Objetivos no alcanzados, seguimiento requerido..."></textarea></div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="hc-section">' +
-            '<div class="hc-section-title">Plan en casa y recomendaciones</div>' +
-            '<div class="hc-field" style="margin-bottom:8px;"><label>Plan de manejo en casa</label><textarea id="epi-plan-casa" style="min-height:70px;" placeholder="Ejercicios, cuidados, precauciones, actividades recomendadas..."></textarea></div>' +
-            '<div class="hc-field"><label>Recomendaciones generales</label><textarea id="epi-recomendaciones" placeholder="Controles, próximas citas, señales de alarma..."></textarea></div>' +
-          '</div>' +
-          '<div id="epi-ia-resultado"></div>' +
-        '</div>' +
-        '<div class="epi-footer">' +
-          '<button class="btn-hc-cancel" onclick="cerrarEpicrisis()">Cancelar</button>' +
-          '<button class="btn-hc-gen" onclick="generarEpicrisisIA()">✨ Generar con IA</button>' +
-          '<button class="btn-hc-save" style="background:#534AB7;" onclick="guardarEpicrisis()">Guardar epicrisis</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(mo);
-  }
-
-  var subEl = document.getElementById('epi-px-sub');
-  if (subEl && p) subEl.textContent = p.nombre + ' — ' + (p.diagnostico || '');
-  document.getElementById('epicrisis-modal-overlay').classList.add('open');
-}
-
-function cerrarEpicrisis() {
-  var mo = document.getElementById('epicrisis-modal-overlay');
-  if (mo) mo.classList.remove('open');
-}
-
-async function generarEpicrisisIA() {
-  var p = getPacientes().find(function(x) { return x.id === epicrisisPxId; });
-  if (!p) return;
-  var ses = p.sesiones || [];
-  var resEl = document.getElementById('epi-ia-resultado');
-  if (resEl) { resEl.style.display = 'block'; resEl.innerHTML = '<div style="padding:10px;text-align:center;font-size:12px;color:#6B7280;">Generando epicrisis con IA...</div>'; }
-
-  var ultimasSes = ses.slice(-3).map(function(s) { return s.fecha + ': ' + (s.dx || s.especialidad || '') + ' — ' + (s.plan || '').substring(0, 300); }).join('
-
-');
-
-  var prompt = 'Eres un profesional clinico experto. Genera una epicrisis (nota de alta) estructurada y profesional en espanol colombiano. Devuelve SOLO en JSON con las claves: resumen_atencion, logros, pendientes, plan_casa, recomendaciones. Sin markdown ni texto extra.
-
-PACIENTE: ' + p.nombre + '
-DIAGNOSTICO: ' + (p.diagnostico || 'N/E') + '
-META FUNCIONAL: ' + (p.meta || 'N/E') + '
-SESIONES TOTALES: ' + ses.length + '
-ULTIMAS SESIONES:
-' + ultimasSes;
-
-  try {
-    var resp = await fetch('/api/generar-plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: prompt }) });
-    var data = await resp.json();
-    var clean = (data.plan || '').replace(/```json|```/g, '').trim();
-    var epi = JSON.parse(clean);
-    var campos = { 'epi-resumen': epi.resumen_atencion, 'epi-logros': epi.logros, 'epi-pendientes': epi.pendientes, 'epi-plan-casa': epi.plan_casa, 'epi-recomendaciones': epi.recomendaciones };
-    Object.keys(campos).forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el && !el.value && campos[id]) el.value = typeof campos[id] === 'object' ? JSON.stringify(campos[id]) : campos[id];
-    });
-    if (resEl) resEl.innerHTML = '<div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:8px;padding:10px 14px;font-size:12px;color:#0F6E56;margin-top:10px;">IA completó la epicrisis. Revisa y ajusta según tu criterio clínico.</div>';
-  } catch(e) {
-    if (resEl) resEl.innerHTML = '<div style="color:#DC2626;font-size:12px;padding:8px;">Error al generar. Completa manualmente.</div>';
-  }
-}
-
-async function guardarEpicrisis() {
-  if (!epicrisisPxId) return;
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  if (!token || !userId) return;
-  function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-
-  var epiData = {
-    patient_id: epicrisisPxId, user_id: userId,
-    profession: miProfesion || 'fisioterapia',
-    fecha_ingreso: v('epi-fecha-ingreso') || null,
-    fecha_alta: v('epi-fecha-alta') || new Date().toISOString().split('T')[0],
-    dx_ingreso: v('epi-dx-ingreso'), dx_egreso: v('epi-dx-egreso'),
-    resumen_atencion: v('epi-resumen'), estado_alta: v('epi-estado') || 'alta_definitiva',
-    logros: v('epi-logros'), pendientes: v('epi-pendientes'),
-    recomendaciones: v('epi-recomendaciones'), plan_casa: v('epi-plan-casa'),
-    generada_ia: false
-  };
-
-  try {
-    var r = await fetch(SUPABASE_URL + '/rest/v1/epicrisis', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify(epiData)
-    });
-    if (r.ok || r.status === 201) {
-      showToast('Epicrisis guardada correctamente.', 'ok');
-      registrarAudit(epicrisisPxId, 'guardar_epicrisis', 'epicrisis');
-      cerrarEpicrisis();
-    } else { showToast('Error al guardar la epicrisis.', 'err'); }
-  } catch(e) { showToast('Error de conexión.', 'err'); }
-}
-
-// ── Exportar Historia Clínica Completa PDF ────────────────────────────
-async function exportarHCpdf(pxId) {
-  var token = localStorage.getItem('fisioIA_token');
-  var p = getPacientes().find(function(x) { return x.id === pxId; });
-  if (!p) return;
-  showToast('Preparando historia clínica completa...', 'info', 2000);
-  registrarAudit(pxId, 'exportar_hc_pdf');
-
-  // Cargar anamnesis y epicrisis de Supabase
-  var anamnesis = null, epis = [];
-  try {
-    var rA = await fetch(SUPABASE_URL + '/rest/v1/anamnesis?patient_id=eq.' + pxId + '&select=*', { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
-    var aData = await rA.json();
-    if (Array.isArray(aData) && aData.length > 0) anamnesis = aData[0];
-    var rE = await fetch(SUPABASE_URL + '/rest/v1/epicrisis?patient_id=eq.' + pxId + '&select=*&order=created_at.desc&limit=1', { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
-    epis = await rE.json();
-  } catch(e) {}
-
-  var ses = p.sesiones || [];
-  var profNombre = (PROF_CONFIG[miProfesion] || PROF_CONFIG.fisioterapia).label;
-  var edad = calcEdad(p.nacimiento);
-  var fecha = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
-
-  var sesHTML = ses.map(function(s, i) {
-    var plan = (s.plan || '').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/
-/g, '<br>');
-    return '<div style="margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid #E5E7EB;">' +
-      '<div style="font-size:12px;font-weight:700;color:#1D9E75;margin-bottom:6px;">SESIÓN ' + (i+1) + ' — ' + s.fecha + ' · ' + s.especialidad + '</div>' +
-      '<div style="font-size:12px;line-height:1.7;">' + plan + '</div>' +
-    '</div>';
-  }).join('');
-
-  var anamnesisHTML = anamnesis ? (
-    '<h2 style="font-size:13px;font-weight:700;color:#1D9E75;margin:1.5rem 0 0.5rem;border-bottom:1px solid #E5E7EB;padding-bottom:4px;">HISTORIA CLÍNICA DE INGRESO</h2>' +
-    (anamnesis.motivo_consulta ? '<p><strong>Motivo de consulta:</strong> ' + anamnesis.motivo_consulta + '</p>' : '') +
-    (anamnesis.enfermedad_actual ? '<p><strong>Enfermedad actual:</strong> ' + anamnesis.enfermedad_actual + '</p>' : '') +
-    (anamnesis.ant_personales ? '<p><strong>Antecedentes personales:</strong> ' + anamnesis.ant_personales + '</p>' : '') +
-    (anamnesis.ant_farmacologicos ? '<p><strong>Medicamentos:</strong> ' + anamnesis.ant_farmacologicos + '</p>' : '') +
-    (anamnesis.dx_profesional ? '<p><strong>Diagnóstico funcional:</strong> ' + anamnesis.dx_profesional + '</p>' : '')
-  ) : '';
-
-  var epicrisisHTML = (Array.isArray(epis) && epis.length > 0) ? (function(e) {
-    return '<h2 style="font-size:13px;font-weight:700;color:#534AB7;margin:1.5rem 0 0.5rem;border-bottom:1px solid #E5E7EB;padding-bottom:4px;">EPICRISIS — NOTA DE ALTA</h2>' +
-      (e.dx_egreso ? '<p><strong>Diagnóstico al egreso:</strong> ' + e.dx_egreso + '</p>' : '') +
-      (e.resumen_atencion ? '<p><strong>Resumen:</strong> ' + e.resumen_atencion + '</p>' : '') +
-      (e.logros ? '<p><strong>Logros:</strong> ' + e.logros + '</p>' : '') +
-      (e.recomendaciones ? '<p><strong>Recomendaciones:</strong> ' + e.recomendaciones + '</p>' : '') +
-      '<p><strong>Estado al alta:</strong> ' + (e.estado_alta || 'Alta definitiva') + '</p>';
-  })(epis[0]) : '';
-
-  var win = window.open('', '_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Historia Clínica — ' + p.nombre + '</title>' +
-    '<style>body{font-family:"Segoe UI",sans-serif;max-width:800px;margin:0 auto;padding:20px 30px;color:#1a1a1a;font-size:13px;line-height:1.6;}' +
-    '.hdr{background:#1D9E75;color:white;padding:16px 20px;border-radius:8px;margin-bottom:1.5rem;}' +
-    '.hdr h1{font-size:16px;margin:0 0 4px;}' +
-    '.hdr p{font-size:12px;margin:0;opacity:0.85;}' +
-    '.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;}' +
-    '.info-item{background:#F9FAFB;border-radius:6px;padding:8px 10px;}' +
-    '.info-item label{font-size:10px;text-transform:uppercase;color:#6B7280;display:block;margin-bottom:3px;}' +
-    '.info-item span{font-size:13px;font-weight:600;}' +
-    'h2{font-size:13px;font-weight:700;color:#1D9E75;}' +
-    '.firma{margin-top:3rem;border-top:1px solid #E5E7EB;padding-top:1rem;display:flex;justify-content:space-between;}' +
-    '.firma-box{text-align:center;width:200px;}' +
-    '.firma-line{border-top:1px solid #1a1a1a;margin-bottom:4px;}' +
-    '.footer{margin-top:2rem;font-size:10px;color:#9CA3AF;text-align:center;}' +
-    '@media print{body{margin:0;padding:15px;}}</style>' +
-    '</head><body>' +
-    '<div class="hdr"><h1>HISTORIA CLÍNICA — ' + p.nombre.toUpperCase() + '</h1>' +
-    '<p>' + (p.diagnostico||'') + ' · ' + profNombre + ' · Generado: ' + fecha + '</p></div>' +
-    '<div class="info-grid">' +
-      '<div class="info-item"><label>Identificación</label><span>' + (p.identificacion||'N/E') + '</span></div>' +
-      '<div class="info-item"><label>Edad</label><span>' + (edad||'N/E') + '</span></div>' +
-      '<div class="info-item"><label>Sexo</label><span>' + (p.sexo||'N/E') + '</span></div>' +
-      '<div class="info-item"><label>Teléfono</label><span>' + (p.telefono||'N/E') + '</span></div>' +
-      '<div class="info-item"><label>Sesiones</label><span>' + ses.length + '</span></div>' +
-      '<div class="info-item"><label>Registrado</label><span>' + (p.fechaCreacion||'--') + '</span></div>' +
-    '</div>' +
-    (p.meta ? '<p><strong>Meta funcional:</strong> ' + p.meta + '</p>' : '') +
-    (p.roles ? '<p><strong>Roles en la vida:</strong> ' + p.roles + '</p>' : '') +
-    anamnesisHTML +
-    '<h2 style="font-size:13px;font-weight:700;color:#1D9E75;margin:1.5rem 0 0.5rem;border-bottom:1px solid #E5E7EB;padding-bottom:4px;">NOTAS DE EVOLUCIÓN (' + ses.length + ' SESIONES)</h2>' +
-    (ses.length ? sesHTML : '<p style="color:#9CA3AF;">Sin sesiones registradas.</p>') +
-    epicrisisHTML +
-    '<div class="firma">' +
-      '<div class="firma-box"><div class="firma-line"></div><div style="font-size:11px;font-weight:600;">' + (p.nombre||'Paciente') + '</div><div style="font-size:10px;color:#6B7280;">Firma del paciente</div></div>' +
-      '<div class="firma-box"><div class="firma-line"></div><div style="font-size:11px;font-weight:600;">Profesional tratante</div><div style="font-size:10px;color:#6B7280;">' + profNombre + '</div></div>' +
-    '</div>' +
-    '<div class="footer">Historia clínica generada con apoyo de FisioIA · Resolución 1995/1999 · El profesional es responsable del contenido y verificación clínica de esta historia.</div>' +
-    '<script>window.onload=function(){window.print();}<\/script>' +
-    '</body></html>');
-  win.document.close();
-}
-
-// ══════════════════════════════════════════════════════════════════════
 // MÓDULO HISTORIA CLÍNICA DE INGRESO
 // ══════════════════════════════════════════════════════════════════════
 
@@ -6266,7 +5361,6 @@ async function guardarHC() {
     });
     if (r.ok || r.status === 201) {
       showToast('Historia clínica guardada correctamente.', 'ok');
-      registrarAudit(hcPxId, 'guardar_hc', 'anamnesis');
       cerrarHC();
     } else {
       showToast('Error al guardar. Intenta nuevamente.', 'err');
@@ -6287,18 +5381,7 @@ async function generarHCconIA() {
     resEl.innerHTML = '<div style="padding:12px;text-align:center;color:#6B7280;font-size:12px;">Generando historia clínica con IA...</div>';
   }
 
-  var prompt = 'Eres un profesional clinico experto. Con base en los datos del paciente, genera una historia clinica de ingreso estructurada y completa en espanol colombiano. Devuelve SOLO en JSON con las claves: motivo_consulta, enfermedad_actual, impresion_diagnostica, recomendaciones_iniciales. Sin markdown ni texto extra.
-
-DATOS:
-Paciente: ' + p.nombre + '
-Edad: ' + (calcEdad(p.nacimiento) || 'N/E') + '
-Diagnostico: ' + (p.diagnostico || 'N/E') + '
-Meta funcional: ' + (p.meta || 'N/E') + '
-Roles: ' + (p.roles || 'N/E') + '
-Motivo ingresado: ' + v('hc-motivo') + '
-Antecedentes: ' + v('hc-ant-personales') + '
-Medicamentos: ' + v('hc-ant-farma') + '
-Evolucion: ' + v('hc-evolucion');
+  var prompt = 'Eres un profesional clinico experto. Con base en los datos del paciente, genera una historia clinica de ingreso estructurada y completa en espanol colombiano. Devuelve SOLO en JSON con las claves: motivo_consulta, enfermedad_actual, impresion_diagnostica, recomendaciones_iniciales. Sin markdown ni texto extra.\n\nDATOS:\n'    + 'Paciente: ' + p.nombre + '\nEdad: ' + (calcEdad(p.nacimiento) || 'N/E') + '\nDiagnostico: ' + (p.diagnostico || 'N/E') + '\nMeta funcional: ' + (p.meta || 'N/E') + '\nRoles: ' + (p.roles || 'N/E') + '\nMotivo ingresado: ' + v('hc-motivo') + '\nAntecedentes: ' + v('hc-ant-personales') + '\nMedicamentos: ' + v('hc-ant-farma') + '\nEvolucion: ' + v('hc-evolucion');
 
   try {
     var resp = await fetch('/api/generar-plan', {
@@ -6332,72 +5415,6 @@ Evolucion: ' + v('hc-evolucion');
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-
-async function buscarPacienteParaVinculo() {
-  var query = document.getElementById('buscar-px-input');
-  if (!query) return;
-  var q = query.value.trim();
-  var resEl = document.getElementById('buscar-px-resultados');
-  if (!resEl) return;
-  if (q.length < 2) { resEl.style.display = 'none'; return; }
-  var token = localStorage.getItem('fisioIA_token');
-  try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/pacientes?or=(nombre.ilike.*' + encodeURIComponent(q) + '*,identificacion.ilike.*' + encodeURIComponent(q) + '*)&select=id,nombre,diagnostico&limit=8',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var pxList = await r.json();
-    if (!Array.isArray(pxList) || pxList.length === 0) {
-      resEl.style.display = 'block';
-      resEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#9CA3AF;text-align:center;">Sin resultados.</div>';
-      return;
-    }
-    resEl.style.display = 'block';
-    resEl.innerHTML = pxList.map(function(px) {
-      var nomEsc = (px.nombre || '').replace(/'/g, "\\'");
-      return '<div style="padding:10px 14px;border-bottom:0.5px solid #F3F4F6;display:flex;justify-content:space-between;align-items:center;">' +
-        '<div><p style="font-size:13px;font-weight:600;margin:0;">' + px.nombre + '</p>' +
-        '<p style="font-size:11px;color:#6B7280;margin:0;">' + (px.diagnostico || 'Sin diagnóstico') + '</p></div>' +
-        '<button onclick="solicitarAccesoPaciente(\'' + px.id + '\',\'' + nomEsc + '\')" ' +
-        'style="font-size:11px;padding:5px 12px;background:var(--neuro);color:white;border:none;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600;">Vincularme</button>' +
-      '</div>';
-    }).join('');
-  } catch(e) {
-    if (resEl) { resEl.style.display = 'block'; resEl.innerHTML = '<div style="padding:12px;font-size:12px;color:#DC2626;">Error al buscar.</div>'; }
-  }
-}
-
-async function solicitarAccesoPaciente(pacienteId, pacienteNombre) {
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  if (!userId) return;
-  try {
-    var rCheck = await fetch(
-      SUPABASE_URL + '/rest/v1/patient_team?patient_id=eq.' + pacienteId + '&user_id=eq.' + userId + '&select=id,status',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var existente = await rCheck.json();
-    if (Array.isArray(existente) && existente.length > 0) {
-      showToast(existente[0].status === 'accepted' ? 'Ya tienes acceso a este paciente.' : 'Solicitud ya enviada.', 'info');
-      return;
-    }
-    var rPx = await fetch(SUPABASE_URL + '/rest/v1/pacientes?id=eq.' + pacienteId + '&select=user_id', { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
-    var pxData = await rPx.json();
-    var ownerId = pxData && pxData[0] ? pxData[0].user_id : userId;
-    var rIns = await fetch(SUPABASE_URL + '/rest/v1/patient_team', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ patient_id: pacienteId, user_id: userId, profession: miProfesion, invited_by: ownerId, status: 'accepted' })
-    });
-    if (rIns.ok) {
-      showToast('Te vinculaste al expediente de ' + pacienteNombre + '.', 'ok');
-      var inp = document.getElementById('buscar-px-input'); if (inp) inp.value = '';
-      var res = document.getElementById('buscar-px-resultados'); if (res) res.style.display = 'none';
-      cargarPacientes();
-    } else { showToast('Error al vincular. Intenta de nuevo.', 'err'); }
-  } catch(e) { showToast('Error de conexión.', 'err'); }
-}
-
 // MÓDULO INTERDISCIPLINARIO
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -6615,6 +5632,12 @@ async function cargarInvitacionesPendientes() {
     </div>`;
 }
 
+
+function responderInv(btn) {
+  var id = btn.getAttribute('data-iid');
+  var act = btn.getAttribute('data-act');
+  responderInvitacion(id, act);
+}
 async function responderInvitacion(invId, accion) {
   const token = localStorage.getItem('fisioIA_token');
   cerrarNotificaciones();
@@ -6672,7 +5695,6 @@ async function verPlanDeArea(pacienteId, profesion) {
 
 // ── Generar informe interdisciplinario ────────────────────────────────────────
 async function generarInformeInterdisciplinario(pacienteId) {
-  if (!(await verificarLimitePlan('interdisciplinario'))) return;
   const token = localStorage.getItem('fisioIA_token');
 
   // Obtener todos los planes del paciente
@@ -6889,189 +5911,13 @@ async function actualizarBadgeNotificaciones() {
             '<div><p style="font-size:12px;font-weight:600;margin:0;">' + pacNombre + '</p>' +
             '<p style="font-size:11px;color:#6B7280;margin:0;">' + invBy + ' te invitó como <strong>' + prof.label + '</strong></p></div></div>' +
             '<div style="display:flex;gap:6px;">' +
-            '<button onclick="responderInvitacion('' + inv.id + '','accepted')" style="flex:1;font-size:11px;padding:4px 0;background:#1D9E75;color:white;border:none;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;">Aceptar</button>' +
-            '<button onclick="responderInvitacion('' + inv.id + '','declined')" style="flex:1;font-size:11px;padding:4px 0;background:white;color:#6B7280;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;">Declinar</button>' +
+            '<button data-iid="' + inv.id + '" data-act="accepted" onclick="responderInv(this)" style="flex:1;font-size:11px;padding:4px 0;background:#1D9E75;color:white;border:none;border-radius:6px;cursor:pointer;">Aceptar</button>' +
+            '<button data-iid="' + inv.id + '" data-act="declined" onclick="responderInv(this)" style="flex:1;font-size:11px;padding:4px 0;background:white;color:#6B7280;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;">Declinar</button>' +
             '</div></div>';
         }).join('');
       }
     }
   } catch(e) {}
-}
-
-
-// ══════════════════════════════════════════════════════════════════════
-// MÓDULO FREEMIUM — Límites y planes
-// ══════════════════════════════════════════════════════════════════════
-
-const PLANES = {
-  free:    { label: 'Gratuito', planes_mes: 10,  pacientes: 5,   interdisciplinario: false, adjuntos: false },
-  pro:     { label: 'Pro',      planes_mes: 100, pacientes: 50,  interdisciplinario: true,  adjuntos: true  },
-  clinica: { label: 'Clínica',  planes_mes: 999, pacientes: 999, interdisciplinario: true,  adjuntos: true  }
-};
-
-var planActual = 'free';  // Por defecto, se lee de Supabase al entrar
-
-async function cargarPlanUsuario() {
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  if (!token || !userId) return;
-  try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/profiles?id=eq.' + userId + '&select=plan,plan_vence',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var data = await r.json();
-    if (Array.isArray(data) && data.length > 0 && data[0].plan) {
-      planActual = data[0].plan;
-    }
-    actualizarBadgePlan();
-  } catch(e) {}
-}
-
-function actualizarBadgePlan() {
-  var planCfg = PLANES[planActual] || PLANES.free;
-  // Mostrar badge en el nav
-  var emailEl = document.getElementById('nav-user-email');
-  if (emailEl && !document.getElementById('nav-plan-badge')) {
-    var badge = document.createElement('span');
-    badge.id = 'nav-plan-badge';
-    badge.className = 'plan-badge ' + planActual;
-    badge.textContent = planCfg.label;
-    badge.style.marginLeft = '6px';
-    emailEl.parentNode.insertBefore(badge, emailEl.nextSibling);
-  }
-}
-
-async function verificarLimitePlan(tipo) {
-  // tipo: 'plan' | 'paciente' | 'interdisciplinario' | 'adjunto'
-  var planCfg = PLANES[planActual] || PLANES.free;
-
-  if (tipo === 'interdisciplinario' && !planCfg.interdisciplinario) {
-    mostrarBannerUpgrade('El informe interdisciplinario está disponible en el plan Pro y Clínica.', 'Actualizar plan');
-    return false;
-  }
-  if (tipo === 'adjunto' && !planCfg.adjuntos) {
-    mostrarBannerUpgrade('La subida de adjuntos está disponible en el plan Pro y Clínica.', 'Actualizar plan');
-    return false;
-  }
-  if (tipo === 'paciente') {
-    var pxCount = getPacientes().filter(function(p) { return !p._compartido; }).length;
-    if (pxCount >= planCfg.pacientes) {
-      mostrarBannerUpgrade('Alcanzaste el límite de ' + planCfg.pacientes + ' pacientes en el plan ' + planCfg.label + '.', 'Actualizar plan');
-      return false;
-    }
-  }
-  if (tipo === 'plan') {
-    // Contar planes generados este mes
-    var token = localStorage.getItem('fisioIA_token');
-    var userId = await getMiUserId();
-    if (token && userId) {
-      try {
-        var inicioMes = new Date(); inicioMes.setDate(1); inicioMes.setHours(0,0,0,0);
-        var r = await fetch(
-          SUPABASE_URL + '/rest/v1/sesiones_clinicas?user_id=eq.' + userId + '&tipo=eq.plan&created_at=gte.' + inicioMes.toISOString() + '&select=id',
-          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-        );
-        var planes = await r.json();
-        if (Array.isArray(planes) && planes.length >= planCfg.planes_mes) {
-          mostrarBannerUpgrade(
-            'Usaste ' + planes.length + '/' + planCfg.planes_mes + ' planes este mes en el plan ' + planCfg.label + '.',
-            'Actualizar plan'
-          );
-          return false;
-        }
-        // Mostrar cuota en UI si está por encima del 80%
-        if (Array.isArray(planes) && planes.length >= planCfg.planes_mes * 0.8) {
-          var pct = Math.round((planes.length / planCfg.planes_mes) * 100);
-          showToast('Usaste ' + planes.length + ' de ' + planCfg.planes_mes + ' planes este mes (' + pct + '%).', 'warn', 4000);
-        }
-      } catch(e) {}
-    }
-  }
-  return true;
-}
-
-function mostrarBannerUpgrade(mensaje, cta) {
-  // Remover banner anterior si existe
-  var prev = document.getElementById('upgrade-banner-dynamic');
-  if (prev) prev.remove();
-
-  var banner = document.createElement('div');
-  banner.id = 'upgrade-banner-dynamic';
-  banner.className = 'upgrade-banner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:999;max-width:500px;width:calc(100% - 2rem);';
-  banner.innerHTML =
-    '<div><div class="upgrade-text">' + mensaje + '</div>' +
-    '<div class="upgrade-sub">Planes desde $29.900 COP/mes</div></div>' +
-    '<button class="btn-upgrade" onclick="abrirModalUpgrade()">Actualizar</button>';
-
-  var closeBtn = document.createElement('button');
-  closeBtn.style.cssText = 'background:rgba(255,255,255,0.2);border:none;color:white;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;margin-left:6px;flex-shrink:0;';
-  closeBtn.textContent = '✕';
-  closeBtn.onclick = function() { banner.remove(); };
-  banner.appendChild(closeBtn);
-
-  document.body.appendChild(banner);
-  setTimeout(function() { if (banner.parentNode) banner.remove(); }, 8000);
-}
-
-function abrirModalUpgrade() {
-  var prev = document.getElementById('upgrade-modal-overlay');
-  if (prev) { prev.classList.add('open'); return; }
-
-  var mo = document.createElement('div');
-  mo.id = 'upgrade-modal-overlay';
-  mo.className = 'hc-modal-overlay';
-  mo.innerHTML =
-    '<div class="hc-modal" style="max-width:540px;">' +
-      '<div class="hc-modal-header" style="background:linear-gradient(135deg,#534AB7,#185FA5);">' +
-        '<div><div class="hc-modal-title">⭐ Actualizar plan FisioIA</div>' +
-        '<div style="font-size:12px;opacity:0.8;margin-top:2px;">Elige el plan que mejor se ajusta a tu práctica clínica</div></div>' +
-        '<button class="hc-modal-close" onclick="document.getElementById('upgrade-modal-overlay').classList.remove('open')">✕</button>' +
-      '</div>' +
-      '<div class="hc-modal-body">' +
-        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">' +
-          // Free
-          '<div style="border:' + (planActual==='free'?'2px solid #1D9E75':'0.5px solid #E5E7EB') + ';border-radius:12px;padding:14px;text-align:center;">' +
-            '<div style="font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:0.05em;">Gratuito</div>' +
-            '<div style="font-size:24px;font-weight:700;margin:8px 0;">$0</div>' +
-            '<div style="font-size:11px;color:#6B7280;margin-bottom:10px;">Para siempre</div>' +
-            '<div style="font-size:11px;line-height:1.8;text-align:left;">' +
-              '✓ 10 planes/mes<br>✓ 5 pacientes<br>✓ Historia clínica<br>✗ Interdisciplinario<br>✗ Adjuntos' +
-            '</div>' +
-            (planActual==='free'?'<div style="margin-top:10px;font-size:11px;font-weight:600;color:#1D9E75;">Plan actual</div>':'') +
-          '</div>' +
-          // Pro
-          '<div style="border:' + (planActual==='pro'?'2px solid #534AB7':'0.5px solid #E5E7EB') + ';border-radius:12px;padding:14px;text-align:center;background:' + (planActual==='pro'?'#EEEDFE':'white') + ';">' +
-            '<div style="font-size:11px;font-weight:600;color:#534AB7;text-transform:uppercase;letter-spacing:0.05em;">Pro</div>' +
-            '<div style="font-size:24px;font-weight:700;margin:8px 0;">$29.900</div>' +
-            '<div style="font-size:11px;color:#6B7280;margin-bottom:10px;">COP / mes</div>' +
-            '<div style="font-size:11px;line-height:1.8;text-align:left;">' +
-              '✓ 100 planes/mes<br>✓ 50 pacientes<br>✓ Historia clínica<br>✓ Interdisciplinario<br>✓ Adjuntos' +
-            '</div>' +
-            (planActual==='pro'?'<div style="margin-top:10px;font-size:11px;font-weight:600;color:#534AB7;">Plan actual</div>':'<button onclick="contactarUpgrade('pro')" style="margin-top:10px;width:100%;padding:7px;background:#534AB7;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Actualizar</button>') +
-          '</div>' +
-          // Clínica
-          '<div style="border:' + (planActual==='clinica'?'2px solid #1D9E75':'0.5px solid #E5E7EB') + ';border-radius:12px;padding:14px;text-align:center;">' +
-            '<div style="font-size:11px;font-weight:600;color:#1D9E75;text-transform:uppercase;letter-spacing:0.05em;">Clínica</div>' +
-            '<div style="font-size:24px;font-weight:700;margin:8px 0;">$89.900</div>' +
-            '<div style="font-size:11px;color:#6B7280;margin-bottom:10px;">COP / mes</div>' +
-            '<div style="font-size:11px;line-height:1.8;text-align:left;">' +
-              '✓ Ilimitado<br>✓ Pacientes ilimitados<br>✓ Todo incluido<br>✓ Multi-sede<br>✓ Soporte prioritario' +
-            '</div>' +
-            (planActual==='clinica'?'<div style="margin-top:10px;font-size:11px;font-weight:600;color:#1D9E75;">Plan actual</div>':'<button onclick="contactarUpgrade('clinica')" style="margin-top:10px;width:100%;padding:7px;background:#1D9E75;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Contactar</button>') +
-          '</div>' +
-        '</div>' +
-        '<p style="font-size:11px;color:#9CA3AF;text-align:center;margin-top:12px;">Pagos seguros · Cancela cuando quieras · Soporte en español</p>' +
-      '</div>' +
-    '</div>';
-  document.body.appendChild(mo);
-  mo.classList.add('open');
-}
-
-function contactarUpgrade(plan) {
-  var msg = encodeURIComponent('Hola, quiero actualizar mi cuenta de FisioIA al plan ' + plan.charAt(0).toUpperCase() + plan.slice(1) + '. Mi correo es ' + (localStorage.getItem('fisioIA_email') || ''));
-  window.open('https://wa.me/57XXXXXXXXXX?text=' + msg, '_blank');
 }
 
 // MÓDULO PROFESIONES NUEVAS
