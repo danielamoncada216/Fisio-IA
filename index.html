@@ -3671,7 +3671,7 @@ async function cargarAdminData() {
     document.getElementById('stat-patients').textContent = allPx.length;
 
     // Render users table
-    renderUsersTable(users, logs);
+    await renderUsersTable(users, logs);
 
   } catch(e) {
     console.log('Admin load error:', e);
@@ -3679,7 +3679,7 @@ async function cargarAdminData() {
   }
 }
 
-function renderUsersTable(users, logs) {
+async function renderUsersTable(users, logs) {
   var container = document.getElementById('admin-users-table');
   if (!users.length) {
     container.innerHTML = '<div class="admin-loading">No se encontraron usuarios. Verifica que tengas permisos de servicio en Supabase.</div>';
