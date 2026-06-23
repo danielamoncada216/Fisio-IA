@@ -3837,40 +3837,70 @@ async function guardarSesionManual() {
   if (!p) return;
 
   if (!p.sesionesCount) p.sesionesCount = 0;
-  if (!p.sesionesLog) p.sesionesLog = [];
+  if (!p.sesiones) p.sesiones = [];
 
   p.sesionesCount++;
-  // Guardar también en tabla sesiones_clinicas
-  var tokenM = localStorage.getItem('fisioIA_token');
-  var userIdM = await getMiUserId();
-  if (tokenM && userIdM) {
-    var fechaInput = document.getElementById('session-date').value;
-    var notasInput = document.getElementById('session-notas') ? document.getElementById('session-notas').value : '';
-    fetch(SUPABASE_URL + '/rest/v1/sesiones_clinicas', {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + tokenM, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        patient_id: sessionModalPxId,
-        user_id: userIdM,
-        profession: miProfesion || 'fisioterapia',
-        fecha: fechaInput || new Date().toISOString().split('T')[0],
-        tipo: 'manual',
-        especialidad: (PROF_CONFIG[miProfesion] || PROF_CONFIG.fisioterapia).label,
-        plan_texto: notasInput || 'Sesión registrada manualmente',
-        num_sesion: p.sesionesCount
-      })
-    }).catch(function(e) { console.log('Error sesión manual DB:', e); });
-  }
-  p.sesionesLog.push({
-    num: p.sesionesCount,
-    fecha: new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}),
-    notas: notas
-  });
 
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  var profCfg = PROF_CONFIG[miProfesion] || PROF_CONFIG.fisioterapia;
+
+  // 1. Guardar en sesiones_clinicas (con await para esperar respuesta)
+  var sesionGuardada = null;
+  if (token && userId) {
+    try {
+      var r = await fetch(SUPABASE_URL + '/rest/v1/sesiones_clinicas', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          patient_id: sessionModalPxId,
+          user_id: userId,
+          profession: miProfesion || 'fisioterapia',
+          fecha: fecha,
+          tipo: 'manual',
+          especialidad: profCfg.label,
+          plan_texto: notas || 'Sesión registrada manualmente',
+          num_sesion: p.sesionesCount
+        })
+      });
+      if (r.ok) {
+        var data = await r.json();
+        sesionGuardada = Array.isArray(data) ? data[0] : data;
+      } else {
+        showToast('Error al guardar en base de datos. Revisa la conexión.', 'err');
+      }
+    } catch(e) {
+      showToast('Error de conexión al guardar sesión.', 'err');
+    }
+  }
+
+  // 2. Agregar a cache local para mostrar inmediatamente en timeline
+  var sesionLocal = {
+    id: sesionGuardada ? sesionGuardada.id : ('local-' + Date.now()),
+    fecha: new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'}),
+    tab: miProfesion === 'fonoaudiologia' ? 'fono' : miProfesion === 'terapia_ocupacional' ? 'to' : miProfesion === 'psicologia' ? 'psico' : 'neuro',
+    especialidad: profCfg.label,
+    color: profCfg.color,
+    profession: miProfesion || 'fisioterapia',
+    dx: notas || 'Sesión registrada manualmente',
+    plan: notas || 'Sesión registrada manualmente',
+    tipo: 'manual'
+  };
+  p.sesiones.push(sesionLocal);
+
+  // 3. Actualizar contador en Supabase
+  await updatePacienteDB(sessionModalPxId, { sesionesCount: p.sesionesCount });
+
+  // 4. Guardar cache local
   savePacientes(pacientes);
-  await updatePacienteDB(sessionModalPxId, { sesionesCount: p.sesionesCount, sesionesLog: p.sesionesLog });
 
   cerrarSessionModal();
+  showToast('Sesión #' + p.sesionesCount + ' registrada correctamente.', 'ok');
   verDetalle(sessionModalPxId);
 }
 
