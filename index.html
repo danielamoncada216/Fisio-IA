@@ -11,6 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="FisioIA">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <meta name="application-name" content="FisioIA">
   <meta name="description" content="Planes de tratamiento fisioterapéutico basados en evidencia científica">
 
@@ -1284,6 +1287,35 @@
 </div>
 
 <!-- SESSION REGISTER MODAL -->
+<!-- INSTALL APP MODAL (instrucciones iOS) -->
+<div class="modal-overlay" id="install-ios-modal" style="z-index:470;">
+  <div class="modal-card" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title">📲 Instalar FisioIA en tu iPhone/iPad</div>
+      <button class="modal-close" onclick="document.getElementById('install-ios-modal').classList.remove('open')">x</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:13px;line-height:1.6;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--neuro-light);color:var(--neuro);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">1</div>
+          <div>Toca el botón <strong>Compartir</strong> (el cuadrado con la flecha hacia arriba) en la barra de Safari.</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--neuro-light);color:var(--neuro);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">2</div>
+          <div>Busca y toca la opción <strong>"Agregar a inicio"</strong> (Add to Home Screen).</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="width:26px;height:26px;border-radius:50%;background:var(--neuro-light);color:var(--neuro);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;">3</div>
+          <div>Confirma tocando <strong>"Agregar"</strong>. El ícono de FisioIA aparecerá en tu pantalla de inicio como una app normal.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-modal-primary" onclick="document.getElementById('install-ios-modal').classList.remove('open')">Entendido</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="session-modal" style="z-index:460;">
   <div class="modal-card" style="max-width:480px;">
     <div class="modal-header">
@@ -1498,7 +1530,7 @@
     </div>
 
     <div class="login-error" id="login-error"></div>
-    <div class="login-footer" id="login-footer">Solo para uso profesional autorizado</div>
+    <div class="login-footer" id="login-footer">Solo para uso profesional autorizado · <a href="/privacidad.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">Política de privacidad</a></div>
     <div class="login-disclaimer">FisioIA puede cometer errores. Revisa y valida los planes con tu criterio profesional.</div>
   </div>
 </div>
@@ -1523,6 +1555,7 @@
     <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
     <button id="btn-notif" onclick="abrirNotificaciones()" title="Notificaciones" style="position:relative;font-family:'DM Sans',sans-serif;font-size:14px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;display:none;"><i class="ti ti-bell" aria-label="Notificaciones"></i><span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#E24B4A;color:white;font-size:9px;font-weight:600;line-height:16px;text-align:center;"></span></button>
     <span id="nav-user-email" style="font-size:11px;color:var(--gray-400);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    <button id="install-app-btn" onclick="instalarApp()" style="display:none;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:var(--neuro);color:white;border:none;cursor:pointer;font-weight:600;align-items:center;gap:5px;">⬇ Instalar app</button>
     <button id="admin-nav-btn" onclick="abrirAdmin()" style="display:none;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:#7C4D1E;color:white;border:none;cursor:pointer;font-weight:600;">⚙️ Admin</button>
     <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Salir</button>
   </div>
@@ -6451,6 +6484,68 @@ function imprimirPlanProf(prefix, tab) {
     '<p style="font-size:7.5pt;color:#999;margin-top:2rem;">Documento generado con asistencia de IA como apoyo clínico. Debe ser revisado y validado por el profesional tratante.</p>' +
     '</body></html>');
   ventana.document.close();
+}
+// ═══════════════════════════════════════════════════════════════
+// PWA: SERVICE WORKER + INSTALACIÓN COMO APP
+// ═══════════════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js').catch(function(e) {
+      console.log('No se pudo registrar el service worker:', e);
+    });
+  });
+}
+
+var deferredInstallPrompt = null;
+
+function appYaInstalada() {
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function esIOS() {
+  return /iphone|ipad|ipod/i.test(navigator.userAgent);
+}
+
+window.addEventListener('beforeinstallprompt', function(e) {
+  // Chrome/Edge/Android disparan este evento cuando la app es instalable.
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  var btn = document.getElementById('install-app-btn');
+  if (btn && !appYaInstalada()) btn.style.display = 'inline-flex';
+});
+
+window.addEventListener('appinstalled', function() {
+  deferredInstallPrompt = null;
+  var btn = document.getElementById('install-app-btn');
+  if (btn) btn.style.display = 'none';
+  showToast('FisioIA se instaló correctamente.', 'ok');
+});
+
+async function instalarApp() {
+  if (deferredInstallPrompt) {
+    // Android / desktop Chrome / Edge: usar el prompt nativo del navegador.
+    deferredInstallPrompt.prompt();
+    var choice = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    var btn = document.getElementById('install-app-btn');
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+  if (esIOS()) {
+    // Safari en iOS no soporta beforeinstallprompt: mostramos instrucciones manuales.
+    document.getElementById('install-ios-modal').classList.add('open');
+    return;
+  }
+  showToast('Este navegador no soporta instalación directa. Busca la opción "Agregar a pantalla de inicio" en el menú del navegador.', 'info');
+}
+
+// Mostrar el botón "Instalar app" en iOS incluso sin beforeinstallprompt
+// (ahí el único camino es el modal de instrucciones), a menos que ya esté instalada.
+if (esIOS() && !appYaInstalada()) {
+  window.addEventListener('load', function() {
+    var btn = document.getElementById('install-app-btn');
+    if (btn) btn.style.display = 'inline-flex';
+  });
 }
 </script>
 </body>
