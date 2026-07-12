@@ -687,6 +687,28 @@
     .apb-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .btn-apb { padding: 5px 12px; border-radius: 20px; border: 1.5px solid rgba(255,255,255,0.4); background: transparent; color: white; font-family: 'DM Sans',sans-serif; font-size: 11px; cursor: pointer; }
     .patient-detail { background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1rem; overflow: hidden; }
+    /* Layout de dos columnas: contenido principal + barra lateral de acciones secundarias */
+    .pd-layout { display: flex; align-items: stretch; }
+    .pd-main { flex: 1; min-width: 0; }
+    .pd-rail {
+      width: 68px; flex-shrink: 0;
+      background: var(--gray-50); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 1.1rem 0; gap: 16px;
+    }
+    .pd-rail-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .pd-rail-btn {
+      width: 38px; height: 38px; border-radius: 11px; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; color: white; transition: transform 0.12s, filter 0.12s;
+      flex-shrink: 0;
+    }
+    .pd-rail-btn:hover { transform: scale(1.07); filter: brightness(0.92); }
+    .pd-rail-label { font-size: 9px; color: var(--gray-600); text-align: center; line-height: 1.2; max-width: 62px; }
+    @media (max-width: 640px) {
+      .pd-layout { flex-direction: column; }
+      .pd-rail { width: 100%; flex-direction: row; justify-content: center; border-left: none; border-top: 1px solid var(--border); padding: 0.85rem 0; gap: 22px; }
+    }
     .pdh { background: var(--neuro); color: white; padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
     .pdh-avatar { width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.2); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
     .pdh-name { font-size: 15px; font-weight: 600; }
@@ -3847,7 +3869,10 @@ async function guardarSesionManual() {
   if (!p.sesionesCount) p.sesionesCount = 0;
   if (!p.sesiones) p.sesiones = [];
 
-  p.sesionesCount++;
+  // El num_sesion que se manda a la BD usa sesiones.length+1 (conteo real),
+  // no el contador manual antiguo, para que quede consistente con la
+  // línea de tiempo desde el momento en que se crea el registro.
+  var numSesionReal = p.sesiones.length + 1;
 
   var token = localStorage.getItem('fisioIA_token');
   var userId = await getMiUserId();
@@ -3873,7 +3898,7 @@ async function guardarSesionManual() {
           tipo: 'manual',
           especialidad: profCfg.label,
           plan_texto: notas || 'Sesión registrada manualmente',
-          num_sesion: p.sesionesCount
+          num_sesion: numSesionReal
         })
       });
       if (r.ok) {
@@ -3901,6 +3926,10 @@ async function guardarSesionManual() {
   };
   p.sesiones.push(sesionLocal);
 
+  // El contador siempre se recalcula del conteo real (p.sesiones.length),
+  // que ya incluye la sesión recién agregada.
+  p.sesionesCount = p.sesiones.length;
+
   // 3. Actualizar contador en Supabase
   await updatePacienteDB(sessionModalPxId, { sesionesCount: p.sesionesCount });
 
@@ -3913,14 +3942,25 @@ async function guardarSesionManual() {
 }
 
 function ajustarSesiones(pxId, delta) {
-  if (delta < 0 && !confirm('¿Quieres restar una sesión?')) return;
   var pacientes = getPacientes();
   var p = pacientes.find(function(x){ return x.id === pxId; });
   if (!p) return;
-  p.sesionesCount = Math.max(0, (p.sesionesCount || 0) + delta);
-  savePacientes(pacientes);
-  updatePacienteDB(pxId, { sesionesCount: p.sesionesCount });
-  verDetalle(pxId);
+
+  if (delta < 0) {
+    // Como el contador ahora siempre se recalcula a partir de p.sesiones.length,
+    // "restar" ya no puede ser solo un número aparte (se revertiría al recargar).
+    // En su lugar, restar elimina la última sesión registrada (la más reciente),
+    // igual que el botón "Eliminar" dentro de cada nota de la línea de tiempo.
+    if (!p.sesiones || !p.sesiones.length) { showToast('Este paciente no tiene sesiones para eliminar.', 'warn'); return; }
+    var ultima = p.sesiones[p.sesiones.length - 1];
+    if (!confirm('¿Eliminar la última sesión registrada (' + (ultima.fecha||'') + ')? Esta acción no se puede deshacer.')) return;
+    eliminarSesion(pxId, ultima.id);
+    return;
+  }
+
+  // delta > 0: ya no aplica sumar el contador manualmente sin una sesión real
+  // detrás — se deja el botón "+ Registrar sesión" como única vía para sumar.
+  showToast('Usa "+ Registrar sesión" para agregar una nueva sesión.', 'info');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4392,7 +4432,12 @@ async function cargarPacientes() {
                 plan: s.plan_texto || ''
               };
             });
-            return Object.assign({}, p, { sesiones: sesionesLocal });
+            // FIX: el contador mostrado (sesionesCount) se recalcula SIEMPRE a
+            // partir del número real de sesiones guardadas en sesiones_clinicas,
+            // en vez de confiar en el valor de la columna sesionesCount de
+            // "pacientes", que se incrementaba manualmente y podía desincronizarse
+            // (ej. si una sesión se guardaba pero el PATCH del contador fallaba).
+            return Object.assign({}, p, { sesiones: sesionesLocal, sesionesCount: sesionesLocal.length });
           });
         }
       } catch(e) { console.log('Error cargando sesiones:', e); }
@@ -4478,6 +4523,8 @@ function verDetalle(id){
   var rolesBox=p.roles?'<div class="goal-box" style="background:#E1EDFA;border-left:3px solid #1A5FA8;margin-top:8px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#1A5FA8;margin-bottom:6px;">Roles en la vida</div><div style="font-size:13px;line-height:1.6;">'+p.roles+'</div></div>':'';
 
   det.innerHTML=
+    '<div class="pd-layout">'+
+    '<div class="pd-main">'+
     '<div class="pdh">'+
       '<div style="display:flex;align-items:center;gap:12px;">'+
         '<div class="pdh-avatar">'+getInitials(p.nombre)+'</div>'+
@@ -4486,11 +4533,7 @@ function verDetalle(id){
       '</div>'+
       '<div class="pdh-actions">'+
         '<button class="btn-pdh" onclick="abrirHC(\''+id+'\')" style="background:rgba(255,255,255,0.25);">📋 Historia clínica</button>'+
-        '<button class="btn-pdh" onclick="abrirConsentimiento(\''+id+'\')">📄 Consentimiento</button>'+
         '<button class="btn-pdh" onclick="abrirRevalModal(\''+id+'\')" style="background:rgba(255,255,255,0.2);">Revaluación</button>'+
-        '<button class="btn-pdh" onclick="abrirEpicrisis(\''+id+'\')" style="background:rgba(83,74,183,0.7);">🏁 Epicrisis</button>'+
-        '<button class="btn-pdh" onclick="exportarHCpdf(\''+id+'\')" style="background:rgba(0,0,0,0.2);">📥 PDF</button>'+
-        '<button class="btn-pdh" onclick="abrirModalPaciente(\''+id+'\')">Editar</button>'+
         '<button class="btn-pdh" onclick="cerrarDetalle()">✕</button>'+
       '</div>'+
     '</div>'+
@@ -4541,6 +4584,14 @@ function verDetalle(id){
       '<div class="exp-panel" id="exp-interconsultas-'+id+'"><div id="interconsultas-content-'+id+'"><div class="grafica-empty" style="padding:1.5rem 0;">Cargando interconsultas...</div></div></div>'+
       '<div class="exp-panel" id="exp-adjuntos-'+id+'"><div id="adjuntos-content-'+id+'"><div class="grafica-empty" style="padding:1.5rem 0;">Cargando adjuntos...</div></div></div>'+
       '<div class="exp-panel" id="exp-trazabilidad-'+id+'"><div id="trazabilidad-content-'+id+'"><div class="grafica-empty" style="padding:1.5rem 0;">Cargando actividad...</div></div></div>'+
+    '</div>'+
+    '</div>'+
+    '<div class="pd-rail">'+
+      '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#6B7280;" onclick="abrirConsentimiento(\''+id+'\')" title="Consentimiento informado">📄</button><span class="pd-rail-label">Consenti&shy;miento</span></div>'+
+      '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#534AB7;" onclick="abrirEpicrisis(\''+id+'\')" title="Epicrisis (nota de alta)">🏁</button><span class="pd-rail-label">Epicrisis</span></div>'+
+      '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#202124;" onclick="exportarHCpdf(\''+id+'\')" title="Exportar historia clínica en PDF">📥</button><span class="pd-rail-label">PDF</span></div>'+
+      '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#9CA3AF;" onclick="abrirModalPaciente(\''+id+'\')" title="Editar datos del paciente">✏️</button><span class="pd-rail-label">Editar</span></div>'+
+    '</div>'+
     '</div>';
 
   det.scrollIntoView({behavior:'smooth',block:'start'});
@@ -4581,6 +4632,8 @@ function eliminarSesion(pxId,sesId){
   var px=getPacientes(),p=px.find(function(x){return x.id===pxId;});
   if(!p)return;
   p.sesiones = (p.sesiones || []).filter(function(s) { return s.id !== sesId; });
+  // Recalcular el contador visible al mismo tiempo que se elimina la sesión.
+  p.sesionesCount = p.sesiones.length;
   savePacientes(px);
   var tokenDel = localStorage.getItem('fisioIA_token');
   if (tokenDel) {
@@ -4588,6 +4641,7 @@ function eliminarSesion(pxId,sesId){
       method: 'DELETE',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + tokenDel }
     }).catch(function(e) { console.log('Error eliminando sesión DB:', e); });
+    updatePacienteDB(pxId, { sesionesCount: p.sesionesCount }).catch(function(e){});
   }
   verDetalle(pxId);
 }
@@ -4610,7 +4664,13 @@ function guardarSesionEnPaciente(tab, datos, planTexto) {
     plan: planTexto
   };
   p.sesiones.push(sesionLocal);
+  // FIX: recalcular el contador visible a partir del número real de sesiones
+  // (antes, generar un plan agregaba una sesión pero NO tocaba sesionesCount,
+  // que solo se incrementaba con el botón "+ Registrar sesión" manual — por
+  // eso el contador y la línea de tiempo terminaban desincronizados).
+  p.sesionesCount = p.sesiones.length;
   savePacientes(px);
+  updatePacienteDB(activePxId, { sesionesCount: p.sesionesCount });
 
   guardarSesionDB(activePxId, tab, datos, planTexto, cfg, sesionLocal.id);
 }
