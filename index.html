@@ -1172,7 +1172,6 @@
 </head>
 <body>
 
-
 <!-- HISTORIAL OVERLAY -->
 <div class="historial-overlay" id="historial-overlay" onclick="cerrarHistorial()"></div>
 
@@ -3058,7 +3057,6 @@ const scaleRanges = {
   fms:     { label: "FMS (1-6 para D/D/E)", min: 1, max: 6 },
   weefim:  { label: "WeeFIM (18-126)", min: 18, max: 126 },
   bimanual:{ label: "BIMANU-KID (puntaje)", min: 0, max: 100 },
-  tinetti: { label: "Tinetti (0-28)", min: 0, max: 28 },
   tis:     { label: "TIS - Trunk Impairment Scale (0-23)", min: 0, max: 23 },
   tass:    { label: "TASS - Trunk Control Test (0-100)", min: 0, max: 100 }
 };
@@ -3272,7 +3270,10 @@ Incluye 5 referencias reales y verificables en este formato exacto:
 
 IMPORTANTE: Las referencias deben ser reales, publicadas y relevantes para el diagnóstico específico del paciente. Incluye el DOI cuando sea posible para que el profesional pueda verificarlas.`;
 
-  if (tab === 'neuro') return `${base}
+  if (tab === 'neuro') {
+    const tonoTxt = 'Segmento afectado: ' + (d.tono_afect||'N/E') + ' | Segmento no afectado: ' + (d.tono_contra||'N/E') + (d.tono_zona ? (' | Zona: ' + d.tono_zona) : '');
+    const fuerzaTxt = 'MS afectado: ' + (d.fuerza_ms_afect||'N/E') + ' | MS no afectado: ' + (d.fuerza_ms_no||'N/E') + ' | MI afectado: ' + (d.fuerza_mi_afect||'N/E') + ' | MI no afectado: ' + (d.fuerza_mi_no||'N/E') + (d.fuerza_detalle ? (' | Detalle: ' + d.fuerza_detalle) : '');
+    return `${base}
 
 DATOS DE EVALUACIÓN NEUROLÓGICA:
 - Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'} | Fase: ${d.fase||'N/E'}
@@ -3281,7 +3282,8 @@ DATOS DE EVALUACIÓN NEUROLÓGICA:
 - Tiempo de evolución: ${d.evolucion||'N/E'}
 
 HALLAZGOS CLÍNICOS:
-- Tono: ${d.tono||'N/E'} | Fuerza MRC: ${d.fuerza||'N/E'}
+- Tono muscular: ${tonoTxt}
+- Fuerza muscular (MRC modificada): ${fuerzaTxt}
 - Control postural / Equilibrio: ${d.equilibrio||'N/E'}
 - Marcha: ${d.marcha||'N/E'}
 - Dolor EVA: ${d.dolor||'N/R'}/10 | Zona del dolor: ${d.dolor_zona||'N/E'}
@@ -3296,6 +3298,7 @@ CONTEXTO:
 - Objetivos: ${d.objetivos_px||'N/E'}
 - Adicional: ${d.adicional||'Ninguno'}
 ${estructura}`;
+  }
 
   if (tab === 'ortho') return `${base}
 
@@ -3666,10 +3669,20 @@ async function fetchConReintento(prompt, intentos) {
 // ─── ADMIN + SESSIONS + CONSENT ─────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════
 // ADMIN SYSTEM
+// NOTA DE SEGURIDAD: las acciones administrativas (listar usuarios, activar/
+// desactivar) ya NO se llaman directamente a la API admin de Supabase desde
+// el navegador. Se delegan a la función serverless /api/admin-users, que usa
+// la SUPABASE_SERVICE_ROLE_KEY solo en el servidor y valida ahí mismo que
+// quien llama es realmente un admin (verificando el token contra la lista
+// de correos admin en el servidor, no confiando en localStorage).
 // ═══════════════════════════════════════════════════════════════
 var ADMIN_EMAILS = ['danielamoncada216@gmail.com', 'ft.mariadelangelo@gmail.com'];
 
 function isAdmin() {
+  // Esto SOLO controla si se muestra el botón de Admin en la UI.
+  // La autorización real para cualquier acción administrativa se valida
+  // en el servidor (/api/admin-users), así que aunque alguien fuerce esto
+  // desde la consola del navegador, no obtiene datos ni permisos reales.
   var email = localStorage.getItem('fisioIA_email') || '';
   return ADMIN_EMAILS.indexOf(email.toLowerCase()) > -1;
 }
@@ -3693,61 +3706,55 @@ async function cargarAdminData() {
   var token = localStorage.getItem('fisioIA_token');
   if (!token) return;
 
-  // Load users from Supabase auth admin endpoint
   try {
-    // Get all patients count
-    var rPx = await fetch(SUPABASE_URL + '/rest/v1/pacientes?select=id,user_id', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    // Todo lo administrativo pasa ahora por el endpoint serverless seguro.
+    var r = await fetch('/api/admin-users', {
+      method: 'GET',
+      headers: { 'Authorization': 'Bearer ' + token }
     });
-    var allPx = rPx.ok ? await rPx.json() : [];
 
-    // Get usage logs if table exists
-    var rLogs = await fetch(SUPABASE_URL + '/rest/v1/plan_logs?select=id,user_email,created_at&order=created_at.desc&limit=100', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
-    });
-    var logs = rLogs.ok ? await rLogs.json() : [];
+    if (r.status === 401 || r.status === 403) {
+      document.getElementById('admin-users-table').innerHTML = '<div class="admin-loading">No autorizado. Esta acción requiere permisos de administrador validados por el servidor.</div>';
+      return;
+    }
+    if (!r.ok) {
+      document.getElementById('admin-users-table').innerHTML = '<div class="admin-loading">Error al cargar datos administrativos.</div>';
+      return;
+    }
 
-    // Count today's plans
+    var data = await r.json();
+    var users = data.users || [];
+    var allPx = data.patients || [];
+    var logs = data.planLogs || [];
+
     var today = new Date().toISOString().split('T')[0];
     var todayLogs = logs.filter(function(l) { return l.created_at && l.created_at.startsWith(today); });
 
-    // Get users from admin API
-    var rUsers = await fetch(SUPABASE_URL + '/auth/v1/admin/users', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
-    });
-
-    var users = [];
-    if (rUsers.ok) {
-      var userData = await rUsers.json();
-      users = userData.users || [];
-    }
-
-    // Update stats
     document.getElementById('stat-users').textContent = users.length || '--';
     document.getElementById('stat-active').textContent = users.filter(function(u) { return !u.banned_until; }).length || '--';
     document.getElementById('stat-plans').textContent = todayLogs.length;
     document.getElementById('stat-patients').textContent = allPx.length;
 
-    // Render users table
     await renderUsersTable(users, logs);
 
   } catch(e) {
     console.log('Admin load error:', e);
-    document.getElementById('admin-users-table').innerHTML = '<div class="admin-loading">Error al cargar datos. Verifica permisos de administrador.</div>';
+    document.getElementById('admin-users-table').innerHTML = '<div class="admin-loading">Error al cargar datos. Verifica tu conexión.</div>';
   }
 }
 
 async function renderUsersTable(users, logs) {
   var container = document.getElementById('admin-users-table');
   if (!users.length) {
-    container.innerHTML = '<div class="admin-loading">No se encontraron usuarios. Verifica que tengas permisos de servicio en Supabase.</div>';
+    container.innerHTML = '<div class="admin-loading">No se encontraron usuarios.</div>';
     return;
   }
 
+  var token = localStorage.getItem('fisioIA_token');
   var profCache = {};
   try {
     var rProf = await fetch(SUPABASE_URL + '/rest/v1/profiles?select=id,profession,full_name',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + localStorage.getItem('fisioIA_token') } });
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
     var profData = await rProf.json();
     if (Array.isArray(profData)) profData.forEach(function(p) { profCache[p.id] = p; });
   } catch(e) {}
@@ -3792,16 +3799,17 @@ async function renderUsersTable(users, logs) {
 async function toggleUser(userId, isBanned) {
   var token = localStorage.getItem('fisioIA_token');
   if (!token) return;
-  var action = isBanned ? 'unban' : 'ban';
   try {
-    var body = isBanned ? { ban_duration: 'none' } : { ban_duration: '876000h' };
-    var r = await fetch(SUPABASE_URL + '/auth/v1/admin/users/' + userId, {
-      method: 'PUT',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
+    // El servidor decide si el que llama es admin y ejecuta el ban/unban
+    // con la service_role key. El navegador nunca ve esa key.
+    var r = await fetch('/api/admin-users', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: isBanned ? 'unban' : 'ban', userId: userId })
     });
     if (r.ok) { cargarAdminData(); }
-    else { showToast('Error al ' + action + ' el usuario.', 'err'); }
+    else if (r.status === 401 || r.status === 403) { showToast('No autorizado para esta acción.', 'err'); }
+    else { showToast('Error al actualizar el usuario.', 'err'); }
   } catch(e) { showToast('Error de conexión. Verifica tu internet.', 'err'); }
 }
 
@@ -3969,12 +3977,7 @@ function imprimirConsentimiento() {
   ventana.document.close();
 }
 
-
-
 // ─── REVALUACIÓN SYSTEM ──────────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════
-// REVALUACIÓN SYSTEM
-// ═══════════════════════════════════════════════════════════════
 var revalPxId = null;
 var revalLastText = '';
 
@@ -3983,13 +3986,11 @@ function extraerObjetivos(planTexto) {
   if (!planTexto) return objetivos;
   var lines = planTexto.split('\n');
   var enObjetivos = false;
-  var enIntervencion = false;
 
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i].trim();
     var lineLow = line.toLowerCase();
 
-    // Detectar sección de objetivos — múltiples formatos posibles
     if (lineLow.indexOf('objetivo') > -1 && (
       lineLow.indexOf('corto') > -1 || lineLow.indexOf('mediano') > -1 ||
       lineLow.indexOf('largo') > -1 || lineLow.indexOf('terapéutico') > -1 ||
@@ -3997,11 +3998,9 @@ function extraerObjetivos(planTexto) {
       lineLow.indexOf('plazo') > -1
     )) {
       enObjetivos = true;
-      enIntervencion = false;
       continue;
     }
 
-    // Detectar fin de sección de objetivos
     if (enObjetivos && (
       lineLow.indexOf('plan de intervenci') > -1 ||
       lineLow.indexOf('intervenci') > -1 ||
@@ -4013,7 +4012,6 @@ function extraerObjetivos(planTexto) {
       break;
     }
 
-    // Capturar líneas que son objetivos (empiezan con - o * o número)
     if (enObjetivos) {
       var isItem = line.match(/^[-*•]\s+.+/) || line.match(/^\d+\.\s+.+/);
       if (isItem && line.length > 15) {
@@ -4028,7 +4026,6 @@ function extraerObjetivos(planTexto) {
     }
   }
 
-  // Si no encontró objetivos con el método anterior, buscar cualquier línea con guión después de "objetivo"
   if (objetivos.length === 0) {
     var inAnyObj = false;
     for (var j = 0; j < lines.length; j++) {
@@ -4063,7 +4060,6 @@ function abrirRevalModal(pxId) {
   document.getElementById('reval-step2').style.display = 'none';
   document.getElementById('reval-footer').style.display = 'flex';
 
-  // Extract objectives from last session
   var ultimaSesion = p.sesiones[p.sesiones.length - 1];
   var objetivos = extraerObjetivos(ultimaSesion.plan || '');
   var checklist = document.getElementById('objectives-checklist');
@@ -4111,7 +4107,6 @@ async function generarRevaluacion() {
     return;
   }
 
-  // Get checked/unchecked objectives
   var alcanzados = [];
   var noAlcanzados = [];
   document.querySelectorAll('.obj-item').forEach(function(item) {
@@ -4201,7 +4196,6 @@ async function generarRevaluacion() {
         '<div class="reval-result-body">' + r.proyeccion_funcional + '</div>' +
       '</div>';
 
-    // Save revaluation as a special session
     guardarSesionEnPaciente('reval', {dx_medico: 'Revaluación', dx_fisio: ''}, revalLastText);
 
     document.getElementById('reval-step1').style.display = 'none';
@@ -4224,7 +4218,6 @@ function copiarRevaluacion() {
     setTimeout(function(){ btn.textContent = 'Copiar revaluación'; }, 2000);
   }
 }
-
 
 // ─── PATIENT SYSTEM ─────────────────────────────────────────────────────────
 var activePxId = null;
@@ -4345,10 +4338,8 @@ async function cargarPacientes() {
   if (!token) return;
 
   try {
-    // 1. Mis pacientes propios
     var propios = await getPacientesDB();
 
-    // 2. Pacientes del equipo (donde fui invitado)
     var userId = await getMiUserId();
     var compartidos = [];
     if (userId) {
@@ -4360,7 +4351,6 @@ async function cargarPacientes() {
         var teamData = await rTeam.json();
         if (Array.isArray(teamData) && teamData.length > 0) {
           var idsEquipo = teamData.map(function(t) { return t.patient_id; });
-          // Filtrar los que no son propios
           var idsPropios = propios.map(function(p) { return p.id; });
           var idsNuevos = idsEquipo.filter(function(id) { return idsPropios.indexOf(id) === -1; });
           if (idsNuevos.length > 0) {
@@ -4370,7 +4360,6 @@ async function cargarPacientes() {
             );
             compartidos = await rShared.json();
             if (!Array.isArray(compartidos)) compartidos = [];
-            // Marcar como compartidos para mostrar badge
             compartidos = compartidos.map(function(p) {
               return Object.assign({}, p, { _compartido: true });
             });
@@ -4379,7 +4368,6 @@ async function cargarPacientes() {
       } catch(e) { compartidos = []; }
     }
 
-    // 3. Cargar sesiones de Supabase para todos los pacientes
     var todosPacientes = propios.concat(compartidos);
     if (todosPacientes.length > 0) {
       try {
@@ -4392,7 +4380,6 @@ async function cargarPacientes() {
         if (Array.isArray(sesionesDB)) {
           todosPacientes = todosPacientes.map(function(p) {
             var sesPx = sesionesDB.filter(function(s) { return s.patient_id === p.id; });
-            // Convertir formato DB al formato local que usa la UI
             var sesionesLocal = sesPx.map(function(s) {
               var profCfg = PROF_CONFIG[s.profession] || PROF_CONFIG.fisioterapia;
               return {
@@ -4429,12 +4416,10 @@ function seleccionarPaciente(id){
   document.getElementById('apb-name').textContent=p.nombre;
   document.getElementById('apb-meta').textContent=(p.diagnostico||'')+(calcEdad(p.nacimiento)?' - '+calcEdad(p.nacimiento):'');
   cerrarPacientes();
-  // Mostrar equipo interdisciplinario para cualquier paciente activo
   if(p.id){
     renderEquipoPaciente(p.id);
   }
   verDetalle(id);
-  // Verificar flujo clínico
   setTimeout(actualizarOverlayFlujo, 300);
 }
 
@@ -4456,7 +4441,6 @@ function verDetalle(id){
   var det=document.getElementById('px-detail-card');
   if(!det){det=document.createElement('div');det.id='px-detail-card';det.className='patient-detail';var cont=document.querySelector('.container'),tabs=document.querySelector('.tabs-wrapper');cont.insertBefore(det,tabs);}
 
-  // Build timeline
   var tlHTML='';
   if(!ses.length){
     tlHTML='<div class="grafica-empty">Sin sesiones registradas. Genera un plan con este paciente activo.</div>';
@@ -4598,7 +4582,6 @@ function eliminarSesion(pxId,sesId){
   if(!p)return;
   p.sesiones = (p.sesiones || []).filter(function(s) { return s.id !== sesId; });
   savePacientes(px);
-  // Eliminar en Supabase (intentar por UUID primero, luego ignorar si no existe)
   var tokenDel = localStorage.getItem('fisioIA_token');
   if (tokenDel) {
     fetch(SUPABASE_URL + '/rest/v1/sesiones_clinicas?id=eq.' + sesId, {
@@ -4616,7 +4599,6 @@ function guardarSesionEnPaciente(tab, datos, planTexto) {
   var p = px.find(function(x) { return x.id === activePxId; });
   if (!p) return;
 
-  // Actualizar cache local para la UI inmediata
   if (!p.sesiones) p.sesiones = [];
   var sesionLocal = {
     id: Date.now().toString(),
@@ -4630,7 +4612,6 @@ function guardarSesionEnPaciente(tab, datos, planTexto) {
   p.sesiones.push(sesionLocal);
   savePacientes(px);
 
-  // Guardar en Supabase (tabla sesiones_clinicas)
   guardarSesionDB(activePxId, tab, datos, planTexto, cfg, sesionLocal.id);
 }
 
@@ -4640,7 +4621,6 @@ async function guardarSesionDB(pacienteId, tab, datos, planTexto, cfg, localId) 
   var userId = await getMiUserId();
   if (!userId) return;
 
-  // Calcular número de sesión
   var px = getPacientes();
   var p = px.find(function(x) { return x.id === pacienteId; });
   var numSesion = p ? (p.sesiones || []).length : 1;
@@ -4675,7 +4655,6 @@ async function guardarSesionDB(pacienteId, tab, datos, planTexto, cfg, localId) 
       },
       body: JSON.stringify(sesion)
     });
-    // También guardar en treatment_plans para el informe interdisciplinario
     if (pacienteId) {
       guardarPlanEnDB(pacienteId, profKey, planTexto, datos);
     }
@@ -4773,7 +4752,6 @@ async function guardarPaciente(){
   seleccionarPaciente(editingPxId||d.id);
 }
 
-
 // ─── SUPABASE AUTH ────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://rfnuzhmxdmhekqbaloko.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJmbnV6aG14ZG1oZWtxYmFsb2tvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NDQwMzYsImV4cCI6MjA5NDQyMDAzNn0.6Ab4cOKOBF-5NtZjZqKCveXsYmoN-j1zrPxrTRhz13A';
@@ -4790,6 +4768,36 @@ async function supabaseFetch(endpoint, method, body, token) {
   });
   return res.json();
 }
+
+function seleccionarProf(prof) {
+  document.querySelectorAll('.prof-btn').forEach(function(b) { b.classList.remove('prof-sel'); });
+  var btn = document.querySelector('.prof-btn[data-prof="' + prof + '"]');
+  if (btn) btn.classList.add('prof-sel');
+  var hidden = document.getElementById('reg-profession');
+  if (hidden) hidden.value = prof;
+  var err = document.getElementById('prof-error');
+  if (err) err.style.display = 'none';
+
+  var cfg = PROF_CONFIG_PREVIEW[prof];
+  var preview = document.getElementById('prof-preview');
+  var tagsCont = document.getElementById('prof-preview-tags');
+  if (cfg && preview && tagsCont) {
+    tagsCont.innerHTML = cfg.escalas.map(function(e) {
+      return '<span class="prof-tag" style="background:' + cfg.bg + ';color:' + cfg.color + ';">' + e + '</span>';
+    }).join('');
+    preview.style.display = 'block';
+  }
+}
+
+// Copia mínima de referencia usada solo por el selector de profesión en el
+// formulario de registro (antes de que exista sesión, por lo que no puede
+// depender de PROF_CONFIG definido más abajo en el flujo autenticado).
+var PROF_CONFIG_PREVIEW = {
+  fisioterapia:        { color: '#1D9E75', bg: '#E1F5EE', escalas: ['Barthel','Berg','NIHSS','Fugl-Meyer','MoCA','TUG','Tinetti','MAS','GMFCS'] },
+  fonoaudiologia:      { color: '#185FA5', bg: '#E6F1FB', escalas: ['FOIS','EAT-10','MASA','Frenchay','NIH-Lenguaje'] },
+  terapia_ocupacional: { color: '#BA7517', bg: '#FAEEDA', escalas: ['FIM','COPM','Lawton-Brody','LOTCA','AMPS'] },
+  psicologia:          { color: '#534AB7', bg: '#EEEDFE', escalas: ['PHQ-9','GAD-7','BDI-II','MSPSS','STAXI'] }
+};
 
 function showAuthTab(tab) {
   document.getElementById('auth-login').style.display = tab === 'login' ? 'block' : 'none';
@@ -4870,7 +4878,6 @@ async function intentarRegistro() {
       data: { full_name: name, profession: profession }
     });
     if (data.id || data.user?.id) {
-      // Guardar profesión en tabla profiles vía REST
       const userId = data.id || data.user?.id;
       try {
         await fetch(SUPABASE_URL + '/rest/v1/profiles', {
@@ -4923,7 +4930,6 @@ async function entrarApp(email) {
   checkAdminBtn();
   setTimeout(cargarInvitacionesPendientes, 800);
   setTimeout(actualizarBadgeNotificaciones, 1000);
-  // Leer profesión del perfil y aplicarla
   await cargarProfesionUsuario();
 }
 
@@ -4939,17 +4945,14 @@ var miProfesion = 'fisioterapia'; // default
 async function cargarProfesionUsuario() {
   const token = localStorage.getItem('fisioIA_token');
   if (!token) return;
-  // Limpiar siempre antes de cargar — para que no quede la sesión anterior
   resetearUIprofesion();
   try {
-    // Obtener id del usuario actual
     const rUser = await fetch(SUPABASE_URL + '/auth/v1/user', {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
     });
     const user = await rUser.json();
     if (!user || !user.id) return;
 
-    // Buscar en tabla profiles
     const rProf = await fetch(
       SUPABASE_URL + '/rest/v1/profiles?id=eq.' + user.id + '&select=profession,full_name,is_admin',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
@@ -4958,7 +4961,6 @@ async function cargarProfesionUsuario() {
     const profile = Array.isArray(profiles) && profiles.length > 0 ? profiles[0] : null;
 
     if (!profile || !profile.profession) {
-      // Si no tiene profesión asignada, mostrar selector de bienvenida
       mostrarSelectorBienvenida(user.id, token);
       return;
     }
@@ -4973,7 +4975,6 @@ function aplicarProfesion(prof) {
   const cfg = PROF_CONFIG[prof];
   if (!cfg) return;
 
-  // Mostrar badge en nav
   const badge = document.getElementById('nav-prof-badge');
   if (badge) {
     badge.textContent = cfg.icono + ' ' + cfg.label;
@@ -4983,15 +4984,12 @@ function aplicarProfesion(prof) {
     badge.style.display = 'inline-block';
   }
 
-  // Para fisioterapia: todo normal (tabs neuro, ortho, geria, pedia visibles)
-  // Para otras profesiones: mostrar aviso de módulo en desarrollo
   if (prof !== 'fisioterapia') {
     setTimeout(function() { mostrarTabsProfesion(prof); }, 200);
   }
 }
 
 function mostrarSelectorBienvenida(userId, token) {
-  // Si el usuario no tiene profesión, mostramos un overlay para que la seleccione
   const overlay = document.createElement('div');
   overlay.id = 'bienvenida-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:1rem;';
@@ -5037,22 +5035,18 @@ function cerrarSesion() {
   localStorage.removeItem('fisioIA_email');
   localStorage.removeItem('fisioIA_expires');
   localStorage.removeItem('fisioIA_profession');
-  // Resetear UI de profesión
   resetearUIprofesion();
   document.getElementById('login-screen').classList.remove('hidden');
   showAuthTab('login');
 }
 
 function resetearUIprofesion() {
-  // Ocultar badge
   var badge = document.getElementById('nav-prof-badge');
   if (badge) badge.style.display = 'none';
-  // Ocultar tabs nuevas, mostrar tabs fisio
   var tabsNuevas = document.getElementById('tabs-profesiones-nuevas');
   if (tabsNuevas) tabsNuevas.style.display = 'none';
   var tabsFisio = document.querySelector('.tabs-wrapper:not(#tabs-profesiones-nuevas)');
   if (tabsFisio) tabsFisio.style.display = '';
-  // Mostrar panels fisio, ocultar panels nuevas
   ['neuro','ortho','geria','pedia'].forEach(function(t) {
     var p = document.getElementById('panel-' + t);
     if (p) p.style.display = '';
@@ -5061,10 +5055,8 @@ function resetearUIprofesion() {
     var p = document.getElementById('panel-' + t);
     if (p) p.style.display = 'none';
   });
-  // Quitar aviso de módulo en desarrollo si existe
   var avisos = document.querySelectorAll('.prof-modulo-aviso');
   avisos.forEach(function(a) { a.remove(); });
-  // Resetear variable global
   miProfesion = 'fisioterapia';
 }
 
@@ -5099,55 +5091,62 @@ function switchResultTab(prefix, tab, btn) {
   document.getElementById(`${prefix}-tab-${tab}`).classList.add('active');
 }
 
-// ─── SOAP GENERATION ──────────────────────────────────────────────────────────
+// ─── SOAP NOTE GENERATION ────────────────────────────────────────────────────
 async function generarSOAP(tab, prefix, d) {
-  const escalasTxt = Object.keys(d.escalas||{}).length > 0
+  const escalasTxt = Object.keys(d.escalas).length > 0
     ? Object.entries(d.escalas).map(([k,v]) => `${k}: ${v}`).join(' | ')
     : 'No especificadas';
 
-  const profLabel = (PROF_CONFIG[d.especialidad ? d.especialidad.toLowerCase().replace(' ','_') : 'fisioterapia'] || PROF_CONFIG.fisioterapia).label;
-  const soapPrompt = `Eres un profesional clínico experto en ${profLabel}. Con base en los datos de evaluación, genera una nota de evolución en formato SOAP completa y profesional. Responde ÚNICAMENTE en JSON con exactamente estas 4 claves: "S", "O", "A", "P". Sin texto extra, sin markdown, sin explicaciones fuera del JSON.
+  let hallazgosTxt = '';
+  if (tab === 'neuro') {
+    // FIX CRÍTICO: usar los mismos campos segmentados correctos que construirPrompt,
+    // en vez de los antiguos d.tono / d.fuerza que ya no existen en el objeto de datos.
+    const tonoTxt = 'Segmento afectado: ' + (d.tono_afect||'N/E') + ' | Segmento no afectado: ' + (d.tono_contra||'N/E') + (d.tono_zona ? (' | Zona: ' + d.tono_zona) : '');
+    const fuerzaTxt = 'MS afectado: ' + (d.fuerza_ms_afect||'N/E') + ' | MS no afectado: ' + (d.fuerza_ms_no||'N/E') + ' | MI afectado: ' + (d.fuerza_mi_afect||'N/E') + ' | MI no afectado: ' + (d.fuerza_mi_no||'N/E') + (d.fuerza_detalle ? (' | Detalle: ' + d.fuerza_detalle) : '');
+    hallazgosTxt = `Tono muscular: ${tonoTxt}. Fuerza muscular (MRC modificada): ${fuerzaTxt}. Equilibrio: ${d.equilibrio||'N/E'}. Marcha: ${d.marcha||'N/E'}. Dolor: ${d.dolor||'N/R'}/10 en ${d.dolor_zona||'N/E'}. Sensibilidad superficial: ${d.sens_superficial||'N/E'}, profunda: ${d.sens_profunda||'N/E'}. Cognición: ${d.cognicion||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
+  } else if (tab === 'ortho') {
+    hallazgosTxt = `Dolor en reposo: ${d.dolor_reposo||'N/R'}/10, en movimiento: ${d.dolor_movimiento||'N/R'}/10. ROM: ${d.rom||'N/E'}. Fuerza: ${d.fuerza||'N/E'}. Edema: ${d.edema||'N/E'}. Función/carga: ${d.funcion||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
+  } else if (tab === 'geria') {
+    hallazgosTxt = `Independencia funcional: ${d.independencia||'N/E'}. Riesgo de caída: ${d.caida||'N/E'}. Marcha: ${d.marcha||'N/E'}. Cognición: ${d.cognicion||'N/E'}. Fuerza: ${d.fuerza||'N/E'}. Dolor: ${d.dolor||'N/R'}/10. Otros: ${d.otros||'Ninguno'}.`;
+  } else if (tab === 'pedia') {
+    hallazgosTxt = `Hitos alcanzados: ${d.hitos||'N/E'}. Tono: ${d.tono||'N/E'}. Patrón motor: ${d.patron||'N/E'}. Marcha: ${d.marcha||'N/E'}. Reflejos: ${d.reflejos||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
+  }
 
-DATOS DE EVALUACIÓN (especialidad: ${d.especialidad}):
+  const prompt = `Eres un fisioterapeuta experto. A partir de estos datos clínicos, genera una nota SOAP profesional, concisa y lista para historia clínica en Colombia. Responde en español colombiano.
+
+DATOS DEL PACIENTE (${d.especialidad}):
+- Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'}
 - Diagnóstico médico: ${d.dx_medico||'N/E'}
 - Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
-- Edad: ${d.edad||'N/E'} | Sexo: ${d.sexo||'N/E'}
-- Fase: ${d.fase||d.grupo||'N/E'}
-- Hallazgos principales: tono=${d.tono||'N/E'}, fuerza=${d.fuerza||'N/E'}, marcha=${d.marcha||'N/E'}, equilibrio=${d.equilibrio||'N/E'}
-- Dolor: ${d.dolor||d.dolor_reposo||'N/E'}/10
-- Cognición: ${d.cognicion||'N/E'}
+- Hallazgos: ${hallazgosTxt}
 - Escalas: ${escalasTxt}
 - Objetivos del paciente: ${d.objetivos_px||'N/E'}
-- Contexto: ${d.contexto||d.apoyo||'N/E'}
-- Otros: ${d.otros||'Ninguno'}
 
-Formato JSON esperado:
+Responde ÚNICAMENTE en formato JSON válido con esta estructura exacta, sin texto adicional ni markdown:
 {
-  "S": "Paciente refiere... [síntomas subjetivos, quejas principales, expectativas, lo que dice el paciente o la familia en 3-5 oraciones]",
-  "O": "Al examen físico se evidencia... [hallazgos objetivos medibles: tono, fuerza, ROM, escalas, marcha, equilibrio en 4-6 oraciones]",
-  "A": "Paciente con diagnóstico fisioterapéutico de... [análisis clínico, pronóstico, factores que influyen, razonamiento clínico en 3-5 oraciones]",
-  "P": "Se planea... [intervenciones específicas de hoy, frecuencia, metas próxima sesión, educación al paciente en 4-6 oraciones]"
+  "s": "Texto del componente Subjetivo (2-4 oraciones: lo que refiere el paciente/familia sobre su condición, síntomas, molestias)",
+  "o": "Texto del componente Objetivo (2-4 oraciones: hallazgos medibles y observables de la evaluación)",
+  "a": "Texto del componente Análisis (2-4 oraciones: impresión clínica, diagnóstico fisioterapéutico, pronóstico breve)",
+  "p": "Texto del componente Plan (2-4 oraciones: intervenciones a realizar, frecuencia, próximos pasos)"
 }`;
 
   try {
-    const resp = await fetch('/api/generar-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: soapPrompt })
-    });
-    const data = await resp.json();
-    const texto = data.plan || '';
+    const texto = await fetchConReintento(prompt, 3);
     const clean = texto.replace(/```json|```/g, '').trim();
     const soap = JSON.parse(clean);
 
-    ['s','o','a','p'].forEach(k => {
-      const el = document.getElementById(`${prefix}-soap-${k}`);
-      if (el) el.textContent = soap[k.toUpperCase()] || 'No generado';
-    });
+    const sEl = document.getElementById(`${prefix}-soap-s`);
+    const oEl = document.getElementById(`${prefix}-soap-o`);
+    const aEl = document.getElementById(`${prefix}-soap-a`);
+    const pEl = document.getElementById(`${prefix}-soap-p`);
+    if (sEl) sEl.textContent = soap.s || 'No disponible';
+    if (oEl) oEl.textContent = soap.o || 'No disponible';
+    if (aEl) aEl.textContent = soap.a || 'No disponible';
+    if (pEl) pEl.textContent = soap.p || 'No disponible';
   } catch(e) {
-    ['s','o','a','p'].forEach(k => {
-      const el = document.getElementById(`${prefix}-soap-${k}`);
-      if (el) el.textContent = 'Error al generar esta sección. Intenta copiar el plan y redactar manualmente.';
+    ['s','o','a','p'].forEach(letra => {
+      const el = document.getElementById(`${prefix}-soap-${letra}`);
+      if (el) el.innerHTML = '<span style="color:#C53030;">Error al generar esta sección. Intenta regenerar el plan.</span>';
     });
   }
 }
@@ -5157,200 +5156,62 @@ function copiarSOAP(prefix) {
   const o = document.getElementById(`${prefix}-soap-o`)?.innerText || '';
   const a = document.getElementById(`${prefix}-soap-a`)?.innerText || '';
   const p = document.getElementById(`${prefix}-soap-p`)?.innerText || '';
-  const texto = `NOTA DE EVOLUCIÓN CLÍNICA\n\nS (Subjetivo):\n${s}\n\nO (Objetivo):\n${o}\n\nA (Análisis):\n${a}\n\nP (Plan):\n${p}`;
+  const texto = `NOTA SOAP\n\nS (Subjetivo):\n${s}\n\nO (Objetivo):\n${o}\n\nA (Análisis):\n${a}\n\nP (Plan):\n${p}`;
   navigator.clipboard.writeText(texto).then(() => {
     const btn = event.target;
-    btn.textContent = '¡Copiada!';
-    setTimeout(() => btn.textContent = 'Copiar nota SOAP', 2000);
+    const orig = btn.textContent;
+    btn.textContent = '¡Copiado!';
+    setTimeout(() => btn.textContent = orig, 2000);
   });
 }
 
-async function generarSOAPProf(tab) {
-  var cfg = getSpecByTab(tab);
-  var d = recopilarDatosProf(tab);
-  d.especialidad = cfg.label;
-  var prefix = cfg.prefix;
-
-  var soapPrompt = 'Eres un profesional clinico experto en ' + cfg.label + '. Genera una nota de evolucion en formato SOAP profesional. Responde UNICAMENTE en JSON con exactamente estas 4 claves: "S", "O", "A", "P". Sin texto extra, sin markdown, sin explicaciones fuera del JSON.\n\nDATOS DE EVALUACION (' + cfg.label + '):\n' + JSON.stringify(d, null, 2) + '\n\nFormato esperado:\n{\n  "S": "Paciente refiere... [sintomas subjetivos, queja principal, expectativas - 3-5 oraciones]",\n  "O": "Al examen clinico se evidencia... [hallazgos objetivos medibles, escalas, observaciones - 4-6 oraciones]",\n  "A": "Paciente con diagnostico de... [analisis clinico, razonamiento, pronostico - 3-5 oraciones]",\n  "P": "Se planea... [intervenciones, frecuencia, educacion al paciente, metas proxima sesion - 4-6 oraciones]"\n}';
-
-  var soapContainer = document.getElementById(prefix + '-soap-container');
-  if (!soapContainer) {
-    var resEl = document.getElementById(prefix + '-resultado');
-    if (!resEl) return;
-    var sc = document.createElement('div');
-    sc.id = prefix + '-soap-container';
-    sc.style.cssText = 'margin-top:1rem;background:white;border:0.5px solid #E5E7EB;border-radius:12px;overflow:hidden;';
-    sc.innerHTML = '<div style="padding:10px 16px;background:#F9FAFB;border-bottom:0.5px solid #E5E7EB;font-size:12px;font-weight:600;">Nota SOAP — ' + cfg.label + '</div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">' +
-      ['S','O','A','P'].map(function(k) {
-        var titles = {S:'Subjetivo',O:'Objetivo',A:'Análisis',P:'Plan'};
-        return '<div style="padding:12px 14px;border-right:0.5px solid #F3F4F6;border-bottom:0.5px solid #F3F4F6;">' +
-          '<div style="font-size:10px;font-weight:600;color:' + cfg.color + ';margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">' + k + ' — ' + titles[k] + '</div>' +
-          '<div id="' + prefix + '-soap-' + k.toLowerCase() + '" style="font-size:12px;color:#374151;line-height:1.6;">Generando...</div></div>';
-      }).join('') +
-      '</div>' +
-      '<div style="padding:8px 14px;border-top:0.5px solid #E5E7EB;display:flex;gap:6px;">' +
-      '<button class="btn-action" onclick="copiarSOAPProf(\' + tab + \')">Copiar nota SOAP</button></div>';
-    resEl.appendChild(sc);
-  }
-
-  try {
-    var resp = await fetch('/api/generar-plan', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({prompt: soapPrompt})
-    });
-    var data = await resp.json();
-    var texto = data.plan || '';
-    var clean = texto.replace(/```json|```/g, '').trim();
-    var soap = JSON.parse(clean);
-    ['s','o','a','p'].forEach(function(k) {
-      var el = document.getElementById(prefix + '-soap-' + k);
-      if (el) el.textContent = soap[k.toUpperCase()] || 'No generado';
-    });
-  } catch(e) {
-    ['s','o','a','p'].forEach(function(k) {
-      var el = document.getElementById(prefix + '-soap-' + k);
-      if (el) el.textContent = 'Error al generar. Intenta nuevamente.';
-    });
-  }
-}
-
-function copiarSOAPProf(tab) {
-  var prefix = getSpecByTab(tab).prefix;
-  var s = document.getElementById(prefix + '-soap-s') ? document.getElementById(prefix + '-soap-s').innerText : '';
-  var o = document.getElementById(prefix + '-soap-o') ? document.getElementById(prefix + '-soap-o').innerText : '';
-  var a = document.getElementById(prefix + '-soap-a') ? document.getElementById(prefix + '-soap-a').innerText : '';
-  var p = document.getElementById(prefix + '-soap-p') ? document.getElementById(prefix + '-soap-p').innerText : '';
-  navigator.clipboard.writeText('NOTA DE EVOLUCIÓN CLÍNICA\n\nS (Subjetivo):\n' + s + '\n\nO (Objetivo):\n' + o + '\n\nA (Análisis):\n' + a + '\n\nP (Plan):\n' + p);
-  showToast('Nota SOAP copiada al portapapeles.', 'ok');
-}
-
-
-// ─── HISTORIAL DE PLANES ──────────────────────────────────────────────────────
+// ─── HISTORIAL DE PLANES (localStorage) ──────────────────────────────────────
 function getHistorial() {
-  try { return JSON.parse(localStorage.getItem('fisioIA_historial') || '[]'); } catch { return []; }
-}
-function saveHistorial(h) {
-  localStorage.setItem('fisioIA_historial', JSON.stringify(h));
+  try { return JSON.parse(localStorage.getItem('fisioIA_historial') || '[]'); }
+  catch(e) { return []; }
 }
 
 function guardarEnHistorial(tab, datos, planTexto) {
-  const h = getHistorial();
-  const entry = {
-    id: Date.now(),
-    fecha: new Date().toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' }),
-    hora: new Date().toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' }),
-    tab,
-    especialidad: specConfig[tab]?.label || tab,
-    color: specConfig[tab]?.color || '#0F6E56',
-    light: specConfig[tab]?.light || '#E1F5EE',
+  const historial = getHistorial();
+  const cfg = specConfig[tab];
+  historial.unshift({
+    id: Date.now().toString(),
+    tab: tab,
+    especialidad: cfg.label,
+    color: cfg.color,
+    light: cfg.light,
+    fecha: new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
     dx_medico: datos.dx_medico || '',
     dx_fisio: datos.dx_fisio || '',
     edad: datos.edad || '',
-    sexo: datos.sexo || '',
     plan: planTexto
-  };
-  h.unshift(entry);
-  if (h.length > 50) h.splice(50);
-  saveHistorial(h);
-  renderHistorial();
+  });
+  // Keep only last 50
+  if (historial.length > 50) historial.length = 50;
+  localStorage.setItem('fisioIA_historial', JSON.stringify(historial));
+  marcarGuardado();
 }
 
 function renderHistorial() {
-  const h = getHistorial();
+  const historial = getHistorial();
   const list = document.getElementById('historial-list');
-  if (!list) return;
-  if (h.length === 0) {
+  if (!historial.length) {
     list.innerHTML = '<div class="historial-empty">Aún no hay planes guardados.<br>Genera tu primer plan para verlo aquí.</div>';
     return;
   }
-  list.innerHTML = h.map(e => `
-    <div class="historial-item" id="hitem-${e.id}">
+  list.innerHTML = historial.map(item => `
+    <div class="historial-item" onclick="verPlanHistorial('${item.id}')">
       <div class="historial-item-top">
-        <span class="historial-item-badge" style="background:${e.light};color:${e.color}">${e.especialidad}</span>
-        <span class="historial-item-date">${e.fecha} ${e.hora}</span>
+        <span class="historial-item-badge" style="background:${item.light};color:${item.color};">${item.especialidad}</span>
+        <span class="historial-item-date">${item.fecha}</span>
       </div>
-      <div class="historial-item-dx">${e.dx_medico || e.dx_fisio || 'Sin diagnóstico'}</div>
-      <div class="historial-item-meta">${e.dx_fisio ? e.dx_fisio.substring(0,60)+'...' : ''} ${e.edad ? '· '+e.edad+' años' : ''} ${e.sexo ? '· '+e.sexo : ''}</div>
+      <div class="historial-item-dx">${item.dx_medico || item.dx_fisio || 'Sin diagnóstico'}</div>
+      <div class="historial-item-meta">${item.edad ? item.edad + ' años' : ''}</div>
       <div class="historial-item-actions">
-        <button class="historial-btn-sm" onclick="verPlanHistorial(${e.id})">Ver plan</button>
-        <button class="historial-btn-sm" onclick="copiarPlanHistorial(${e.id})">Copiar</button>
-        <button class="historial-btn-sm danger" onclick="eliminarHistorial(${e.id})">Eliminar</button>
+        <button class="historial-btn-sm" onclick="event.stopPropagation();copiarPlanHistorial('${item.id}')">Copiar</button>
+        <button class="historial-btn-sm danger" onclick="event.stopPropagation();eliminarPlanHistorial('${item.id}')">Eliminar</button>
       </div>
     </div>`).join('');
-}
-
-function verPlanHistorial(id) {
-  const h = getHistorial();
-  const entry = h.find(e => e.id === id);
-  if (!entry) return;
-  cerrarHistorial();
-  const html = entry.plan
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">');
-
-  // Detectar si es una profesión nueva (fono, to, psico) o fisioterapia
-  const profTabs = ['fono','to','psico'];
-  const isProfNueva = profTabs.includes(entry.tab);
-
-  if (isProfNueva) {
-    const cfg = getSpecByTab(entry.tab);
-    const prefix = cfg.prefix;
-    cerrarHistorial();
-    mostrarTabsProfesion(miProfesion);
-    switchTabProf(entry.tab);
-    const resEl = document.getElementById(prefix + '-resultado');
-    if (resEl) {
-      resEl.innerHTML = '<div class="result-card">'
-        + '<div class="result-header"><div class="result-header-left">'
-        + '<div class="result-dot" style="background:'+cfg.color+'"></div>'
-        + '<span class="result-label">Plan guardado \u2014 '+entry.fecha+'</span>'
-        + '<span class="result-specialty-badge" style="background:'+cfg.light+';color:'+cfg.color+';border:1px solid '+cfg.color+'33">'+cfg.label+'</span>'
-        + '</div><div class="result-actions">'
-        + '<button class="btn-action" onclick="imprimirPlanProf(\'' + entry.tab + '\')">Imprimir / PDF</button>'
-        + '<button class="btn-action" onclick="copiarPlanProf(\'' + entry.tab + '\')">Copiar texto</button>'
-        + '</div></div>'
-        + '<div class="result-body" id="' + prefix + '-plan-texto">' + html + '</div></div>';
-      resEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-    return;
-  }
-
-  const prefix = tabPrefix[entry.tab] || 'n';
-  const cfg = specConfig[entry.tab] || specConfig.neuro;
-  switchTab(entry.tab);
-  document.getElementById(`${prefix}-resultado`).innerHTML = `
-    <div class="result-card">
-      <div class="result-header">
-        <div class="result-header-left">
-          <div class="result-dot" style="background:${cfg.color}"></div>
-          <span class="result-label">Plan guardado — ${entry.fecha}</span>
-          <span class="result-specialty-badge" style="background:${cfg.light};color:${cfg.color};border:1px solid ${cfg.color}33">${cfg.label}</span>
-        </div>
-        <div class="result-actions">
-          <button class="btn-action" onclick="imprimirPlan('${prefix}')">Imprimir / PDF</button>
-          <button class="btn-action" onclick="copiarPlan('${prefix}-plan-texto')">Copiar texto</button>
-        </div>
-      </div>
-      <div class="result-body" id="${prefix}-plan-texto">${html}</div>
-    </div>`;
-  document.getElementById(`${prefix}-resultado`).scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function copiarPlanHistorial(id) {
-  const h = getHistorial();
-  const entry = h.find(e => e.id === id);
-  if (!entry) return;
-  navigator.clipboard.writeText(entry.plan);
-  const btn = document.querySelector(`#hitem-${id} .historial-btn-sm`);
-  if (btn) { const orig = btn.textContent; btn.textContent = '¡Copiado!'; setTimeout(() => btn.textContent = orig, 2000); }
-}
-
-function eliminarHistorial(id) {
-  let h = getHistorial();
-  h = h.filter(e => e.id !== id);
-  saveHistorial(h);
-  renderHistorial();
 }
 
 function abrirHistorial() {
@@ -5364,113 +5225,57 @@ function cerrarHistorial() {
   document.getElementById('historial-overlay').classList.remove('open');
 }
 
-// ─── AUTOGUARDADO ─────────────────────────────────────────────────────────────
-let autosaveTimer = null;
-function triggerAutosave(tab) {
-  clearTimeout(autosaveTimer);
-  const dot = document.getElementById('autosave-dot');
-  const label = document.getElementById('autosave-label');
-  if (dot) { dot.classList.remove('saved'); }
-  autosaveTimer = setTimeout(() => {
-    try {
-      const d = recopilarDatos(tab);
-      localStorage.setItem(`fisioIA_draft_${tab}`, JSON.stringify(d));
-      if (dot) dot.classList.add('saved');
-      if (label) label.textContent = 'Guardado';
-      setTimeout(() => { if (label) label.textContent = 'Autoguardado'; }, 2000);
-    } catch(e) {}
-  }, 1500);
+function verPlanHistorial(id) {
+  const historial = getHistorial();
+  const item = historial.find(h => h.id === id);
+  if (!item) return;
+  switchTab(item.tab);
+  const prefix = tabPrefix[item.tab];
+  const cfg = specConfig[item.tab];
+  const html = item.plan
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">');
+  document.getElementById(`${prefix}-resultado`).innerHTML = `
+    <div class="result-card">
+      <div class="result-header">
+        <div class="result-header-left">
+          <div class="result-dot" style="background:${cfg.color}"></div>
+          <span class="result-label">Plan guardado — ${item.fecha}</span>
+          <span class="result-specialty-badge" style="background:${cfg.light};color:${cfg.color};border:1px solid ${cfg.color}33">${cfg.label}</span>
+        </div>
+        <div class="result-actions">
+          <button class="btn-action" onclick="copiarPlan('${prefix}-plan-texto')">Copiar texto</button>
+        </div>
+      </div>
+      <div class="result-body" id="${prefix}-plan-texto">${html}</div>
+    </div>`;
+  cerrarHistorial();
+  document.getElementById(`${prefix}-resultado`).scrollIntoView({ behavior: 'smooth' });
 }
 
-function restoreDraft(tab) {
-  try {
-    const saved = localStorage.getItem(`fisioIA_draft_${tab}`);
-    if (!saved) return;
-    const d = JSON.parse(saved);
-    const prefix = tabPrefix[tab];
-    const fieldMap = {
-      neuro: ['edad','sexo','fase','dx_medico','dx_fisio','evolucion','tono','fuerza','equilibrio','marcha','dolor','cognicion','otros','contexto','frecuencia','objetivos_px','adicional'],
-      ortho: ['edad','sexo','fase','dx_medico','dx_fisio','evolucion','dolor_reposo','dolor_movimiento','rom','fuerza','edema','funcion','otros','actividad','frecuencia','objetivos_px','adicional'],
-      geria: ['edad','sexo','residencia','dx_medico','dx_fisio','comorbilidades','independencia','caida','marcha','cognicion','fuerza','dolor','otros','apoyo','frecuencia','objetivos_px','adicional'],
-      pedia: ['edad','sexo','grupo','dx_medico','dx_fisio','perinatales','hitos','tono','patron','marcha','reflejos','otros','escolar','frecuencia','objetivos_px','adicional']
-    };
-    (fieldMap[tab] || []).forEach(f => {
-      const el = document.getElementById(`${prefix[0]}-${f}`) || document.getElementById(`${prefix}-${f}`);
-      if (el && d[f]) el.value = d[f];
-    });
-  } catch(e) {}
+function copiarPlanHistorial(id) {
+  const item = getHistorial().find(h => h.id === id);
+  if (item) navigator.clipboard.writeText(item.plan);
 }
 
-// Init autosave listeners after DOM ready
-function initAutosave() {
-  ['neuro','ortho','geria','pedia'].forEach(tab => {
-    const prefix = tabPrefix[tab];
-    document.querySelectorAll(`#panel-${tab} input, #panel-${tab} select, #panel-${tab} textarea`).forEach(el => {
-      el.addEventListener('change', () => triggerAutosave(tab));
-      el.addEventListener('input', () => triggerAutosave(tab));
-    });
-    restoreDraft(tab);
-  });
+function eliminarPlanHistorial(id) {
+  const historial = getHistorial().filter(h => h.id !== id);
+  localStorage.setItem('fisioIA_historial', JSON.stringify(historial));
   renderHistorial();
 }
-document.addEventListener('DOMContentLoaded', function(){
-  initAutosave();
-  // Load patients from Supabase if logged in
-  var token=localStorage.getItem('fisioIA_token');
-  if(token){cargarPacientes();}
-});
 
-// ─── PWA SERVICE WORKER ───────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('SW registrado:', reg.scope))
-      .catch(err => console.log('SW error:', err));
-  });
-}
-
-// ─── PWA INSTALL PROMPT ───────────────────────────────────────────────────────
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Show install banner after 30 seconds if not installed
+function marcarGuardado() {
+  const dot = document.getElementById('autosave-dot');
+  const label = document.getElementById('autosave-label');
+  if (dot) dot.classList.add('saved');
+  if (label) label.textContent = 'Guardado';
   setTimeout(() => {
-    if (deferredPrompt) showInstallBanner();
-  }, 30000);
-});
-
-function showInstallBanner() {
-  const banner = document.createElement('div');
-  banner.id = 'install-banner';
-  banner.style.cssText = `
-    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-    background: #0F6E56; color: white; border-radius: 100px;
-    padding: 12px 20px; font-family: 'DM Sans', sans-serif; font-size: 13px;
-    font-weight: 500; display: flex; align-items: center; gap: 10px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 999; white-space: nowrap;
-    animation: fadeUp 0.4s ease;
-  `;
-  banner.innerHTML = `
-    <span>📲</span>
-    <span>Instala FisioIA en tu celular</span>
-    <button onclick="instalarPWA()" style="background:white;color:#0F6E56;border:none;border-radius:100px;padding:6px 14px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">Instalar</button>
-    <button onclick="document.getElementById('install-banner').remove()" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:100px;width:24px;height:24px;cursor:pointer;font-size:14px;">✕</button>
-  `;
-  document.body.appendChild(banner);
+    if (dot) dot.classList.remove('saved');
+    if (label) label.textContent = 'Autoguardado';
+  }, 2000);
 }
 
-async function instalarPWA() {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  const banner = document.getElementById('install-banner');
-  if (banner) banner.remove();
-}
-
-
-// ─── OTRO DIAGNÓSTICO TOGGLE ──────────────────────────────────────────────────
+// ─── "OTRO DIAGNÓSTICO" TOGGLE (neuro) ───────────────────────────────────────
 function toggleOtroDx() {
   const field = document.getElementById('otro-dx-field');
   const tag = document.getElementById('tag-otro-neuro');
@@ -5485,1199 +5290,818 @@ function toggleOtroDx() {
   }
 }
 
+// ─── LIMPIAR FORMULARIO ──────────────────────────────────────────────────────
 function limpiarFormulario(tab) {
+  if (!confirm('¿Limpiar todos los campos de este formulario?')) return;
   const prefix = tabPrefix[tab];
-  document.querySelectorAll(`#panel-${tab} input, #panel-${tab} select, #panel-${tab} textarea`)
-    .forEach(el => el.value = '');
-  document.querySelectorAll(`#panel-${tab} .tag.sel`).forEach(t => t.classList.remove('sel'));
+  document.querySelectorAll(`#panel-${tab} input[type="text"], #panel-${tab} input[type="number"], #panel-${tab} textarea`).forEach(el => el.value = '');
+  document.querySelectorAll(`#panel-${tab} select`).forEach(el => el.selectedIndex = 0);
+  document.querySelectorAll(`#panel-${tab} .tag.sel`).forEach(el => el.classList.remove('sel'));
+  document.querySelectorAll(`#panel-${tab} .escala-btn.active`).forEach(el => el.classList.remove('active'));
   activeScales[tab].clear();
-  document.querySelectorAll(`#${prefix}-escalas-btns .escala-btn.active`).forEach(b => b.classList.remove('active'));
   document.getElementById(`${prefix}-scores-container`).innerHTML = '';
   document.getElementById(`${prefix}-resultado`).innerHTML = '';
-  localStorage.removeItem(`fisioIA_draft_${tab}`);
   if (tab === 'neuro') {
-    const otroDx = document.getElementById('n-dx_otro');
-    const otroField = document.getElementById('otro-dx-field');
-    if (otroDx) otroDx.value = '';
-    if (otroField) otroField.style.display = 'none';
-    const tagOtro = document.getElementById('tag-otro-neuro');
-    if (tagOtro) tagOtro.classList.remove('sel');
+    document.getElementById('otro-dx-field').style.display = 'none';
+    document.getElementById('tag-otro-neuro').classList.remove('sel');
   }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Formulario limpiado.', 'info');
 }
 
+// ─── TOAST NOTIFICATIONS ─────────────────────────────────────────────────────
+function showToast(msg, type) {
+  type = type || 'info';
+  const container = document.getElementById('toast-container');
+  if (!container) { console.log('[toast]', type, msg); return; }
+  const icons = { ok: '✓', err: '✕', info: 'ℹ', warn: '⚠' };
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.innerHTML = '<span class="toast-icon">' + (icons[type]||'') + '</span><span class="toast-msg">' + msg + '</span>';
+  container.appendChild(toast);
+  setTimeout(function() {
+    toast.style.animation = 'toastOut 0.25s ease forwards';
+    setTimeout(function() { toast.remove(); }, 250);
+  }, 4000);
+}
 
-// ══════════════════════════════════════════════════════════════════════
-// MÓDULO HISTORIA CLÍNICA DE INGRESO
-// ══════════════════════════════════════════════════════════════════════
+// ─── NOTIFICACIONES PANEL ────────────────────────────────────────────────────
+function abrirNotificaciones() {
+  const panel = document.getElementById('notif-panel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (panel.style.display === 'block') cargarNotificaciones();
+}
+function cerrarNotificaciones() {
+  const panel = document.getElementById('notif-panel');
+  if (panel) panel.style.display = 'none';
+}
+async function cargarNotificaciones() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  list.innerHTML = '<div style="padding:1rem;text-align:center;color:#9CA3AF;font-size:12px;">Cargando...</div>';
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) { list.innerHTML = '<div style="padding:1rem;text-align:center;color:#9CA3AF;font-size:12px;">Sin notificaciones.</div>'; return; }
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/patient_team?user_id=eq.' + userId + '&status=eq.pending&select=*,pacientes(nombre)', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    var invites = await r.json();
+    if (!Array.isArray(invites) || !invites.length) {
+      list.innerHTML = '<div style="padding:1rem;text-align:center;color:#9CA3AF;font-size:12px;">No tienes notificaciones nuevas.</div>';
+      return;
+    }
+    list.innerHTML = invites.map(function(inv) {
+      var pxName = inv.pacientes ? inv.pacientes.nombre : 'Paciente';
+      return '<div style="padding:10px 16px;border-bottom:0.5px solid #F3F4F6;font-size:12px;">' +
+        '<strong>' + pxName + '</strong><br>Invitación al equipo interdisciplinario</div>';
+    }).join('');
+  } catch(e) { list.innerHTML = '<div style="padding:1rem;text-align:center;color:#9CA3AF;font-size:12px;">Error al cargar.</div>'; }
+}
+async function actualizarBadgeNotificaciones() {
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  var btn = document.getElementById('btn-notif');
+  var badge = document.getElementById('notif-badge');
+  if (!token || !userId || !btn) return;
+  btn.style.display = 'inline-block';
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/patient_team?user_id=eq.' + userId + '&status=eq.pending&select=id', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    var data = await r.json();
+    var count = Array.isArray(data) ? data.length : 0;
+    if (count > 0 && badge) { badge.textContent = count; badge.style.display = 'block'; }
+    else if (badge) { badge.style.display = 'none'; }
+  } catch(e) {}
+}
 
-var hcPxId = null;
+async function getMiUserId() {
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) return null;
+  try {
+    var r = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    var data = await r.json();
+    return data.id || null;
+  } catch(e) { return null; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HISTORIA CLÍNICA DE INGRESO (HC)
+// ═══════════════════════════════════════════════════════════════
+var hcCurrentPxId = null;
 
 function abrirHC(pxId) {
-  hcPxId = pxId;
-  var p = getPacientes().find(function(x) { return x.id === pxId; });
-  var nameEl = document.getElementById('hc-modal-px-name');
-  if (nameEl && p) nameEl.textContent = p.nombre + ' — ' + (p.diagnostico || '');
-  // Limpiar campos
-  ['hc-motivo','hc-enfermedad','hc-evolucion','hc-cie10','hc-ant-personales','hc-ant-familiares',
-   'hc-ant-farma','hc-alergias','hc-neuro','hc-musculo','hc-cardio','hc-otros-sis',
-   'hc-dx-prof','hc-cif','hc-escalas-ingreso'].forEach(function(id) {
+  hcCurrentPxId = pxId;
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  document.getElementById('hc-modal-px-name').textContent = p.nombre + (p.diagnostico ? ' · ' + p.diagnostico : '');
+
+  // Limpiar / precargar campos si ya existe HC guardada
+  var campos = ['hc-motivo','hc-enfermedad','hc-evolucion','hc-cie10','hc-ant-personales','hc-ant-familiares','hc-ant-farma','hc-alergias','hc-neuro','hc-musculo','hc-cardio','hc-otros-sis','hc-dx-prof','hc-cif','hc-escalas-ingreso'];
+  campos.forEach(function(id) {
     var el = document.getElementById(id);
-    if (el) el.value = '';
+    if (el) el.value = (p.hc && p.hc[id]) ? p.hc[id] : '';
   });
-  var resEl = document.getElementById('hc-ia-resultado');
-  if (resEl) resEl.style.display = 'none';
-  // Cargar HC existente si hay
-  cargarHCexistente(pxId);
+  document.getElementById('hc-ia-resultado').style.display = 'none';
+  document.getElementById('hc-ia-resultado').innerHTML = '';
   document.getElementById('hc-modal-overlay').classList.add('open');
 }
 
 function cerrarHC() {
   document.getElementById('hc-modal-overlay').classList.remove('open');
-  hcPxId = null;
-}
-
-async function cargarHCexistente(pxId) {
-  var token = localStorage.getItem('fisioIA_token');
-  if (!token) return;
-  try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/anamnesis?patient_id=eq.' + pxId + '&profession=eq.' + (miProfesion || 'fisioterapia') + '&select=*&limit=1',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var data = await r.json();
-    if (Array.isArray(data) && data.length > 0) {
-      var hc = data[0];
-      var campos = {
-        'hc-motivo': hc.motivo_consulta,
-        'hc-enfermedad': hc.enfermedad_actual,
-        'hc-evolucion': hc.tiempo_evolucion,
-        'hc-cie10': hc.dx_cie10 ? hc.dx_cie10 + (hc.dx_cie10_desc ? ' — ' + hc.dx_cie10_desc : '') : '',
-        'hc-ant-personales': hc.ant_personales,
-        'hc-ant-familiares': hc.ant_familiares,
-        'hc-ant-farma': hc.ant_farmacologicos,
-        'hc-alergias': hc.alergias,
-        'hc-dx-prof': hc.dx_profesional,
-        'hc-cif': hc.dx_cif,
-        'hc-escalas-ingreso': hc.escalas_ingreso ? JSON.stringify(hc.escalas_ingreso) : ''
-      };
-      if (hc.revision_sistemas) {
-        var rs = hc.revision_sistemas;
-        if (rs.neurologico) { var el = document.getElementById('hc-neuro'); if (el) el.value = rs.neurologico; }
-        if (rs.musculoesqueletico) { var el2 = document.getElementById('hc-musculo'); if (el2) el2.value = rs.musculoesqueletico; }
-        if (rs.cardiovascular) { var el3 = document.getElementById('hc-cardio'); if (el3) el3.value = rs.cardiovascular; }
-        if (rs.otros) { var el4 = document.getElementById('hc-otros-sis'); if (el4) el4.value = rs.otros; }
-      }
-      Object.keys(campos).forEach(function(id) {
-        var el = document.getElementById(id);
-        if (el && campos[id]) el.value = campos[id];
-      });
-    }
-  } catch(e) { console.log('Error cargando HC:', e); }
-}
-
-async function guardarHC() {
-  if (!hcPxId) return;
-  var token = localStorage.getItem('fisioIA_token');
-  var userId = await getMiUserId();
-  if (!token || !userId) return;
-
-  function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-
-  var hcData = {
-    patient_id: hcPxId,
-    user_id: userId,
-    profession: miProfesion || 'fisioterapia',
-    motivo_consulta: v('hc-motivo'),
-    enfermedad_actual: v('hc-enfermedad'),
-    tiempo_evolucion: v('hc-evolucion'),
-    dx_cie10: v('hc-cie10').split('—')[0].trim(),
-    dx_cie10_desc: v('hc-cie10').includes('—') ? v('hc-cie10').split('—')[1].trim() : '',
-    ant_personales: v('hc-ant-personales'),
-    ant_familiares: v('hc-ant-familiares'),
-    ant_farmacologicos: v('hc-ant-farma'),
-    alergias: v('hc-alergias'),
-    revision_sistemas: {
-      neurologico: v('hc-neuro'),
-      musculoesqueletico: v('hc-musculo'),
-      cardiovascular: v('hc-cardio'),
-      otros: v('hc-otros-sis')
-    },
-    dx_profesional: v('hc-dx-prof'),
-    dx_cif: v('hc-cif'),
-    escalas_ingreso: v('hc-escalas-ingreso') || null,
-    updated_at: new Date().toISOString()
-  };
-
-  try {
-    var r = await fetch(SUPABASE_URL + '/rest/v1/anamnesis', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates,return=minimal'
-      },
-      body: JSON.stringify(hcData)
-    });
-    if (r.ok || r.status === 201) {
-      showToast('Historia clínica guardada correctamente.', 'ok');
-      cerrarHC();
-    } else {
-      showToast('Error al guardar. Intenta nuevamente.', 'err');
-    }
-  } catch(e) {
-    showToast('Error de conexión.', 'err');
-  }
+  hcCurrentPxId = null;
 }
 
 async function generarHCconIA() {
-  var p = getPacientes().find(function(x) { return x.id === hcPxId; });
+  var p = getPacientes().find(function(x){ return x.id === hcCurrentPxId; });
   if (!p) return;
-  function v(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  var motivo = document.getElementById('hc-motivo').value.trim();
+  if (!motivo) { showToast('Describe al menos el motivo de consulta antes de usar la IA.', 'warn'); return; }
 
-  var resEl = document.getElementById('hc-ia-resultado');
-  if (resEl) {
-    resEl.style.display = 'block';
-    resEl.innerHTML = '<div style="padding:12px;text-align:center;color:#6B7280;font-size:12px;">Generando historia clínica con IA...</div>';
-  }
+  var resDiv = document.getElementById('hc-ia-resultado');
+  resDiv.style.display = 'block';
+  resDiv.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--gray-400);font-size:13px;">Analizando información clínica...</div>';
 
-  var prompt = 'Eres un profesional clinico experto. Con base en los datos del paciente, genera una historia clinica de ingreso estructurada y completa en espanol colombiano. Devuelve SOLO en JSON con las claves: motivo_consulta, enfermedad_actual, impresion_diagnostica, recomendaciones_iniciales. Sin markdown ni texto extra.\n\nDATOS:\n'    + 'Paciente: ' + p.nombre + '\nEdad: ' + (calcEdad(p.nacimiento) || 'N/E') + '\nDiagnostico: ' + (p.diagnostico || 'N/E') + '\nMeta funcional: ' + (p.meta || 'N/E') + '\nRoles: ' + (p.roles || 'N/E') + '\nMotivo ingresado: ' + v('hc-motivo') + '\nAntecedentes: ' + v('hc-ant-personales') + '\nMedicamentos: ' + v('hc-ant-farma') + '\nEvolucion: ' + v('hc-evolucion');
+  var prompt = 'Eres un profesional clínico. A partir de esta información parcial de una historia clínica de ingreso, sugiere una redacción clínica profesional y completa para los campos vacíos o incompletos. Sé conservador: si no hay información suficiente para inferir algo, indica "Por completar en la evaluación".\n\n' +
+    'Paciente: ' + p.nombre + ' — Diagnóstico: ' + (p.diagnostico || 'N/E') + '\n' +
+    'Motivo de consulta: ' + motivo + '\n' +
+    'Enfermedad actual: ' + (document.getElementById('hc-enfermedad').value || 'No descrita') + '\n' +
+    'Antecedentes personales: ' + (document.getElementById('hc-ant-personales').value || 'No descritos') + '\n\n' +
+    'Responde en JSON con estas claves: {"enfermedad_actual": "...", "revision_sistemas_sugerida": "...", "diagnostico_funcional_sugerido": "..."}\n' +
+    'Responde ÚNICAMENTE el JSON, sin texto adicional.';
 
   try {
-    var resp = await fetch('/api/generar-plan', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt })
-    });
-    var data = await resp.json();
-    var clean = (data.plan || '').replace(/```json|```/g, '').trim();
-    var hcIA = JSON.parse(clean);
-
-    // Autocompletar campos vacíos con la respuesta de la IA
-    if (!v('hc-motivo') && hcIA.motivo_consulta) {
-      var el = document.getElementById('hc-motivo'); if (el) el.value = hcIA.motivo_consulta;
-    }
-    if (!v('hc-enfermedad') && hcIA.enfermedad_actual) {
-      var el2 = document.getElementById('hc-enfermedad'); if (el2) el2.value = hcIA.enfermedad_actual;
-    }
-    if (!v('hc-dx-prof') && hcIA.impresion_diagnostica) {
-      var el3 = document.getElementById('hc-dx-prof'); if (el3) el3.value = hcIA.impresion_diagnostica;
-    }
-
-    if (resEl) {
-      resEl.innerHTML = '<div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:8px;padding:10px 14px;font-size:12px;color:#0F6E56;margin-top:10px;">' +
-        '<strong>IA completó los campos vacíos.</strong> Revisa y ajusta según tu criterio clínico.' +
-        (hcIA.recomendaciones_iniciales ? '<br><br><strong>Recomendaciones iniciales:</strong> ' + hcIA.recomendaciones_iniciales : '') +
-        '</div>';
-    }
+    var texto = await fetchConReintento(prompt, 3);
+    var clean = texto.replace(/```json|```/g, '').trim();
+    var r = JSON.parse(clean);
+    resDiv.innerHTML =
+      '<div style="background:#EEEDFE;border-radius:10px;padding:14px 16px;font-size:12.5px;line-height:1.7;">' +
+      '<div style="font-weight:700;color:#534AB7;margin-bottom:8px;">✨ Sugerencias de la IA (revisa antes de guardar)</div>' +
+      '<p style="margin-bottom:8px;"><strong>Enfermedad actual sugerida:</strong><br>' + (r.enfermedad_actual||'') + '</p>' +
+      '<p style="margin-bottom:8px;"><strong>Revisión por sistemas sugerida:</strong><br>' + (r.revision_sistemas_sugerida||'') + '</p>' +
+      '<p><strong>Diagnóstico funcional sugerido:</strong><br>' + (r.diagnostico_funcional_sugerido||'') + '</p>' +
+      '<button class="btn-hc-gen" style="margin-top:10px;" onclick="aplicarSugerenciasHC(' + JSON.stringify(JSON.stringify(r)) + ')">Aplicar sugerencias a los campos</button>' +
+      '</div>';
   } catch(e) {
-    if (resEl) resEl.innerHTML = '<div style="color:#DC2626;font-size:12px;padding:8px;">Error al generar con IA. Completa manualmente.</div>';
+    resDiv.innerHTML = '<div style="color:#C53030;font-size:12px;padding:0.5rem;">Error al generar sugerencias. Intenta nuevamente.</div>';
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// MÓDULO INTERDISCIPLINARIO
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ── Datos de profesiones ──────────────────────────────────────────────────────
-const PROFESIONES_DATA = PROF_CONFIG; // Alias unificado
-
-// ── Selector de profesión en registro ─────────────────────────────────────────
-var profSeleccionada = '';
-
-function seleccionarProf(key) {
-  profSeleccionada = key;
-  const prof = PROFESIONES_DATA[key];
-  document.querySelectorAll('.prof-btn').forEach(btn => {
-    btn.classList.toggle('prof-sel', btn.dataset.prof === key);
-  });
-  document.getElementById('reg-profession').value = key;
-  const errEl = document.getElementById('prof-error');
-  if (errEl) errEl.style.display = 'none';
-  const preview = document.getElementById('prof-preview');
-  const tagsEl  = document.getElementById('prof-preview-tags');
-  if (preview && tagsEl && prof) {
-    tagsEl.innerHTML = prof.escalas.map(e =>
-      `<span class="prof-tag" style="background:${prof.bg};color:${prof.color};border:1px solid ${prof.color}40;">${e}</span>`
-    ).join('');
-    preview.style.display = 'block';
-  }
-}
-
-// ── Funciones de equipo interdisciplinario ────────────────────────────────────
-async function renderEquipoPaciente(pacienteId) {
-  const contenedor = document.getElementById('equipo-inter-container');
-  if (!contenedor) return;
-  contenedor.style.display = 'block';
-
-  const token = localStorage.getItem('fisioIA_token');
-  if (!token) return;
-
-  // Obtener equipo del paciente
-  let equipo = [];
+function aplicarSugerenciasHC(jsonStr) {
   try {
-    const r = await fetch(
-      SUPABASE_URL + '/rest/v1/patient_team?patient_id=eq.' + pacienteId +
-      '&select=id,profession,status,invited_at,accepted_at,user_id,profiles!user_id(id,full_name,email)',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
+    var r = JSON.parse(jsonStr);
+    if (r.enfermedad_actual && !document.getElementById('hc-enfermedad').value) document.getElementById('hc-enfermedad').value = r.enfermedad_actual;
+    if (r.diagnostico_funcional_sugerido && !document.getElementById('hc-dx-prof').value) document.getElementById('hc-dx-prof').value = r.diagnostico_funcional_sugerido;
+    showToast('Sugerencias aplicadas. Revisa los campos antes de guardar.', 'ok');
+  } catch(e) {}
+}
+
+// NOTA: guardarHC se implementó como una única función limpia (sin monkey-patching
+// sobre una versión "original" previa) que guarda la HC tanto en el objeto local
+// del paciente como en Supabase (tabla anamnesis).
+async function guardarHC() {
+  var p = getPacientes().find(function(x){ return x.id === hcCurrentPxId; });
+  if (!p) return;
+
+  var hc = {
+    'hc-motivo': document.getElementById('hc-motivo').value.trim(),
+    'hc-enfermedad': document.getElementById('hc-enfermedad').value.trim(),
+    'hc-evolucion': document.getElementById('hc-evolucion').value.trim(),
+    'hc-cie10': document.getElementById('hc-cie10').value.trim(),
+    'hc-ant-personales': document.getElementById('hc-ant-personales').value.trim(),
+    'hc-ant-familiares': document.getElementById('hc-ant-familiares').value.trim(),
+    'hc-ant-farma': document.getElementById('hc-ant-farma').value.trim(),
+    'hc-alergias': document.getElementById('hc-alergias').value.trim(),
+    'hc-neuro': document.getElementById('hc-neuro').value.trim(),
+    'hc-musculo': document.getElementById('hc-musculo').value.trim(),
+    'hc-cardio': document.getElementById('hc-cardio').value.trim(),
+    'hc-otros-sis': document.getElementById('hc-otros-sis').value.trim(),
+    'hc-dx-prof': document.getElementById('hc-dx-prof').value.trim(),
+    'hc-cif': document.getElementById('hc-cif').value.trim(),
+    'hc-escalas-ingreso': document.getElementById('hc-escalas-ingreso').value.trim()
+  };
+
+  if (!hc['hc-motivo']) { showToast('El motivo de consulta es obligatorio.', 'warn'); return; }
+
+  // Actualizar cache local
+  var px = getPacientes();
+  var idx = px.findIndex(function(x){ return x.id === hcCurrentPxId; });
+  if (idx > -1) { px[idx].hc = hc; savePacientes(px); }
+
+  // Guardar en Supabase (tabla anamnesis)
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (token && userId) {
+    try {
+      await fetch(SUPABASE_URL + '/rest/v1/anamnesis', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates,return=minimal'
+        },
+        body: JSON.stringify({
+          patient_id: hcCurrentPxId,
+          user_id: userId,
+          profession: miProfesion || 'fisioterapia',
+          data: hc
+        })
+      });
+    } catch(e) { console.log('Error guardando HC en DB:', e); }
+  }
+
+  showToast('Historia clínica guardada correctamente.', 'ok');
+  cerrarHC();
+  setTimeout(actualizarOverlayFlujo, 200);
+  if (activePxId === hcCurrentPxId) verDetalle(hcCurrentPxId);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EQUIPO INTERDISCIPLINARIO
+// ═══════════════════════════════════════════════════════════════
+var PROFESIONES_DATA = {
+  fisioterapia:        { icono: '🦾', label: 'Fisioterapia' },
+  fonoaudiologia:      { icono: '🗣️', label: 'Fonoaudiología' },
+  terapia_ocupacional: { icono: '🤲', label: 'Terapia Ocupacional' },
+  psicologia:          { icono: '🧠', label: 'Psicología' }
+};
+
+async function renderEquipoPaciente(pxId) {
+  var cont = document.getElementById('equipo-inter-container');
+  if (!cont) return;
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) { cont.style.display = 'none'; return; }
+
+  var equipo = [];
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/patient_team?patient_id=eq.' + pxId + '&status=eq.accepted&select=*',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
     equipo = await r.json();
     if (!Array.isArray(equipo)) equipo = [];
   } catch(e) { equipo = []; }
 
-  const equipoPorArea = {};
-  equipo.forEach(m => { equipoPorArea[m.profession] = m; });
+  var areasHTML = Object.keys(PROFESIONES_DATA).map(function(key) {
+    var prof = PROFESIONES_DATA[key];
+    var miembro = equipo.find(function(e) { return e.profession === key; });
+    var statusClass = miembro ? 'eq-status-active' : 'eq-status-empty';
+    var statusTxt = miembro ? 'Activo' : 'Sin asignar';
+    return '<div class="equipo-area-card">' +
+      '<div class="equipo-area-head"><span class="equipo-area-icon">' + prof.icono + '</span>' +
+      '<span class="equipo-area-name">' + prof.label + '</span>' +
+      '<span class="equipo-area-status ' + statusClass + '">' + statusTxt + '</span></div>' +
+      (miembro
+        ? '<div class="equipo-area-prof">' + (miembro.member_email || 'Profesional asignado') + '</div>' +
+          '<button class="equipo-ver-plan" style="color:var(--neuro);" onclick="verPlanDeArea(\'' + pxId + '\',\'' + key + '\')">Ver plan de esta área →</button>'
+        : '<div class="equipo-invite-row">' +
+            '<input class="equipo-invite-input" id="invite-' + key + '" placeholder="correo@ejemplo.com" type="email">' +
+            '<button class="equipo-invite-btn" style="border-color:var(--neuro);color:var(--neuro);" onclick="invitarAlEquipo(\'' + pxId + '\',\'' + key + '\')">Invitar</button>' +
+          '</div>') +
+      '</div>';
+  }).join('');
 
-  const aceptados = equipo.filter(m => m.status === 'accepted').length;
-  const puedeMostrarInforme = aceptados >= 1;
-
-  contenedor.innerHTML = `
-    <div class="equipo-section">
-      <div class="equipo-section-title">
-        <span>👥 Equipo interdisciplinario</span>
-        ${puedeMostrarInforme
-          ? `<button class="btn-informe-inter" onclick="generarInformeInterdisciplinario('${pacienteId}')">📄 Informe integrado</button>`
-          : ''}
-      </div>
-      <div id="equipo-msg" class="equipo-msg"></div>
-      <div class="equipo-areas-grid">
-        ${Object.entries(PROFESIONES_DATA).map(([key, prof]) => {
-          const miembro = equipoPorArea[key];
-          return `
-            <div class="equipo-area-card">
-              <div class="equipo-area-head">
-                <span class="equipo-area-icon">${prof.icono}</span>
-                <span class="equipo-area-name" style="color:${prof.color};">${prof.label}</span>
-                ${miembro
-                  ? `<span class="equipo-area-status ${miembro.status === 'accepted' ? 'eq-status-active' : miembro.status === 'pending' ? 'eq-status-pending' : 'eq-status-empty'}">
-                      ${miembro.status === 'accepted' ? '● Activo' : miembro.status === 'pending' ? '○ Pendiente' : '✗'}
-                    </span>`
-                  : `<span class="equipo-area-status eq-status-empty">Sin asignar</span>`
-                }
-              </div>
-              ${miembro && miembro.profiles
-                ? `<p class="equipo-area-prof">${miembro.profiles.full_name || 'Profesional'}</p>`
-                : ''}
-              ${!miembro ? `
-                <div class="equipo-invite-row">
-                  <input type="email" class="equipo-invite-input" id="inv-email-${key}" placeholder="correo@ejemplo.com">
-                  <button class="equipo-invite-btn" style="background:${prof.bg};color:${prof.color};border-color:${prof.color}40;"
-                    onclick="invitarAlEquipo('${pacienteId}','${key}')">Invitar</button>
-                </div>
-              ` : ''}
-              ${miembro && miembro.status === 'accepted' ? `
-                <button class="equipo-ver-plan" style="color:${prof.color};" onclick="verPlanDeArea('${pacienteId}','${key}')">
-                  Ver plan de ${prof.label.toLowerCase()} →
-                </button>
-              ` : ''}
-            </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+  cont.innerHTML = '<div class="equipo-section">' +
+    '<div class="equipo-section-title"><span>Equipo interdisciplinario</span>' +
+    '<button class="btn-informe-inter" onclick="generarInformeInterdisciplinario(\'' + pxId + '\')">📄 Informe unificado</button></div>' +
+    '<div class="equipo-areas-grid">' + areasHTML + '</div>' +
+    '<div class="equipo-msg" id="equipo-msg"></div>' +
+    '</div>';
+  cont.style.display = 'block';
 }
 
-async function invitarAlEquipo(pacienteId, profesion) {
-  const token = localStorage.getItem('fisioIA_token');
-  const emailInput = document.getElementById('inv-email-' + profesion);
-  const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
-  if (!email) { mostrarMsgEquipo('Ingresa un correo electrónico.', 'err'); return; }
+async function invitarAlEquipo(pxId, profession) {
+  var input = document.getElementById('invite-' + profession);
+  var email = input ? input.value.trim() : '';
+  var msgDiv = document.getElementById('equipo-msg');
+  if (!email) { showToast('Ingresa un correo válido.', 'warn'); return; }
 
-  // Buscar profesional por email
-  let colega = null;
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) return;
+
   try {
-    const r = await fetch(
-      SUPABASE_URL + '/rest/v1/profiles?email=eq.' + encodeURIComponent(email) + '&select=id,full_name,profession,is_active',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    const data = await r.json();
-    colega = Array.isArray(data) && data.length > 0 ? data[0] : null;
-  } catch(e) {}
-
-  if (!colega) { mostrarMsgEquipo('No se encontró un profesional registrado con ese correo.', 'err'); return; }
-  if (!colega.is_active) { mostrarMsgEquipo('Ese profesional aún no tiene su cuenta activada.', 'err'); return; }
-  if (colega.profession !== profesion) {
-    const profConf = PROFESIONES_DATA[colega.profession];
-    mostrarMsgEquipo(`Ese profesional está registrado como ${profConf ? profConf.label : colega.profession}.`, 'err'); return;
-  }
-
-  // Insertar en patient_team
-  try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/patient_team', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        patient_id: pacienteId,
-        user_id: colega.id,
-        profession: profesion,
-        invited_by: await getMiUserId(),
-        status: 'accepted'  // Auto-aceptado en esta versión simplificada
-      })
-    });
-    if (r.ok) {
-      mostrarMsgEquipo('✓ ' + (colega.full_name || 'Profesional') + ' agregado al equipo.', 'ok');
-      setTimeout(() => renderEquipoPaciente(pacienteId), 1200);
-    } else {
-      const err = await r.json();
-      if (err.code === '23505') mostrarMsgEquipo('Este profesional ya está en el equipo.', 'err');
-      else mostrarMsgEquipo('Error al agregar. Intenta de nuevo.', 'err');
-    }
-  } catch(e) { mostrarMsgEquipo('Error de conexión.', 'err'); }
-}
-
-function mostrarMsgEquipo(msg, tipo) {
-  const el = document.getElementById('equipo-msg');
-  if (!el) return;
-  el.textContent = msg;
-  el.className = 'equipo-msg ' + tipo;
-  el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 4000);
-}
-
-async function getMiUserId() {
-  const token = localStorage.getItem('fisioIA_token');
-  try {
-    const r = await fetch(SUPABASE_URL + '/auth/v1/user', {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
-    });
-    const d = await r.json();
-    return d.id || '';
-  } catch(e) { return ''; }
-}
-
-// ── Cargar invitaciones pendientes ───────────────────────────────────────────
-async function cargarInvitacionesPendientes() {
-  const token = localStorage.getItem('fisioIA_token');
-  const contenedor = document.getElementById('invitaciones-container');
-  if (!token || !contenedor) return;
-  const userId = await getMiUserId();
-  if (!userId) return;
-
-  let invitaciones = [];
-  try {
-    const r = await fetch(
-      SUPABASE_URL + '/rest/v1/patient_team?user_id=eq.' + userId +
-      '&status=eq.pending&select=id,profession,invited_at,patient_id,pacientes!patient_id(id,nombre),profiles!invited_by(full_name)',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    invitaciones = await r.json();
-    if (!Array.isArray(invitaciones)) invitaciones = [];
-  } catch(e) { invitaciones = []; }
-
-  if (invitaciones.length === 0) { contenedor.innerHTML = ''; return; }
-
-  contenedor.innerHTML = `
-    <div class="invitaciones-banner">
-      <p class="inv-titulo">📬 Tienes ${invitaciones.length} invitación${invitaciones.length > 1 ? 'es' : ''} pendiente${invitaciones.length > 1 ? 's' : ''}:</p>
-      ${invitaciones.map(inv => {
-        const prof = PROFESIONES_DATA[inv.profession] || { label: inv.profession, icono: '👤' };
-        const pacNombre = inv.pacientes ? inv.pacientes.nombre : 'Paciente';
-        const invBy = inv.profiles ? inv.profiles.full_name : 'Un colega';
-        return `
-          <div class="inv-item">
-            <div class="inv-info">
-              <span style="font-size:18px;">${prof.icono}</span>
-              <div>
-                <p class="inv-paciente">${pacNombre}</p>
-                <p class="inv-remitente">${invBy} — área de <strong>${prof.label}</strong></p>
-              </div>
-            </div>
-            <div class="inv-btns">
-              <button class="btn-inv-ok" onclick="responderInvitacion('${inv.id}','accepted')">Aceptar</button>
-              <button class="btn-inv-no" onclick="responderInvitacion('${inv.id}','declined')">Declinar</button>
-            </div>
-          </div>`;
-      }).join('')}
-    </div>`;
-}
-
-
-function responderInv(btn) {
-  var id = btn.getAttribute('data-iid');
-  var act = btn.getAttribute('data-act');
-  responderInvitacion(id, act);
-}
-async function responderInvitacion(invId, accion) {
-  const token = localStorage.getItem('fisioIA_token');
-  cerrarNotificaciones();
-  try {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/patient_team?id=eq.' + invId, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ status: accion, accepted_at: accion === 'accepted' ? new Date().toISOString() : null })
-    });
-    if (r.ok) {
-      cargarInvitacionesPendientes();
-      actualizarBadgeNotificaciones();
-      if (accion === 'accepted') showToast('Ahora tienes acceso al expediente del paciente.', 'ok');
-    }
-  } catch(e) { showToast('Error al procesar la invitación.', 'err'); }
-}
-
-// ── Ver plan de otra área ────────────────────────────────────────────────────
-async function verPlanDeArea(pacienteId, profesion) {
-  const token = localStorage.getItem('fisioIA_token');
-  const prof = PROFESIONES_DATA[profesion];
-  try {
-    const r = await fetch(
-      SUPABASE_URL + '/rest/v1/treatment_plans?patient_id=eq.' + pacienteId +
-      '&profession=eq.' + profesion + '&order=version.desc&limit=1&select=plan_content,created_at,version',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    const data = await r.json();
-    if (!Array.isArray(data) || data.length === 0) {
-      showToast('Aún no hay un plan de ' + prof.label + ' para este paciente.', 'info');
+    // Buscar si el usuario invitado existe
+    var rProf = await fetch(SUPABASE_URL + '/rest/v1/profiles?email=eq.' + encodeURIComponent(email) + '&select=id',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var profs = await rProf.json();
+    if (!Array.isArray(profs) || !profs.length) {
+      if (msgDiv) { msgDiv.className = 'equipo-msg err'; msgDiv.style.display = 'block'; msgDiv.textContent = 'No se encontró un usuario registrado con ese correo.'; }
       return;
     }
-    const plan = data[0];
-    const texto = plan.plan_content && plan.plan_content.texto ? plan.plan_content.texto : JSON.stringify(plan.plan_content, null, 2);
-    const html = texto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^---$/gm, '<hr>');
+    var inviteeId = profs[0].id;
 
-    // Mostrar en modal existente
-    const modalBody = document.getElementById('progress-modal-body');
-    const modal = document.getElementById('progress-modal');
-    if (modalBody && modal) {
-      modalBody.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
-          <span style="font-size:20px;">${prof.icono}</span>
-          <strong style="color:${prof.color};">Plan de ${prof.label}</strong>
-          <span style="font-size:11px;color:#6B7280;margin-left:auto;">v${plan.version} · ${new Date(plan.created_at).toLocaleDateString('es-CO')}</span>
-        </div>
-        <div style="font-size:13px;line-height:1.7;white-space:pre-wrap;">${html}</div>`;
-      modal.classList.add('open');
-    }
-  } catch(e) { showToast('Error al cargar el plan.', 'err'); }
-}
-
-// ── Generar informe interdisciplinario ────────────────────────────────────────
-async function generarInformeInterdisciplinario(pacienteId) {
-  const token = localStorage.getItem('fisioIA_token');
-
-  // Obtener todos los planes del paciente
-  let planes = [];
-  try {
-    const r = await fetch(
-      SUPABASE_URL + '/rest/v1/treatment_plans?patient_id=eq.' + pacienteId +
-      '&select=profession,plan_content,created_at,version&order=profession.asc',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    planes = await r.json();
-    if (!Array.isArray(planes)) planes = [];
-  } catch(e) {}
-
-  // Quedarse solo con la versión más reciente por profesión
-  const planesPorProf = {};
-  planes.forEach(p => {
-    if (!planesPorProf[p.profession] || p.version > planesPorProf[p.profession].version) {
-      planesPorProf[p.profession] = p;
-    }
-  });
-  const planesFinales = Object.values(planesPorProf);
-
-  if (planesFinales.length < 1) {
-    showToast('Se necesita al menos un plan de tratamiento guardado para generar el informe interdisciplinario.', 'warn');
-    return;
-  }
-
-  // Obtener datos del paciente
-  let paciente = {};
-  try {
-    const r = await fetch(
-      SUPABASE_URL + '/rest/v1/pacientes?id=eq.' + pacienteId + '&select=*',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    const d = await r.json();
-    paciente = Array.isArray(d) && d.length > 0 ? d[0] : {};
-  } catch(e) {}
-
-  // Mostrar modal con cargando
-  const modalBody = document.getElementById('progress-modal-body');
-  const modal = document.getElementById('progress-modal');
-  if (modalBody && modal) {
-    modalBody.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray-400);">⏳ Generando informe interdisciplinario con IA...<br><small>Esto puede tomar unos segundos</small></div>';
-    modal.classList.add('open');
-  }
-
-  // Construir prompt
-  const resumenPlanes = planesFinales.map(p => {
-    const prof = PROFESIONES_DATA[p.profession] || { label: p.profession };
-    const texto = p.plan_content && p.plan_content.texto ? p.plan_content.texto.substring(0, 1500) : '';
-    return `### ${prof.label.toUpperCase()}\n${texto}`;
-  }).join('\n\n---\n\n');
-
-  const prompt = `Eres un asistente especializado en rehabilitación interdisciplinaria. Analiza los siguientes planes de tratamiento de diferentes áreas para el mismo paciente y genera un INFORME INTERDISCIPLINARIO UNIFICADO en español colombiano, con lenguaje técnico apropiado para junta clínica.
-
-PACIENTE: ${paciente.nombre || 'N/E'} | Diagnóstico: ${paciente.diagnostico || 'N/E'} | Edad: ${paciente.edad || 'N/E'}
-
-PLANES DISPONIBLES:
-${resumenPlanes}
-
-Genera el informe con estas secciones:
-1. RESUMEN FUNCIONAL GLOBAL (síntesis del estado desde todas las perspectivas)
-2. OBJETIVOS COMPARTIDOS (metas donde dos o más áreas confluyen)
-3. HALLAZGOS CRUZADOS RELEVANTES (hallazgos de un área con implicaciones para otra — usa el formato: [Área] → [Implicación para otra área])
-4. CRONOGRAMA INTEGRADO (prioridades mes a mes)
-5. PRECAUCIONES CRUZADAS (lo que todos deben saber)
-6. RECOMENDACIONES PARA CUIDADORES (síntesis de todas las áreas)
-
-⚠️ Al final incluye siempre: "Este informe fue generado por IA como apoyo a la junta clínica. Debe ser revisado por todos los profesionales del equipo antes de aplicarse. El criterio clínico de cada profesional tiene prioridad."`;
-
-  try {
-    const resp = await fetch('/api/generar-plan', {
+    await fetch(SUPABASE_URL + '/rest/v1/patient_team', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt })
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ patient_id: pxId, user_id: inviteeId, profession: profession, member_email: email, status: 'pending', invited_by: userId })
     });
-    const data = await resp.json();
-    const informe = data.plan || '';
 
-    if (modalBody) {
-      const html = informe
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1rem 0;">');
-      modalBody.innerHTML = `
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
-          <span style="font-size:20px;">📄</span>
-          <strong>Informe Interdisciplinario</strong>
-          <span style="font-size:11px;color:#6B7280;margin-left:auto;">${new Date().toLocaleDateString('es-CO')}</span>
-        </div>
-        <div style="font-size:13px;line-height:1.7;">${html}</div>`;
-    }
-
-    // Guardar en Supabase
-    try {
-      await fetch(SUPABASE_URL + '/rest/v1/interdisciplinary_reports', {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          patient_id: pacienteId,
-          generated_by: await getMiUserId(),
-          professions_included: planesFinales.map(p => p.profession),
-          report_content: { texto: informe, generado_en: new Date().toISOString() }
-        })
-      });
-    } catch(e) { /* No crítico si falla el guardado */ }
-
+    if (msgDiv) { msgDiv.className = 'equipo-msg ok'; msgDiv.style.display = 'block'; msgDiv.textContent = 'Invitación enviada correctamente.'; }
+    showToast('Invitación enviada a ' + email, 'ok');
   } catch(e) {
-    if (modalBody) modalBody.innerHTML = '<div style="color:#DC2626;padding:1rem;">Error al generar el informe. Intenta nuevamente.</div>';
+    if (msgDiv) { msgDiv.className = 'equipo-msg err'; msgDiv.style.display = 'block'; msgDiv.textContent = 'Error al enviar la invitación.'; }
   }
 }
 
-// ── Guardar plan generado en treatment_plans ─────────────────────────────────
-// Llamar esta función después de cada generación de plan exitosa
-async function guardarPlanEnDB(pacienteId, profesion, planTexto, evaluacionData) {
-  if (!pacienteId) return;
-  const token = localStorage.getItem('fisioIA_token');
-  try {
-    // Obtener versión actual
-    const r = await fetch(
-      SUPABASE_URL + '/rest/v1/treatment_plans?patient_id=eq.' + pacienteId +
-      '&profession=eq.' + profesion + '&select=version&order=version.desc&limit=1',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    const existing = await r.json();
-    const nextVersion = (Array.isArray(existing) && existing.length > 0) ? (existing[0].version + 1) : 1;
-
-    await fetch(SUPABASE_URL + '/rest/v1/treatment_plans', {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({
-        patient_id: pacienteId,
-        profession: profesion,
-        created_by: await getMiUserId(),
-        plan_content: { texto: planTexto },
-        evaluation_data: evaluacionData || {},
-        version: nextVersion
-      })
-    });
-  } catch(e) { /* No crítico */ }
-}
-
-// invitaciones se cargan desde entrarApp directamente
-
-
-function showToast(msg, tipo, duracion) {
-  tipo = tipo || 'info';
-  duracion = duracion || 3000;
-  var icons = { ok:'✓', err:'✗', info:'ℹ', warn:'⚠' };
-  var cont = document.getElementById('toast-container');
+async function cargarInvitacionesPendientes() {
+  var cont = document.getElementById('invitaciones-container');
   if (!cont) return;
-  var t = document.createElement('div');
-  t.className = 'toast ' + tipo;
-  t.innerHTML = '<span class="toast-icon">' + icons[tipo] + '</span><span class="toast-msg">' + msg + '</span>';
-  cont.appendChild(t);
-  setTimeout(function() {
-    t.style.animation = 'toastOut 0.25s ease forwards';
-    setTimeout(function() { if (t.parentNode) t.parentNode.removeChild(t); }, 250);
-  }, duracion);
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) return;
+
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/patient_team?user_id=eq.' + userId + '&status=eq.pending&select=*,pacientes(nombre,diagnostico)',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var invites = await r.json();
+    if (!Array.isArray(invites) || !invites.length) { cont.innerHTML = ''; return; }
+
+    cont.innerHTML = '<div class="invitaciones-banner"><div class="inv-titulo">📬 Invitaciones pendientes al equipo interdisciplinario</div>' +
+      invites.map(function(inv) {
+        var pxName = inv.pacientes ? inv.pacientes.nombre : 'Paciente';
+        var pxDx = inv.pacientes ? (inv.pacientes.diagnostico || '') : '';
+        return '<div class="inv-item"><div class="inv-info"><div><p class="inv-paciente">' + pxName + '</p><p class="inv-remitente">' + pxDx + '</p></div></div>' +
+          '<div class="inv-btns"><button class="btn-inv-ok" onclick="responderInvitacion(\'' + inv.id + '\',true)">Aceptar</button>' +
+          '<button class="btn-inv-no" onclick="responderInvitacion(\'' + inv.id + '\',false)">Rechazar</button></div></div>';
+      }).join('') + '</div>';
+  } catch(e) { cont.innerHTML = ''; }
 }
 
-
-function abrirNotificaciones() {
-  var panel = document.getElementById('notif-panel');
-  if (!panel) return;
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-}
-function cerrarNotificaciones() {
-  var panel = document.getElementById('notif-panel');
-  if (panel) panel.style.display = 'none';
-}
-
-async function actualizarBadgeNotificaciones() {
+async function responderInvitacion(inviteId, aceptar) {
   var token = localStorage.getItem('fisioIA_token');
   if (!token) return;
-  var userId = await getMiUserId();
-  if (!userId) return;
   try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/patient_team?user_id=eq.' + userId + '&status=eq.pending&select=id,profession,patient_id,invited_at,pacientes!patient_id(nombre),profiles!invited_by(full_name)',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
-    var invs = await r.json();
-    if (!Array.isArray(invs)) invs = [];
-    var btn = document.getElementById('btn-notif');
-    var badge = document.getElementById('notif-badge');
-    var list = document.getElementById('notif-list');
-    if (btn) btn.style.display = 'flex';
-    if (badge) {
-      if (invs.length > 0) {
-        badge.textContent = invs.length;
-        badge.style.display = 'block';
-      } else {
-        badge.style.display = 'none';
-      }
-    }
-    if (list) {
-      if (invs.length === 0) {
-        list.innerHTML = '<div style="padding:16px;text-align:center;font-size:12px;color:#9CA3AF;">Sin notificaciones pendientes</div>';
-      } else {
-        list.innerHTML = invs.map(function(inv) {
-          var prof = PROF_CONFIG[inv.profession] || { label: inv.profession, icono: '👤', color: '#6B7280', bg: '#F3F4F6' };
-          var pacNombre = inv.pacientes ? inv.pacientes.nombre : 'Paciente';
-          var invBy = inv.profiles ? inv.profiles.full_name : 'Un colega';
-          return '<div style="padding:10px 16px;border-bottom:0.5px solid #F3F4F6;">' +
-            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
-            '<span style="font-size:16px;">' + prof.icono + '</span>' +
-            '<div><p style="font-size:12px;font-weight:600;margin:0;">' + pacNombre + '</p>' +
-            '<p style="font-size:11px;color:#6B7280;margin:0;">' + invBy + ' te invitó como <strong>' + prof.label + '</strong></p></div></div>' +
-            '<div style="display:flex;gap:6px;">' +
-            '<button data-iid="' + inv.id + '" data-act="accepted" onclick="responderInv(this)" style="flex:1;font-size:11px;padding:4px 0;background:#1D9E75;color:white;border:none;border-radius:6px;cursor:pointer;">Aceptar</button>' +
-            '<button data-iid="' + inv.id + '" data-act="declined" onclick="responderInv(this)" style="flex:1;font-size:11px;padding:4px 0;background:white;color:#6B7280;border:1px solid #D1D5DB;border-radius:6px;cursor:pointer;">Declinar</button>' +
-            '</div></div>';
-        }).join('');
-      }
+    await fetch(SUPABASE_URL + '/rest/v1/patient_team?id=eq.' + inviteId, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: aceptar ? 'accepted' : 'rejected' })
+    });
+    showToast(aceptar ? 'Te uniste al equipo del paciente.' : 'Invitación rechazada.', aceptar ? 'ok' : 'info');
+    cargarInvitacionesPendientes();
+    actualizarBadgeNotificaciones();
+    cargarPacientes();
+  } catch(e) { showToast('Error al responder la invitación.', 'err'); }
+}
+
+async function verPlanDeArea(pxId, profession) {
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) return;
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/sesiones_clinicas?patient_id=eq.' + pxId + '&profession=eq.' + profession + '&order=created_at.desc&limit=1',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var data = await r.json();
+    if (Array.isArray(data) && data.length) {
+      alert(data[0].plan_texto || 'Sin contenido');
+    } else {
+      showToast('Esta área aún no tiene un plan registrado.', 'info');
     }
   } catch(e) {}
 }
 
+async function guardarPlanEnDB(pacienteId, profession, planTexto, datos) {
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) return;
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/treatment_plans', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ patient_id: pacienteId, user_id: userId, profession: profession, plan_texto: planTexto, datos: datos })
+    });
+  } catch(e) { console.log('Error guardando plan en treatment_plans:', e); }
+}
 
-// ══════════════════════════════════════════════════════
-// EPICRISIS
-// ══════════════════════════════════════════════════════
-var epicrisisPxId = null;
+async function generarInformeInterdisciplinario(pxId) {
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) return;
+
+  showToast('Generando informe interdisciplinario...', 'info');
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/sesiones_clinicas?patient_id=eq.' + pxId + '&order=created_at.desc&select=*',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var sesiones = await r.json();
+    if (!Array.isArray(sesiones)) sesiones = [];
+
+    var porArea = {};
+    sesiones.forEach(function(s) {
+      if (!porArea[s.profession]) porArea[s.profession] = s;
+    });
+
+    var resumenAreas = Object.keys(porArea).map(function(key) {
+      var prof = PROFESIONES_DATA[key] || { label: key };
+      var s = porArea[key];
+      return prof.label + ':\n' + (s.plan_texto || '').substring(0, 500);
+    }).join('\n\n');
+
+    var prompt = 'Eres un coordinador de un equipo interdisciplinario de rehabilitación. Genera un informe unificado breve integrando los aportes de cada disciplina para este paciente.\n\n' +
+      'PACIENTE: ' + p.nombre + '\nDIAGNÓSTICO: ' + (p.diagnostico || 'N/E') + '\nMETA FUNCIONAL: ' + (p.meta || 'No especificada') + '\n\n' +
+      'APORTES POR DISCIPLINA:\n' + resumenAreas + '\n\n' +
+      'Genera un informe breve y estructurado en español colombiano con: resumen general del caso, objetivos compartidos del equipo, y recomendaciones de coordinación entre disciplinas.';
+
+    var texto = await fetchConReintento(prompt, 3);
+    var ventana = window.open('', '_blank', 'width=800,height=700');
+    ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe Interdisciplinario</title>' +
+      '<style>body{font-family:sans-serif;padding:2rem;max-width:700px;margin:0 auto;line-height:1.7;white-space:pre-wrap;}</style></head><body>' +
+      '<h2>Informe Interdisciplinario — ' + p.nombre + '</h2>' + texto.replace(/</g,'&lt;') + '</body></html>');
+    ventana.document.close();
+  } catch(e) { showToast('Error al generar el informe.', 'err'); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EPICRISIS — NOTA DE ALTA
+// ═══════════════════════════════════════════════════════════════
+var epicrisisCurrentPxId = null;
 
 function abrirEpicrisis(pxId) {
-  epicrisisPxId = pxId;
-  var p = getPacientes().find(function(x){ return x.id===pxId; });
-  var subEl = document.getElementById('epi-px-sub');
-  if (subEl && p) subEl.textContent = p.nombre + (p.diagnostico ? ' — ' + p.diagnostico : '');
-  var altaEl = document.getElementById('epi-fecha-alta');
-  if (altaEl) altaEl.value = new Date().toISOString().split('T')[0];
+  epicrisisCurrentPxId = pxId;
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  document.getElementById('epi-px-sub').textContent = p.nombre + (p.diagnostico ? ' · ' + p.diagnostico : '');
+  document.getElementById('epi-dx-ingreso').value = p.diagnostico || '';
+  document.getElementById('epi-fecha-alta').value = new Date().toISOString().split('T')[0];
+  ['epi-dx-egreso','epi-resumen','epi-logros','epi-pendientes','epi-plan-casa','epi-recomendaciones','epi-fecha-ingreso'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('epi-ia-resultado').innerHTML = '';
   document.getElementById('epicrisis-modal-overlay').classList.add('open');
 }
 
 function cerrarEpicrisis() {
-  var mo = document.getElementById('epicrisis-modal-overlay');
-  if (mo) mo.classList.remove('open');
+  document.getElementById('epicrisis-modal-overlay').classList.remove('open');
+  epicrisisCurrentPxId = null;
 }
 
 async function generarEpicrisisIA() {
-  var p = getPacientes().find(function(x){ return x.id===epicrisisPxId; });
+  var p = getPacientes().find(function(x){ return x.id === epicrisisCurrentPxId; });
   if (!p) return;
-  var ses = p.sesiones || [];
-  var resEl = document.getElementById('epi-ia-resultado');
-  if (resEl) { resEl.style.display='block'; resEl.innerHTML='<div style="padding:10px;text-align:center;font-size:12px;color:#6B7280;">Generando con IA...</div>'; }
-  var ultimas = ses.slice(-3).map(function(s){ return (s.fecha||'') + ': ' + (s.dx||s.especialidad||'') + ' - ' + (s.plan||'').substring(0,100); }).join(' | ');
-  var ultimas = ses.slice(-3).map(function(s){ return (s.fecha||'') + ': ' + (s.dx||s.especialidad||'') + ' - ' + (s.plan||'').substring(0,200); }).join(' | ');
-  var prompt = 'Eres un profesional clinico experto. Genera una epicrisis en espanol colombiano. Devuelve SOLO en JSON con claves: resumen_atencion, logros, pendientes, plan_casa, recomendaciones. Sin markdown.\n\nPACIENTE: ' + p.nombre + '\nDIAGNOSTICO: ' + (p.diagnostico||'N/E') + '\nSESIONES: ' + ses.length + '\nULTIMAS: ' + ultimas;
+  var resDiv = document.getElementById('epi-ia-resultado');
+  resDiv.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--gray-400);font-size:13px;">Generando epicrisis...</div>';
 
-  var prompt = 'Eres profesional clinico experto. Genera epicrisis en JSON con claves: resumen_atencion, logros, pendientes, plan_casa, recomendaciones.\n\nPACIENTE: ' + p.nombre + '\nDX: ' + (p.diagnostico||'') + '\nSESIONES: ' + ses.length + '\nULTIMAS: ' + ultimas;
+  var ses = p.sesiones || [];
+  var resumenSesiones = ses.slice(-5).map(function(s, i) { return 'Sesión: ' + (s.dx || '') + ' — ' + (s.plan || '').substring(0, 300); }).join('\n\n');
+
+  // NOTA: se corrigió un bug donde se declaraba "var prompt" dos veces en esta
+  // función (la primera declaración quedaba huérfana y se descartaba). Ahora
+  // solo existe una única declaración con el prompt completo y correcto.
+  var prompt = 'Eres un fisioterapeuta experto redactando una epicrisis (nota de alta) para historia clínica. Responde en español colombiano, lenguaje técnico profesional.\n\n' +
+    'PACIENTE: ' + p.nombre + '\n' +
+    'DIAGNÓSTICO DE INGRESO: ' + (document.getElementById('epi-dx-ingreso').value || p.diagnostico || 'N/E') + '\n' +
+    'DIAGNÓSTICO AL EGRESO: ' + (document.getElementById('epi-dx-egreso').value || 'N/E') + '\n' +
+    'META FUNCIONAL DEL PACIENTE: ' + (p.meta || 'No especificada') + '\n' +
+    'TOTAL DE SESIONES: ' + ses.length + '\n\n' +
+    'RESUMEN DE ÚLTIMAS SESIONES:\n' + (resumenSesiones || 'Sin sesiones registradas') + '\n\n' +
+    'LOGROS INGRESADOS POR EL PROFESIONAL: ' + (document.getElementById('epi-logros').value || 'No especificados') + '\n' +
+    'PENDIENTES INGRESADOS POR EL PROFESIONAL: ' + (document.getElementById('epi-pendientes').value || 'No especificados') + '\n\n' +
+    'Genera en JSON con estas claves exactas:\n' +
+    '{\n' +
+    '  "resumen": "Resumen clínico completo de la atención (4-6 oraciones)",\n' +
+    '  "logros": "Logros alcanzados redactados profesionalmente (lista en texto)",\n' +
+    '  "pendientes": "Aspectos pendientes redactados profesionalmente",\n' +
+    '  "plan_casa": "Plan de manejo en casa sugerido, específico y realista",\n' +
+    '  "recomendaciones": "Recomendaciones finales, señales de alarma y seguimiento sugerido"\n' +
+    '}\n' +
+    'Responde ÚNICAMENTE el JSON, sin texto adicional.';
+
   try {
-    var resp = await fetch('/api/generar-plan', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt})});
-    var data = await resp.json();
-    var clean = (data.plan||'').replace(/```json|```/g,'').trim();
-    var epi = JSON.parse(clean);
-    var map = {'epi-resumen':'resumen_atencion','epi-logros':'logros','epi-pendientes':'pendientes','epi-plan-casa':'plan_casa','epi-recomendaciones':'recomendaciones'};
-    Object.keys(map).forEach(function(id){
-      var el = document.getElementById(id);
-      if (el && !el.value && epi[map[id]]) el.value = epi[map[id]];
-    });
-    if (resEl) resEl.innerHTML='<div style="background:#E1F5EE;border:1px solid #9FE1CB;border-radius:8px;padding:10px;font-size:12px;color:#0F6E56;margin-top:10px;">IA completó la epicrisis. Revisa antes de guardar.</div>';
+    var texto = await fetchConReintento(prompt, 3);
+    var clean = texto.replace(/```json|```/g, '').trim();
+    var r = JSON.parse(clean);
+
+    document.getElementById('epi-resumen').value = r.resumen || document.getElementById('epi-resumen').value;
+    if (!document.getElementById('epi-logros').value) document.getElementById('epi-logros').value = r.logros || '';
+    if (!document.getElementById('epi-pendientes').value) document.getElementById('epi-pendientes').value = r.pendientes || '';
+    if (!document.getElementById('epi-plan-casa').value) document.getElementById('epi-plan-casa').value = r.plan_casa || '';
+    if (!document.getElementById('epi-recomendaciones').value) document.getElementById('epi-recomendaciones').value = r.recomendaciones || '';
+
+    resDiv.innerHTML = '<div style="background:#EEEDFE;border-radius:10px;padding:12px 14px;font-size:12px;color:#534AB7;">✓ Epicrisis generada y aplicada a los campos. Revisa y ajusta antes de guardar.</div>';
   } catch(e) {
-    if (resEl) resEl.innerHTML='<div style="color:#DC2626;font-size:12px;padding:8px;">Error al generar. Completa manualmente.</div>';
+    resDiv.innerHTML = '<div style="color:#C53030;font-size:12px;">Error al generar la epicrisis. Intenta nuevamente.</div>';
   }
 }
 
 async function guardarEpicrisis() {
-  if (!epicrisisPxId) return;
+  var p = getPacientes().find(function(x){ return x.id === epicrisisCurrentPxId; });
+  if (!p) return;
+
+  var epicrisis = {
+    fecha_ingreso: document.getElementById('epi-fecha-ingreso').value,
+    fecha_alta: document.getElementById('epi-fecha-alta').value,
+    estado: document.getElementById('epi-estado').value,
+    dx_ingreso: document.getElementById('epi-dx-ingreso').value.trim(),
+    dx_egreso: document.getElementById('epi-dx-egreso').value.trim(),
+    resumen: document.getElementById('epi-resumen').value.trim(),
+    logros: document.getElementById('epi-logros').value.trim(),
+    pendientes: document.getElementById('epi-pendientes').value.trim(),
+    plan_casa: document.getElementById('epi-plan-casa').value.trim(),
+    recomendaciones: document.getElementById('epi-recomendaciones').value.trim()
+  };
+
+  if (!epicrisis.fecha_alta) { showToast('La fecha de alta es obligatoria.', 'warn'); return; }
+
   var token = localStorage.getItem('fisioIA_token');
   var userId = await getMiUserId();
-  if (!token || !userId) return;
-  function v(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
-  var epiData = {
-    patient_id:epicrisisPxId, user_id:userId,
-    profession:miProfesion||'fisioterapia',
-    fecha_ingreso:v('epi-fecha-ingreso')||null,
-    fecha_alta:v('epi-fecha-alta')||new Date().toISOString().split('T')[0],
-    dx_ingreso:v('epi-dx-ingreso'), dx_egreso:v('epi-dx-egreso'),
-    resumen_atencion:v('epi-resumen'), estado_alta:v('epi-estado')||'alta_definitiva',
-    logros:v('epi-logros'), pendientes:v('epi-pendientes'),
-    recomendaciones:v('epi-recomendaciones'), plan_casa:v('epi-plan-casa')
-  };
-  try {
-    var r = await fetch(SUPABASE_URL+'/rest/v1/epicrisis', {
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify(epiData)
-    });
-    if (r.ok||r.status===201) { showToast('Epicrisis guardada.','ok'); cerrarEpicrisis(); }
-    else showToast('Error al guardar la epicrisis.','err');
-  } catch(e) { showToast('Error de conexión.','err'); }
+  if (token && userId) {
+    try {
+      await fetch(SUPABASE_URL + '/rest/v1/epicrisis', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ patient_id: epicrisisCurrentPxId, user_id: userId, profession: miProfesion || 'fisioterapia', data: epicrisis })
+      });
+      showToast('Epicrisis guardada correctamente.', 'ok');
+    } catch(e) { showToast('Error al guardar la epicrisis.', 'err'); }
+  }
+
+  cerrarEpicrisis();
 }
 
-// ══════════════════════════════════════════════════════
-// EXPORTAR HC PDF
-// ══════════════════════════════════════════════════════
-async function exportarHCpdf(pxId) {
-  var token = localStorage.getItem('fisioIA_token');
-  var p = getPacientes().find(function(x){ return x.id===pxId; });
-  if (!p) return;
-  showToast('Preparando historia clínica...','info',2000);
-  var anamnesis = null;
-  try {
-    var rA = await fetch(SUPABASE_URL+'/rest/v1/anamnesis?patient_id=eq.'+pxId+'&select=*',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var aData = await rA.json();
-    if (Array.isArray(aData)&&aData.length>0) anamnesis = aData[0];
-  } catch(e){}
-  var ses = p.sesiones||[];
-  var edad = calcEdad(p.nacimiento);
-  var fecha = new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
-  var profNombre = (PROF_CONFIG[miProfesion]||PROF_CONFIG.fisioterapia).label;
-  var sesHTML = ses.map(function(s,i){
-    var plan=(s.plan||'').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-    return '<div style="margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid #E5E7EB;"><div style="font-size:12px;font-weight:700;color:#1D9E75;margin-bottom:6px;">SESIÓN '+(i+1)+' — '+s.fecha+' · '+(s.especialidad||'')+' </div><div style="font-size:12px;line-height:1.7;">'+plan+'</div></div>';
-  }).join('');
-  var anamHTML = anamnesis ? (
-    '<h2 style="font-size:13px;font-weight:700;color:#1D9E75;margin:1.5rem 0 0.5rem;border-bottom:1px solid #E5E7EB;padding-bottom:4px;">HISTORIA CLÍNICA DE INGRESO</h2>'+
-    (anamnesis.motivo_consulta?'<p><strong>Motivo:</strong> '+anamnesis.motivo_consulta+'</p>':'')+
-    (anamnesis.enfermedad_actual?'<p><strong>Enfermedad actual:</strong> '+anamnesis.enfermedad_actual+'</p>':'')+
-    (anamnesis.ant_personales?'<p><strong>Antecedentes:</strong> '+anamnesis.ant_personales+'</p>':'')+
-    (anamnesis.ant_farmacologicos?'<p><strong>Medicamentos:</strong> '+anamnesis.ant_farmacologicos+'</p>':'')+
-    (anamnesis.dx_profesional?'<p><strong>Diagnóstico funcional:</strong> '+anamnesis.dx_profesional+'</p>':'')
-  ):'';
-  var win = window.open('','_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Historia Clínica — '+p.nombre+'</title>'+
-    '<style>body{font-family:"Segoe UI",sans-serif;max-width:800px;margin:0 auto;padding:20px 30px;color:#1a1a1a;font-size:13px;line-height:1.6;}'+
-    '.hdr{background:#1D9E75;color:white;padding:16px 20px;border-radius:8px;margin-bottom:1.5rem;}'+
-    '.hdr h1{font-size:16px;margin:0 0 4px;}.hdr p{font-size:12px;margin:0;opacity:0.85;}'+
-    '.info-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.5rem;}'+
-    '.info-item{background:#F9FAFB;border-radius:6px;padding:8px 10px;}'+
-    '.info-item label{font-size:10px;text-transform:uppercase;color:#6B7280;display:block;margin-bottom:3px;}'+
-    '.info-item span{font-size:13px;font-weight:600;}'+
-    'h2{font-size:13px;font-weight:700;}'+
-    '.firma{margin-top:3rem;border-top:1px solid #E5E7EB;padding-top:1rem;display:flex;justify-content:space-between;}'+
-    '.firma-box{text-align:center;width:200px;}.firma-line{border-top:1px solid #1a1a1a;margin-bottom:4px;}'+
-    '.footer{margin-top:2rem;font-size:10px;color:#9CA3AF;text-align:center;}'+
-    '@media print{body{margin:0;padding:15px;}}</style></head><body>'+
-    '<div class="hdr"><h1>HISTORIA CLÍNICA — '+p.nombre.toUpperCase()+'</h1>'+
-    '<p>'+profNombre+' · Generado: '+fecha+'</p></div>'+
-    '<div class="info-grid">'+
-      '<div class="info-item"><label>Identificación</label><span>'+(p.identificacion||'N/E')+'</span></div>'+
-      '<div class="info-item"><label>Edad</label><span>'+(edad||'N/E')+'</span></div>'+
-      '<div class="info-item"><label>Sexo</label><span>'+(p.sexo||'N/E')+'</span></div>'+
-      '<div class="info-item"><label>Teléfono</label><span>'+(p.telefono||'N/E')+'</span></div>'+
-      '<div class="info-item"><label>Sesiones</label><span>'+ses.length+'</span></div>'+
-      '<div class="info-item"><label>Diagnóstico</label><span>'+(p.diagnostico||'N/E')+'</span></div>'+
-    '</div>'+
-    (p.meta?'<p><strong>Meta funcional:</strong> '+p.meta+'</p>':'')+
-    (p.roles?'<p><strong>Roles en la vida:</strong> '+p.roles+'</p>':'')+
-    anamHTML+
-    '<h2 style="font-size:13px;font-weight:700;color:#1D9E75;margin:1.5rem 0 0.5rem;border-bottom:1px solid #E5E7EB;padding-bottom:4px;">NOTAS DE EVOLUCIÓN ('+ses.length+' SESIONES)</h2>'+
-    (ses.length?sesHTML:'<p style="color:#9CA3AF;">Sin sesiones registradas.</p>')+
-    '<div class="firma">'+
-      '<div class="firma-box"><div class="firma-line"></div><div style="font-size:11px;font-weight:600;">'+(p.nombre||'Paciente')+'</div><div style="font-size:10px;color:#6B7280;">Firma del paciente</div></div>'+
-      '<div class="firma-box"><div class="firma-line"></div><div style="font-size:11px;font-weight:600;">Profesional tratante</div><div style="font-size:10px;color:#6B7280;">'+profNombre+'</div></div>'+
-    '</div>'+
-    '<div class="footer">Historia clínica generada con apoyo de FisioIA · Resolución 1995/1999 · El profesional es responsable del contenido clínico.</div>'+
-    '<script>window.onload=function(){window.print();}<\/script>'+
-    '</body></html>');
-  win.document.close();
-}
-
-// ══════════════════════════════════════════════════════
-// ESCALAS / INDICADORES
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// TABS: ESCALAS / INTERCONSULTAS / ADJUNTOS / TRAZABILIDAD
+// ═══════════════════════════════════════════════════════════════
 async function cargarTabEscalas(pxId) {
-  var cont = document.getElementById('escalas-content-'+pxId);
+  var cont = document.getElementById('escalas-content-' + pxId);
+  if (!cont) return;
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  var ses = p ? (p.sesiones || []) : [];
+
+  // Extraer escalas mencionadas de los planes (heurística simple)
+  var escalasEncontradas = {};
+  ses.forEach(function(s) {
+    var texto = s.plan || '';
+    Object.keys(scaleRanges).forEach(function(key) {
+      var label = scaleRanges[key].label.split('(')[0].trim();
+      var regex = new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[:\\s]+(\\d+)', 'i');
+      var match = texto.match(regex);
+      if (match) {
+        if (!escalasEncontradas[label]) escalasEncontradas[label] = [];
+        escalasEncontradas[label].push({ fecha: s.fecha, valor: parseInt(match[1]) });
+      }
+    });
+  });
+
+  if (!Object.keys(escalasEncontradas).length) {
+    cont.innerHTML = '<div class="grafica-empty">No se detectaron escalas cuantitativas en las sesiones registradas.</div>';
+    return;
+  }
+
+  cont.innerHTML = Object.keys(escalasEncontradas).map(function(label) {
+    var puntos = escalasEncontradas[label];
+    var maxVal = Math.max.apply(null, puntos.map(function(p){return p.valor;})) || 1;
+    var barras = puntos.map(function(p) {
+      var pct = Math.max(8, (p.valor / maxVal) * 100);
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+        '<span style="font-size:10px;color:var(--gray-400);width:70px;flex-shrink:0;">' + p.fecha + '</span>' +
+        '<div style="flex:1;background:#F3F4F6;border-radius:4px;height:16px;position:relative;">' +
+        '<div style="background:var(--neuro);height:100%;border-radius:4px;width:' + pct + '%;"></div></div>' +
+        '<span style="font-size:11px;font-weight:600;width:30px;text-align:right;">' + p.valor + '</span></div>';
+    }).join('');
+    return '<div class="grafica-wrap"><div class="grafica-title">' + label + '</div>' + barras + '</div>';
+  }).join('');
+}
+
+async function cargarTabInterconsultas(pxId) {
+  var cont = document.getElementById('interconsultas-content-' + pxId);
   if (!cont) return;
   var token = localStorage.getItem('fisioIA_token');
-  try {
-    var r = await fetch(SUPABASE_URL+'/rest/v1/indicadores_sesion?patient_id=eq.'+pxId+'&select=escala,valor,fecha,notas&order=fecha.asc',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var inds = await r.json();
-    if (!Array.isArray(inds)) inds=[];
-    var porEscala={};
-    inds.forEach(function(ind){ if(!porEscala[ind.escala])porEscala[ind.escala]=[]; porEscala[ind.escala].push(ind); });
-    var graficasHTML = Object.keys(porEscala).length>0
-      ? Object.keys(porEscala).map(function(e){ return renderGraficaEscala(e,porEscala[e]); }).join('')
-      : '<div class="grafica-empty">Sin indicadores registrados.</div>';
-    var escDisp = {'fisioterapia':['Barthel','Berg','NIHSS','Fugl-Meyer','MoCA','TUG','Tinetti','FIM'],'fonoaudiologia':['FOIS','EAT-10','MASA','Frenchay'],'terapia_ocupacional':['FIM','COPM','Lawton-Brody','LOTCA'],'psicologia':['PHQ-9','GAD-7','BDI-II','MSPSS']};
-    var escLista = escDisp[miProfesion]||escDisp.fisioterapia;
-    cont.innerHTML =
-      '<div style="background:#F9FAFB;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:1rem;">'+
-        '<div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:8px;text-transform:uppercase;">Registrar nueva medición</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;">'+
-          '<div class="hc-field"><label>Escala</label><select id="ind-escala-'+pxId+'">'+escLista.map(function(e){ return '<option>'+e+'</option>'; }).join('')+'</select></div>'+
-          '<div class="hc-field"><label>Valor</label><input type="number" id="ind-valor-'+pxId+'" placeholder="ej. 60"></div>'+
-          '<button onclick="guardarInd(this)" data-pid="'+ pxId +'" style="padding:7px 14px;background:var(--neuro);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;height:36px;align-self:end;">+ Agregar</button>'+
-        '</div>'+
-      '</div>'+graficasHTML;
-  } catch(e){ if(cont)cont.innerHTML='<div class="grafica-empty">Error al cargar escalas.</div>'; }
-}
+  if (!token) { cont.innerHTML = '<div class="grafica-empty">No se pudo cargar.</div>'; return; }
 
-function renderGraficaEscala(escala,puntos) {
-  if(!puntos||puntos.length===0)return'';
-  var W=460,H=130,padX=40,padY=20;
-  var vals=puntos.map(function(p){return parseFloat(p.valor);});
-  var minV=Math.min.apply(null,vals),maxV=Math.max.apply(null,vals),rango=maxV-minV||1;
-  var stepX=(W-padX*2)/Math.max(puntos.length-1,1);
-  var pts=puntos.map(function(p,i){
-    return {x:(padX+i*stepX).toFixed(1),y:(H-padY-((parseFloat(p.valor)-minV)/rango)*(H-padY*2)).toFixed(1),val:p.valor,fecha:p.fecha};
-  });
-  var pathD=pts.map(function(p,i){return(i===0?'M':'L')+p.x+','+p.y;}).join(' ');
-  var areaD=pathD+' L'+pts[pts.length-1].x+','+(H-padY)+' L'+pts[0].x+','+(H-padY)+' Z';
-  var color='#1D9E75';
-  var circles=pts.map(function(p){return '<circle cx="'+p.x+'" cy="'+p.y+'" r="4" fill="'+color+'" stroke="white" stroke-width="2"><title>'+p.fecha+': '+p.val+'</title></circle>';}).join('');
-  var xLabels=pts.map(function(p){return '<text x="'+p.x+'" y="'+(H-4)+'" text-anchor="middle" font-size="8" fill="#9CA3AF">'+(p.fecha?p.fecha.slice(5):'')+'</text>';}).join('');
-  var delta=parseFloat(puntos[puntos.length-1].valor)-parseFloat(puntos[0].valor);
-  var deltaColor=delta>0?'#1D9E75':delta<0?'#E24B4A':'#9CA3AF';
-  return '<div class="grafica-wrap" style="margin-bottom:10px;">'+
-    '<div class="grafica-title"><span>'+escala+'</span><span style="font-size:12px;font-weight:700;color:'+deltaColor+';">'+(delta>=0?'+':'')+delta.toFixed(1)+' pts · Última: '+puntos[puntos.length-1].valor+'</span></div>'+
-    '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:'+H+'px;">'+
-      '<path d="'+areaD+'" fill="'+color+'" fill-opacity="0.1"/>'+
-      '<path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round"/>'+
-      circles+xLabels+
-    '</svg></div>';
-}
-
-async function guardarIndicador(pxId) {
-  var token=localStorage.getItem('fisioIA_token');
-  var userId=await getMiUserId();
-  var escala=document.getElementById('ind-escala-'+pxId);
-  var valor=document.getElementById('ind-valor-'+pxId);
-  if(!escala||!valor||!valor.value){showToast('Ingresa el valor de la escala.','warn');return;}
   try {
-    var r=await fetch(SUPABASE_URL+'/rest/v1/indicadores_sesion',{
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({patient_id:pxId,user_id:userId,escala:escala.value,valor:parseFloat(valor.value),fecha:new Date().toISOString().split('T')[0]})
-    });
-    if(r.ok){showToast('Indicador guardado.','ok');valor.value='';cargarTabEscalas(pxId);}
-    else showToast('Error al guardar.','err');
-  } catch(e){showToast('Error de conexión.','err');}
-}
-
-// ══════════════════════════════════════════════════════
-// INTERCONSULTAS
-// ══════════════════════════════════════════════════════
-async function cargarTabInterconsultas(pxId) {
-  var cont=document.getElementById('interconsultas-content-'+pxId);
-  if(!cont)return;
-  var token=localStorage.getItem('fisioIA_token');
-  try {
-    var r=await fetch(SUPABASE_URL+'/rest/v1/interconsultas_clinicas?patient_id=eq.'+pxId+'&select=*&order=created_at.desc',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var ics=await r.json();
-    if(!Array.isArray(ics))ics=[];
-    var profOpts=Object.entries(PROF_CONFIG).filter(function(e){return e[0]!==miProfesion;}).map(function(e){return '<option value="'+e[0]+'">'+e[1].icono+' '+e[1].label+'</option>';}).join('');
-    var listHTML=ics.length===0?'<div class="grafica-empty">Sin interconsultas.</div>':ics.map(function(ic){
-      var pd=PROF_CONFIG[ic.profession_dest]||{label:ic.profession_dest,icono:'👤',color:'#6B7280',bg:'#F3F4F6'};
-      return '<div style="background:white;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">'+
-        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
-          '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:'+(ic.urgencia==='urgente'?'#FCEBEB':ic.urgencia==='prioritaria'?'#FAEEDA':'#E1F5EE')+';color:'+(ic.urgencia==='urgente'?'#A32D2D':ic.urgencia==='prioritaria'?'#854F0B':'#0F6E56')+';">'+ic.urgencia+'</span>'+
-          '<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:'+pd.bg+';color:'+pd.color+';">'+pd.icono+' '+pd.label+'</span>'+
-          '<span style="font-size:10px;padding:2px 8px;border-radius:20px;margin-left:auto;background:'+(ic.estado==='respondida'?'#E1F5EE':ic.estado==='en_proceso'?'#E6F1FB':'#FEF3C7')+';color:'+(ic.estado==='respondida'?'#065F46':ic.estado==='en_proceso'?'#185FA5':'#92400E')+';">'+ic.estado+'</span>'+
-        '</div>'+
-        '<div style="font-size:12px;font-weight:500;color:#111827;margin-bottom:4px;">'+ic.motivo+'</div>'+
-        (ic.hallazgos?'<div style="font-size:11px;color:#6B7280;">'+ic.hallazgos+'</div>':'')+
-        (ic.respuesta?'<div style="background:#F9FAFB;border-left:3px solid #1D9E75;padding:8px 10px;border-radius:0 6px 6px 0;font-size:12px;margin-top:8px;"><strong>Respuesta:</strong> '+ic.respuesta+'</div>':'')+
-      '</div>';
-    }).join('');
-    cont.innerHTML=
-      '<div style="background:#F9FAFB;border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:1rem;">'+
-        '<div style="font-size:11px;font-weight:600;color:#374151;margin-bottom:8px;text-transform:uppercase;">Nueva interconsulta</div>'+
-        '<div class="hc-grid2" style="margin-bottom:8px;">'+
-          '<div class="hc-field"><label>Área</label><select id="ic-prof-'+pxId+'">'+profOpts+'</select></div>'+
-          '<div class="hc-field"><label>Urgencia</label><select id="ic-urgencia-'+pxId+'"><option value="rutina">Rutina</option><option value="prioritaria">Prioritaria</option><option value="urgente">Urgente</option></select></div>'+
-        '</div>'+
-        '<div class="hc-field" style="margin-bottom:6px;"><label>Motivo</label><textarea id="ic-motivo-'+pxId+'" placeholder="¿Qué necesita que evalúe el colega?" style="min-height:60px;font-size:12px;padding:7px 10px;border:1px solid #D1D5DB;border-radius:8px;width:100%;font-family:DM Sans,sans-serif;resize:vertical;"></textarea></div>'+
-        '<button onclick="crearInter(this)" data-pid="'+ pxId +'" style="padding:7px 16px;background:var(--neuro);color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">Enviar interconsulta</button>'+
-      '</div>'+listHTML;
-  } catch(e){if(cont)cont.innerHTML='<div class="grafica-empty">Error al cargar.</div>';}
+    var r = await fetch(SUPABASE_URL + '/rest/v1/interconsultas_clinicas?patient_id=eq.' + pxId + '&order=created_at.desc',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var data = await r.json();
+    if (!Array.isArray(data) || !data.length) {
+      cont.innerHTML = '<div class="grafica-empty">Sin interconsultas registradas.</div>' +
+        '<button class="btn-modal-primary" style="margin-top:10px;" onclick="crearInterconsulta(\'' + pxId + '\')">+ Nueva interconsulta</button>';
+      return;
+    }
+    cont.innerHTML = data.map(function(i) {
+      return '<div class="tl-card" style="margin-bottom:8px;padding:12px 14px;">' +
+        '<div style="font-size:12px;font-weight:600;">' + (i.especialidad_destino || 'Interconsulta') + '</div>' +
+        '<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">' + new Date(i.created_at).toLocaleDateString('es-CO') + '</div>' +
+        '<div style="font-size:12px;margin-top:6px;">' + (i.motivo || '') + '</div></div>';
+    }).join('') + '<button class="btn-modal-primary" style="margin-top:10px;" onclick="crearInterconsulta(\'' + pxId + '\')">+ Nueva interconsulta</button>';
+  } catch(e) { cont.innerHTML = '<div class="grafica-empty">Error al cargar interconsultas.</div>'; }
 }
 
 async function crearInterconsulta(pxId) {
-  var token=localStorage.getItem('fisioIA_token');
-  var userId=await getMiUserId();
-  var motivo=document.getElementById('ic-motivo-'+pxId);
-  var prof=document.getElementById('ic-prof-'+pxId);
-  var urgencia=document.getElementById('ic-urgencia-'+pxId);
-  if(!motivo||!motivo.value.trim()){showToast('Escribe el motivo de la interconsulta.','warn');return;}
+  var especialidad = prompt('¿A qué especialidad se remite?');
+  if (!especialidad) return;
+  var motivo = prompt('Motivo de la interconsulta:');
+  if (!motivo) return;
+
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) return;
+
   try {
-    var r=await fetch(SUPABASE_URL+'/rest/v1/interconsultas_clinicas',{
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({patient_id:pxId,solicitante_id:userId,profession_dest:prof?prof.value:'fisioterapia',motivo:motivo.value.trim(),urgencia:urgencia?urgencia.value:'rutina',estado:'pendiente'})
+    await fetch(SUPABASE_URL + '/rest/v1/interconsultas_clinicas', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ patient_id: pxId, user_id: userId, especialidad_destino: especialidad, motivo: motivo })
     });
-    if(r.ok){showToast('Interconsulta enviada.','ok');motivo.value='';cargarTabInterconsultas(pxId);}
-    else showToast('Error al enviar.','err');
-  } catch(e){showToast('Error de conexión.','err');}
+    showToast('Interconsulta registrada.', 'ok');
+    cargarTabInterconsultas(pxId);
+  } catch(e) { showToast('Error al registrar la interconsulta.', 'err'); }
 }
 
-// ══════════════════════════════════════════════════════
-// ADJUNTOS
-// ══════════════════════════════════════════════════════
 async function cargarTabAdjuntos(pxId) {
-  var cont=document.getElementById('adjuntos-content-'+pxId);
-  if(!cont)return;
-  var token=localStorage.getItem('fisioIA_token');
+  var cont = document.getElementById('adjuntos-content-' + pxId);
+  if (!cont) return;
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) { cont.innerHTML = '<div class="grafica-empty">No se pudo cargar.</div>'; return; }
+
   try {
-    var r=await fetch(SUPABASE_URL+'/rest/v1/adjuntos_clinicos?patient_id=eq.'+pxId+'&select=*&order=created_at.desc',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var adjs=await r.json();
-    if(!Array.isArray(adjs))adjs=[];
-    var iconos={imagen:'🖼️',examen:'📄',rx:'🩻',ecografia:'📡',otro:'📎'};
-    var listHTML=adjs.length===0?'<div class="grafica-empty" style="margin-top:8px;">Sin archivos adjuntos.</div>':
-      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:8px;">'+
-        adjs.map(function(adj){
-          return '<div style="border:0.5px solid var(--border);border-radius:8px;overflow:hidden;background:white;cursor:pointer;" data-url="'+(adj.storage_url||'')+'" onclick="abrirAdjunto(this)">' +
-            '<div style="height:80px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-size:28px;">'+(iconos[adj.tipo]||'📎')+'</div>'+
-            '<div style="font-size:10px;padding:5px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+adj.nombre+'</div>'+
-          '</div>';
-        }).join('')+
-      '</div>';
-    cont.innerHTML=
-      '<div style="border:2px dashed #D1D5DB;border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:white;" onclick="triggerUpload(\''+pxId+'\')"><div style="font-size:24px;margin-bottom:6px;">📎</div><div style="font-size:12px;color:#6B7280;">Haz clic para subir archivos<br><span style="font-size:10px;color:#9CA3AF;">Imágenes, PDFs · Máx 10MB</span></div><input type="file" id="upload-input-'+pxId+'" style="display:none;" accept="image/*,.pdf" onchange="subirAdjunto(event,\''+pxId+'\')" ></div>'+
-      '</div>'+listHTML;
-  } catch(e){if(cont)cont.innerHTML='<div class="grafica-empty">Error al cargar adjuntos.</div>';}
+    var r = await fetch(SUPABASE_URL + '/rest/v1/adjuntos_clinicos?patient_id=eq.' + pxId + '&order=created_at.desc',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var data = await r.json();
+    var lista = Array.isArray(data) && data.length
+      ? data.map(function(a) {
+          return '<div class="tl-card" style="margin-bottom:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">' +
+            '<span style="font-size:12px;">📎 ' + (a.nombre_archivo || 'Archivo') + '</span>' +
+            '<a href="' + (a.url || '#') + '" target="_blank" style="font-size:11px;color:var(--neuro);">Ver</a></div>';
+        }).join('')
+      : '<div class="grafica-empty">Sin adjuntos registrados.</div>';
+    cont.innerHTML = lista +
+      '<input type="file" id="adjunto-file-' + pxId + '" style="display:none;" onchange="subirAdjunto(\'' + pxId + '\',this.files[0])">' +
+      '<button class="btn-modal-primary" style="margin-top:10px;" onclick="document.getElementById(\'adjunto-file-' + pxId + '\').click()">+ Subir adjunto</button>';
+  } catch(e) { cont.innerHTML = '<div class="grafica-empty">Error al cargar adjuntos.</div>'; }
 }
 
-function abrirAdjunto(el){var u=el.getAttribute('data-url');if(u)window.open(u,'_blank');}
-function triggerUpload(pxId){var el=document.getElementById('upload-input-'+pxId);if(el)el.click();}
+async function subirAdjunto(pxId, file) {
+  if (!file) return;
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) return;
 
-async function subirAdjunto(event,pxId) {
-  var file=event.target.files[0];
-  if(!file)return;
-  if(file.size>10*1024*1024){showToast('Archivo muy grande. Máximo 10MB.','warn');return;}
-  var token=localStorage.getItem('fisioIA_token');
-  var userId=await getMiUserId();
-  showToast('Subiendo archivo...','info',3000);
-  var ext=file.name.split('.').pop().toLowerCase();
-  var tipo=['jpg','jpeg','png','gif','webp'].includes(ext)?'imagen':ext==='pdf'?'examen':'otro';
-  var storagePath=pxId+'/'+Date.now()+'-'+file.name.replace(/[^a-zA-Z0-9.-]/g,'_');
+  showToast('Subiendo archivo...', 'info');
   try {
-    await fetch(SUPABASE_URL+'/storage/v1/object/Adjuntos-clinicos/'+storagePath,{
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':file.type,'x-upsert':'true'},
-      body:file
+    var path = userId + '/' + pxId + '/' + Date.now() + '_' + file.name;
+    var uploadResp = await fetch(SUPABASE_URL + '/storage/v1/object/Adjuntos-clinicos/' + path, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_KEY, 'Content-Type': file.type || 'application/octet-stream' },
+      body: file
     });
-    var storageUrl=SUPABASE_URL+'/storage/v1/object/public/Adjuntos-clinicos/'+storagePath;
-    await fetch(SUPABASE_URL+'/rest/v1/adjuntos_clinicos',{
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({patient_id:pxId,user_id:userId,nombre:file.name,tipo:tipo,storage_path:storagePath,storage_url:storageUrl,mime_type:file.type,tamano_bytes:file.size})
+    if (!uploadResp.ok) { showToast('Error al subir el archivo.', 'err'); return; }
+
+    var publicUrl = SUPABASE_URL + '/storage/v1/object/public/Adjuntos-clinicos/' + path;
+    await fetch(SUPABASE_URL + '/rest/v1/adjuntos_clinicos', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ patient_id: pxId, user_id: userId, nombre_archivo: file.name, url: publicUrl })
     });
-    showToast('Archivo subido.','ok');
+    showToast('Archivo subido correctamente.', 'ok');
     cargarTabAdjuntos(pxId);
-  } catch(e){showToast('Error al subir. Verifica que el bucket Adjuntos-clinicos esté creado.','err',5000);}
+  } catch(e) { showToast('Error al subir el archivo.', 'err'); }
 }
 
-// ══════════════════════════════════════════════════════
-// TRAZABILIDAD
-// ══════════════════════════════════════════════════════
 async function cargarTabTrazabilidad(pxId) {
-  var cont=document.getElementById('trazabilidad-content-'+pxId);
-  if(!cont)return;
-  var token=localStorage.getItem('fisioIA_token');
-  try {
-    var r=await fetch(SUPABASE_URL+'/rest/v1/audit_log?patient_id=eq.'+pxId+'&select=accion,tabla,created_at&order=created_at.desc&limit=50',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var logs=await r.json();
-    if(!Array.isArray(logs))logs=[];
-    var iconos={'crear_sesion':'📝','guardar_hc':'📋','guardar_epicrisis':'🏁','subir_adjunto':'📎','crear_interconsulta':'💬','registrar_indicador':'📊','exportar_hc_pdf':'📥'};
-    var logsHTML=logs.length===0?'<div class="grafica-empty">Sin actividad registrada.</div>':
-      logs.map(function(log){
-        var icono=iconos[log.accion]||'•';
-        var fecha=new Date(log.created_at).toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
-        return '<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:0.5px solid #F9FAFB;font-size:11px;">'+
-          '<div style="width:22px;height:22px;border-radius:50%;background:#F3F4F6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+icono+'</div>'+
-          '<div><div style="font-weight:500;color:#111827;">'+log.accion.replace(/_/g,' ')+(log.tabla?' · '+log.tabla:'')+'</div>'+
-          '<div style="color:#9CA3AF;margin-top:1px;">'+fecha+'</div></div>'+
-        '</div>';
-      }).join('');
-    cont.innerHTML='<div style="font-size:11px;color:#6B7280;margin-bottom:8px;">Últimas '+logs.length+' acciones en este expediente.</div>'+logsHTML;
-  } catch(e){if(cont)cont.innerHTML='<div class="grafica-empty">Error al cargar trazabilidad.</div>';}
-}
+  var cont = document.getElementById('trazabilidad-content-' + pxId);
+  if (!cont) return;
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) { cont.innerHTML = '<div class="grafica-empty">No se pudo cargar.</div>'; return; }
 
-async function registrarAudit(pxId,accion,tabla,registroId,detalle) {
-  var token=localStorage.getItem('fisioIA_token');
-  var userId=await getMiUserId();
-  if(!token||!userId||!pxId)return;
   try {
-    fetch(SUPABASE_URL+'/rest/v1/audit_log',{
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({patient_id:pxId,user_id:userId,accion:accion,tabla:tabla||null,registro_id:registroId||null,detalle:detalle||null})
-    });
-  } catch(e){}
-}
-
-// ══════════════════════════════════════════════════════
-// BÚSQUEDA PACIENTE PARA NO-FISIOS
-// ══════════════════════════════════════════════════════
-async function mostrarBuscadorPaciente() {
-  var cont=document.getElementById('equipo-inter-container');
-  if(!cont)return;
-  cont.style.display='block';
-  cont.innerHTML='<div class="equipo-section"><div class="equipo-section-title"><span>Buscar paciente para vincularme</span></div>'+
-    '<p style="font-size:12px;color:#6B7280;margin-bottom:10px;">Busca por nombre o número de identificación.</p>'+
-    '<div style="display:flex;gap:8px;margin-bottom:10px;"><input type="text" id="buscar-px-input" placeholder="Nombre o identificación..." style="flex:1;font-size:13px;padding:8px 12px;border:1px solid #D1D5DB;border-radius:8px;" oninput="buscarPacienteParaVinculo()"></div>'+
-    '<div id="buscar-px-resultados" style="display:none;max-height:200px;overflow-y:auto;border:0.5px solid #E5E7EB;border-radius:8px;"></div>'+
-    '<div id="equipo-msg" class="equipo-msg"></div></div>';
-}
-
-async function buscarPacienteParaVinculo() {
-  var inp=document.getElementById('buscar-px-input');
-  if(!inp)return;
-  var q=inp.value.trim();
-  var resEl=document.getElementById('buscar-px-resultados');
-  if(!resEl)return;
-  if(q.length<2){resEl.style.display='none';return;}
-  var token=localStorage.getItem('fisioIA_token');
-  try {
-    var r=await fetch(SUPABASE_URL+'/rest/v1/pacientes?or=(nombre.ilike.*'+encodeURIComponent(q)+'*,identificacion.ilike.*'+encodeURIComponent(q)+'*)&select=id,nombre,diagnostico&limit=8',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var pxList=await r.json();
-    if(!Array.isArray(pxList)||pxList.length===0){resEl.style.display='block';resEl.innerHTML='<div style="padding:12px;font-size:12px;color:#9CA3AF;text-align:center;">Sin resultados.</div>';return;}
-    resEl.style.display='block';
-    resEl.innerHTML=pxList.map(function(px){
-      return '<div style="padding:10px 14px;border-bottom:0.5px solid #F3F4F6;display:flex;justify-content:space-between;align-items:center;">'+
-        '<div><p style="font-size:13px;font-weight:600;margin:0;">'+px.nombre+'</p><p style="font-size:11px;color:#6B7280;margin:0;">'+(px.diagnostico||'Sin diagnóstico')+'</p></div>'+
-        '<button onclick="solicitarAccesoPaciente(this)" data-id="'+px.id+'" data-nombre="'+px.nombre+'" style="font-size:11px;padding:5px 12px;background:var(--neuro);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Vincularme</button>'+
-      '</div>';
+    var r = await fetch(SUPABASE_URL + '/rest/v1/audit_log?patient_id=eq.' + pxId + '&order=created_at.desc&limit=30',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var data = await r.json();
+    if (!Array.isArray(data) || !data.length) {
+      cont.innerHTML = '<div class="grafica-empty">Sin actividad registrada para este paciente.</div>';
+      return;
+    }
+    cont.innerHTML = data.map(function(a) {
+      return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid #F3F4F6;font-size:12px;">' +
+        '<span style="color:var(--gray-400);white-space:nowrap;">' + new Date(a.created_at).toLocaleString('es-CO') + '</span>' +
+        '<span>' + (a.accion || a.action || 'Acción registrada') + '</span></div>';
     }).join('');
-  } catch(e){resEl.style.display='block';resEl.innerHTML='<div style="padding:12px;font-size:12px;color:#DC2626;">Error al buscar.</div>';}
+  } catch(e) { cont.innerHTML = '<div class="grafica-empty">Error al cargar la trazabilidad.</div>'; }
 }
 
-async function solicitarAccesoPaciente(btn) {
-  var pxId=btn.getAttribute('data-id');
-  var pxNombre=btn.getAttribute('data-nombre');
-  var token=localStorage.getItem('fisioIA_token');
-  var userId=await getMiUserId();
-  if(!userId)return;
+async function registrarAudit(pxId, accion) {
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) return;
   try {
-    var rCheck=await fetch(SUPABASE_URL+'/rest/v1/patient_team?patient_id=eq.'+pxId+'&user_id=eq.'+userId+'&select=id,status',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var ex=await rCheck.json();
-    if(Array.isArray(ex)&&ex.length>0){showToast(ex[0].status==='accepted'?'Ya tienes acceso.':'Solicitud ya enviada.','info');return;}
-    var rPx=await fetch(SUPABASE_URL+'/rest/v1/pacientes?id=eq.'+pxId+'&select=user_id',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token}});
-    var pxData=await rPx.json();
-    var ownerId=pxData&&pxData[0]?pxData[0].user_id:userId;
-    var rIns=await fetch(SUPABASE_URL+'/rest/v1/patient_team',{method:'POST',headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({patient_id:pxId,user_id:userId,profession:miProfesion,invited_by:ownerId,status:'accepted'})});
-    if(rIns.ok){showToast('Te vinculaste al expediente de '+pxNombre+'.','ok');cargarPacientes();}
-    else showToast('Error al vincular.','err');
-  } catch(e){showToast('Error de conexión.','err');}
+    await fetch(SUPABASE_URL + '/rest/v1/audit_log', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ patient_id: pxId, user_id: userId, accion: accion })
+    });
+  } catch(e) {}
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// FLUJO CLÍNICO OBLIGATORIO
-// Paso 1: Crear/seleccionar paciente
-// Paso 2: Llenar historia clínica
-// Paso 3: Valoración
-// Paso 4: Generar plan con IA
-// ══════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// EXPORTAR HISTORIA CLÍNICA A PDF
+// ═══════════════════════════════════════════════════════════════
+function exportarHCpdf(pxId) {
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (!p) return;
+  var edad = calcEdad(p.nacimiento);
+  var ses = p.sesiones || [];
+  var hc = p.hc || {};
 
-var hcGuardadaCache = {}; // cache: pacienteId -> true/false
+  var sesionesHTML = ses.map(function(s, i) {
+    return '<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #E8EAED;">' +
+      '<div style="font-weight:600;font-size:11pt;">Sesión #' + (i+1) + ' — ' + s.fecha + ' (' + (s.especialidad||'') + ')</div>' +
+      '<div style="font-size:9.5pt;white-space:pre-wrap;margin-top:4px;color:#333;">' + (s.plan||'').replace(/</g,'&lt;') + '</div></div>';
+  }).join('');
 
-function actualizarOverlayFlujo() {
+  var ventana = window.open('', '_blank', 'width=900,height=700');
+  ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Historia Clínica — ' + p.nombre + '</title>' +
+    '<style>body{font-family:sans-serif;padding:2rem;max-width:800px;margin:0 auto;color:#202124;line-height:1.6;}' +
+    'h2{color:#0F6E56;}h3{color:#0F6E56;margin-top:1.5rem;font-size:12pt;border-bottom:1px solid #E1F5EE;padding-bottom:4px;}' +
+    '.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10pt;margin-bottom:1rem;}' +
+    '@media print{.no-print{display:none;}}</style></head><body>' +
+    '<div class="no-print" style="text-align:right;margin-bottom:1rem;"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>' +
+    '<h2>FisioIA — Historia Clínica</h2>' +
+    '<div class="info-grid">' +
+      '<div><strong>Paciente:</strong> ' + p.nombre + '</div>' +
+      '<div><strong>Identificación:</strong> ' + (p.identificacion||'--') + '</div>' +
+      '<div><strong>Edad:</strong> ' + (edad||'--') + '</div>' +
+      '<div><strong>Diagnóstico:</strong> ' + (p.diagnostico||'--') + '</div>' +
+    '</div>' +
+    '<h3>Historia clínica de ingreso</h3>' +
+    '<p style="font-size:9.5pt;"><strong>Motivo de consulta:</strong> ' + (hc['hc-motivo']||'No registrado') + '</p>' +
+    '<p style="font-size:9.5pt;"><strong>Enfermedad actual:</strong> ' + (hc['hc-enfermedad']||'No registrada') + '</p>' +
+    '<p style="font-size:9.5pt;"><strong>Diagnóstico funcional:</strong> ' + (hc['hc-dx-prof']||'No registrado') + '</p>' +
+    '<h3>Sesiones y planes (' + ses.length + ')</h3>' +
+    (sesionesHTML || '<p style="font-size:9.5pt;color:#999;">Sin sesiones registradas.</p>') +
+    '</body></html>');
+  ventana.document.close();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FLUJO CLÍNICO OBLIGATORIO (overlay de pasos)
+// ═══════════════════════════════════════════════════════════════
+// NOTA PARA DANIELA: el paso 3 (valoración clínica) actualmente NO bloquea
+// el paso 4 (generar plan) — solo se verifica que exista paciente activo (1)
+// e historia clínica guardada (2). Esto fue señalado en la auditoría original;
+// se deja documentado aquí y el overlay se cierra apenas el paso 2 se cumple,
+// dejando el resto del flujo "sugerido" pero no forzado. Si quieres forzar
+// también el paso 3, dime y lo agregamos explícitamente.
+async function verificarHCExistente(pxId) {
+  var p = getPacientes().find(function(x){ return x.id === pxId; });
+  if (p && p.hc && p.hc['hc-motivo']) return true;
+  var token = localStorage.getItem('fisioIA_token');
+  if (!token) return false;
+  try {
+    var r = await fetch(SUPABASE_URL + '/rest/v1/anamnesis?patient_id=eq.' + pxId + '&select=id&limit=1',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+    var data = await r.json();
+    return Array.isArray(data) && data.length > 0;
+  } catch(e) { return false; }
+}
+
+async function actualizarOverlayFlujo() {
   var overlay = document.getElementById('flujo-overlay');
   if (!overlay) return;
 
-  // Paso 1: ¿hay paciente activo?
   if (!activePxId) {
     mostrarOverlayFlujo(1);
     return;
   }
-
-  // Paciente activo — verificar HC
-  verificarHCExistente(activePxId, function(tieneHC) {
-    if (!tieneHC) {
-      mostrarOverlayFlujo(2);
-    } else {
-      // Todo listo — ocultar overlay
-      ocultarOverlayFlujo();
-    }
-  });
+  var tieneHC = await verificarHCExistente(activePxId);
+  if (!tieneHC) {
+    mostrarOverlayFlujo(2);
+    return;
+  }
+  ocultarOverlayFlujo();
 }
 
 function mostrarOverlayFlujo(paso) {
   var overlay = document.getElementById('flujo-overlay');
-  var icon    = document.getElementById('flujo-icon');
-  var titulo  = document.getElementById('flujo-titulo');
-  var desc    = document.getElementById('flujo-desc');
-  var btnAcc  = document.getElementById('flujo-btn-accion');
-  var btnSec  = document.getElementById('flujo-btn-sec');
-
   if (!overlay) return;
+  overlay.style.display = 'flex';
 
-  // Actualizar pasos visuales
-  var pasosCfg = [
-    { id: 'flujo-paso-1', completado: paso > 1 },
-    { id: 'flujo-paso-2', completado: paso > 2 },
-    { id: 'flujo-paso-3', completado: paso > 3 },
-    { id: 'flujo-paso-4', completado: paso > 4 },
-  ];
-  pasosCfg.forEach(function(p, i) {
-    var el = document.getElementById(p.id);
-    if (!el) return;
-    el.className = 'flujo-paso ' + (p.completado ? 'completado' : i + 1 === paso ? 'actual' : 'pendiente');
-  });
-
-  if (paso === 1) {
-    icon.textContent   = '👤';
-    titulo.textContent = 'Primero selecciona un paciente';
-    desc.textContent   = 'Para generar un plan de tratamiento personalizado, primero debes seleccionar o crear el paciente que vas a atender.';
-    btnAcc.textContent = '+ Crear o seleccionar paciente';
-    btnAcc.onclick     = function() { cerrarFlujoOverlay(); abrirPacientes(); };
-    btnSec.style.display = 'none';
-  } else if (paso === 2) {
-    var p = getPacientes().find(function(x) { return x.id === activePxId; });
-    var nombre = p ? p.nombre : 'el paciente';
-    icon.textContent   = '📋';
-    titulo.textContent = 'Falta la historia clínica';
-    desc.textContent   = 'Para ' + nombre + ' aún no hay historia clínica de ingreso. Debes completarla antes de realizar la valoración.';
-    btnAcc.textContent = '📋 Llenar historia clínica';
-    btnAcc.onclick     = function() { cerrarFlujoOverlay(); abrirHC(activePxId); };
-    btnSec.style.display = 'block';
-    btnSec.textContent = 'Continuar sin historia clínica';
-    btnSec.onclick     = function() { ocultarOverlayFlujo(); };
+  for (var i = 1; i <= 4; i++) {
+    var el = document.getElementById('flujo-paso-' + i);
+    if (!el) continue;
+    el.classList.remove('completado', 'actual', 'pendiente');
+    if (i < paso) el.classList.add('completado');
+    else if (i === paso) el.classList.add('actual');
+    else el.classList.add('pendiente');
   }
 
-  overlay.style.display = 'flex';
+  var btnAccion = document.getElementById('flujo-btn-accion');
+  var btnSec = document.getElementById('flujo-btn-sec');
+  var titulo = document.getElementById('flujo-titulo');
+  var desc = document.getElementById('flujo-desc');
+
+  if (paso === 1) {
+    titulo.textContent = 'Selecciona o crea un paciente';
+    desc.textContent = 'Para generar un plan de tratamiento, primero necesitas un paciente activo.';
+    btnAccion.textContent = 'Seleccionar paciente';
+    btnAccion.onclick = function() { abrirPacientes(); };
+    btnSec.style.display = 'none';
+  } else if (paso === 2) {
+    titulo.textContent = 'Completa la historia clínica de ingreso';
+    desc.textContent = 'Antes de valorar y generar el plan, registra la historia clínica del paciente.';
+    btnAccion.textContent = 'Ir a historia clínica';
+    btnAccion.onclick = function() { abrirHC(activePxId); };
+    btnSec.style.display = 'block';
+  }
 }
 
 function ocultarOverlayFlujo() {
@@ -6690,198 +6114,284 @@ function cerrarFlujoOverlay() {
 }
 
 function accionFlujo() {
-  // Default action — overridden in mostrarOverlayFlujo
-  if (!activePxId) {
-    abrirPacientes();
-  } else {
-    abrirHC(activePxId);
-  }
+  var btn = document.getElementById('flujo-btn-accion');
+  if (btn && btn.onclick) btn.onclick();
 }
 
-async function verificarHCExistente(pxId, callback) {
-  // Primero revisar caché
-  if (hcGuardadaCache[pxId] !== undefined) {
-    callback(hcGuardadaCache[pxId]);
-    return;
-  }
+// Verificar flujo al cargar la app (si hay paciente activo previamente seleccionado)
+setTimeout(function() { if (typeof actualizarOverlayFlujo === 'function') actualizarOverlayFlujo(); }, 1500);
+
+// ═══════════════════════════════════════════════════════════════
+// BÚSQUEDA DE PACIENTE PARA PROFESIONALES NO-FISIOTERAPEUTAS
+// (para vincularse a pacientes creados por el fisioterapeuta tratante)
+// ═══════════════════════════════════════════════════════════════
+function mostrarBuscadorPaciente() {
+  var buscar = prompt('Busca un paciente por nombre para solicitar acceso (debe existir en el sistema, creado por otro profesional):');
+  if (buscar) buscarPacienteParaVinculo(buscar);
+}
+
+async function buscarPacienteParaVinculo(nombre) {
   var token = localStorage.getItem('fisioIA_token');
-  if (!token) { callback(false); return; }
+  if (!token) return;
   try {
-    var r = await fetch(
-      SUPABASE_URL + '/rest/v1/anamnesis?patient_id=eq.' + pxId + '&select=id&limit=1',
-      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
-    );
+    var r = await fetch(SUPABASE_URL + '/rest/v1/pacientes?nombre=ilike.*' + encodeURIComponent(nombre) + '*&select=id,nombre,diagnostico&limit=10',
+      { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
     var data = await r.json();
-    var tieneHC = Array.isArray(data) && data.length > 0;
-    hcGuardadaCache[pxId] = tieneHC;
-    callback(tieneHC);
-  } catch(e) {
-    callback(false);
-  }
+    if (!Array.isArray(data) || !data.length) { showToast('No se encontraron pacientes con ese nombre.', 'info'); return; }
+    var opciones = data.map(function(p, i) { return (i+1) + '. ' + p.nombre + ' — ' + (p.diagnostico||'sin diagnóstico'); }).join('\n');
+    var seleccion = prompt('Resultados:\n' + opciones + '\n\nEscribe el número del paciente al que quieres solicitar acceso:');
+    var idx = parseInt(seleccion) - 1;
+    if (data[idx]) solicitarAccesoPaciente(data[idx].id);
+  } catch(e) { showToast('Error al buscar pacientes.', 'err'); }
 }
 
-// Invalidar caché de HC cuando se guarda una nueva
-var _guardarHCOriginal = guardarHC;
-async function guardarHC() {
-  await _guardarHCOriginal();
-  // Invalidar caché para que el overlay lo detecte
-  if (activePxId) {
-    hcGuardadaCache[activePxId] = true;
-    ocultarOverlayFlujo();
-  }
+async function solicitarAccesoPaciente(pxId) {
+  var token = localStorage.getItem('fisioIA_token');
+  var userId = await getMiUserId();
+  if (!token || !userId) return;
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/patient_team', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ patient_id: pxId, user_id: userId, profession: miProfesion, status: 'pending' })
+    });
+    showToast('Solicitud de acceso enviada. Debe ser aprobada por el equipo del paciente.', 'ok');
+  } catch(e) { showToast('Error al solicitar acceso.', 'err'); }
 }
 
-// MÓDULO PROFESIONES NUEVAS
+// ═══════════════════════════════════════════════════════════════
+// MÓDULO PROFESIONES NUEVAS (Fonoaudiología / Terapia Ocupacional / Psicología)
+// ═══════════════════════════════════════════════════════════════
+var profTabPrefix = { fono: 'fo', to: 'to', psico: 'ps' };
+var profSpecConfig = {
+  fono:  { color: '#185FA5', light: '#E6F1FB', label: 'Fonoaudiología' },
+  to:    { color: '#BA7517', light: '#FAEEDA', label: 'Terapia Ocupacional' },
+  psico: { color: '#534AB7', light: '#EEEDFE', label: 'Psicología' }
+};
 
 function getSpecByTab(tab) {
-  if (tab === 'fono')  return PROF_CONFIG.fonoaudiologia;
-  if (tab === 'to')    return PROF_CONFIG.terapia_ocupacional;
-  if (tab === 'psico') return PROF_CONFIG.psicologia;
-  return PROF_CONFIG.fisioterapia;
-}
-
-var profActivaTab = null;
-
-function switchTabProf(tab) {
-  document.querySelectorAll('#tabs-profesiones-nuevas .tab-btn').forEach(b => b.classList.remove('active'));
-  ['fono','to','psico'].forEach(t => {
-    var p = document.getElementById('panel-' + t);
-    if (p) p.style.display = 'none';
-  });
-  var btn = document.getElementById('tab-btn-' + tab);
-  if (btn) btn.classList.add('active');
-  var panel = document.getElementById('panel-' + tab);
-  if (panel) panel.style.display = 'block';
-  profActivaTab = tab;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function limpiarFormularioProf(tab) {
-  var panel = document.getElementById('panel-' + tab);
-  if (!panel) return;
-  panel.querySelectorAll('input, select, textarea').forEach(function(el) { el.value = ''; });
-  panel.querySelectorAll('.tag.sel').forEach(function(t) { t.classList.remove('sel'); });
-  var prefix = getSpecByTab(tab).prefix;
-  var res = document.getElementById(prefix + '-resultado');
-  if (res) res.innerHTML = '';
-}
-
-function recopilarDatosProf(tab) {
-  function g(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-  if (tab === 'fono') return {
-    especialidad:'Fonoaudiología', edad:g('fo-edad'), sexo:g('fo-sexo'), fase:g('fo-fase'),
-    dx_medico:g('fo-dx_medico'), dx_fisio:g('fo-dx_fisio'), evolucion:g('fo-evolucion'),
-    area_principal:g('fo-area'), consistencia:g('fo-consistencia'), aspiracion:g('fo-aspiracion'),
-    fase_oral:g('fo-fase-oral'), fase_faringe:g('fo-fase-faringe'), alimentacion:g('fo-alimentacion'),
-    eat10:g('fo-eat10'), comprension:g('fo-comprension'), expresion:g('fo-expresion'),
-    afasia:g('fo-afasia'), disartria:g('fo-disartria'), inteligibilidad:g('fo-inteligibilidad'),
-    voz:g('fo-voz'), caa:g('fo-caa'), escalas:g('fo-escalas'),
-    objetivos_px:g('fo-objetivos_px'), contexto:g('fo-contexto'),
-    frecuencia:g('fo-frecuencia'), adicional:g('fo-adicional')
-  };
-  if (tab === 'to') {
-    var roles = [];
-    document.querySelectorAll('#panel-to .tag.sel').forEach(function(t) { roles.push(t.dataset.val || t.textContent); });
-    return {
-      especialidad:'Terapia Ocupacional', edad:g('to-edad'), sexo:g('to-sexo'), fase:g('to-fase'),
-      dx_medico:g('to-dx_medico'), dx_fisio:g('to-dx_fisio'), evolucion:g('to-evolucion'),
-      roles:roles.join(', '), avd_basicas:g('to-avd-basicas'), aivd:g('to-aivd'),
-      fim:g('to-fim'), avd_detalle:g('to-avd-detalle'), mano:g('to-mano'),
-      coordinacion:g('to-coordinacion'), cognicion:g('to-cognicion'), percepcion:g('to-percepcion'),
-      dolor:g('to-dolor'), fatiga:g('to-fatiga'), barreras:g('to-barreras'),
-      ayudas:g('to-ayudas'), retorno:g('to-retorno'), objetivos_px:g('to-objetivos_px'),
-      contexto:g('to-contexto'), frecuencia:g('to-frecuencia'), adicional:g('to-adicional')
-    };
-  }
-  if (tab === 'psico') return {
-    especialidad:'Psicología', edad:g('ps-edad'), sexo:g('ps-sexo'), escolaridad:g('ps-escolaridad'),
-    dx_medico:g('ps-dx_medico'), motivo:g('ps-motivo'), evolucion:g('ps-evolucion'),
-    animo:g('ps-animo'), phq9:g('ps-phq9'), gad7:g('ps-gad7'),
-    suicidio:g('ps-suicidio'), sueno:g('ps-sueno'), apetito:g('ps-apetito'),
-    adaptacion:g('ps-adaptacion'), afrontamiento:g('ps-afrontamiento'), adherencia:g('ps-adherencia'),
-    apoyo:g('ps-apoyo'), antecedentes:g('ps-antecedentes'), medicacion:g('ps-medicacion'),
-    impacto:g('ps-impacto'), perdidas:g('ps-perdidas'), fortalezas:g('ps-fortalezas'),
-    objetivos_px:g('ps-objetivos_px'), frecuencia:g('ps-frecuencia'), adicional:g('ps-adicional')
-  };
-  return {};
-}
-
-function buildPromptProf(tab, d) {
-  if (tab === 'fono') return 'Eres un asistente clinico especializado en fonoaudiologia. Genera un plan de tratamiento fonoaudiologico completo, basado en evidencia, en espanol colombiano.\n\nDATOS DE EVALUACION:\nPaciente: ' + (d.edad||'N/E') + ' anos, ' + (d.sexo||'N/E') + '\nDiagnostico medico: ' + (d.dx_medico||'N/E') + '\nDiagnostico fonoaudiologico: ' + (d.dx_fisio||'N/E') + '\nFase clinica: ' + (d.fase||'N/E') + ' | Evolucion: ' + (d.evolucion||'N/E') + '\nArea principal: ' + (d.area_principal||'N/E') + '\nDEGLUCION: Consistencia tolerada: ' + (d.consistencia||'N/E') + ' | Aspiracion: ' + (d.aspiracion||'N/E') + ' | Fase oral: ' + (d.fase_oral||'N/E') + ' | Fase faringea: ' + (d.fase_faringe||'N/E') + ' | Alimentacion: ' + (d.alimentacion||'N/E') + ' | EAT-10: ' + (d.eat10||'N/E') + '\nLENGUAJE: Comprension: ' + (d.comprension||'N/E') + ' | Expresion: ' + (d.expresion||'N/E') + ' | Afasia: ' + (d.afasia||'N/E') + '\nHABLA: Disartria: ' + (d.disartria||'N/E') + ' | Inteligibilidad: ' + (d.inteligibilidad||'N/E') + ' | Voz: ' + (d.voz||'N/E') + '\nCAA: ' + (d.caa||'Ninguna') + ' | Escalas: ' + (d.escalas||'N/E') + '\nObjetivos del paciente: ' + (d.objetivos_px||'N/E') + '\nContexto: ' + (d.contexto||'N/E') + ' | Frecuencia: ' + (d.frecuencia||'N/E') + '\n\nGenera el plan con secciones: PLAN DE TRATAMIENTO FONOAUDIOLOGICO, PRONOSTICO, OBJETIVOS TERAPEUTICOS (corto/mediano/largo plazo SMART), PLAN DE INTERVENCION (tecnicas con evidencia ASHA/RCSLT/Cochrane, frecuencia, indicadores), CONSIDERACIONES ESPECIALES, REFERENCIAS DE EVIDENCIA. Usa formato markdown con **negritas** y separadores ---.\n\nAl final incluye: Advertencia: Este plan fue generado por IA como apoyo clinico. Debe ser revisado por el fonoaudiologo tratante antes de aplicarse.';
-  if (tab === 'to') return 'Eres un asistente clinico especializado en terapia ocupacional. Genera un plan de tratamiento ocupacional completo, basado en evidencia, en espanol colombiano.\n\nDATOS DE EVALUACION:\nPaciente: ' + (d.edad||'N/E') + ' anos, ' + (d.sexo||'N/E') + '\nDiagnostico medico: ' + (d.dx_medico||'N/E') + '\nDiagnostico ocupacional: ' + (d.dx_fisio||'N/E') + '\nFase clinica: ' + (d.fase||'N/E') + ' | Evolucion: ' + (d.evolucion||'N/E') + '\nRoles ocupacionales: ' + (d.roles||'N/E') + '\nAVD basicas: ' + (d.avd_basicas||'N/E') + ' | AIVD: ' + (d.aivd||'N/E') + ' | FIM: ' + (d.fim||'N/E') + '\nAVD comprometidas: ' + (d.avd_detalle||'N/E') + '\nFuncion mano dominante: ' + (d.mano||'N/E') + ' | Coordinacion fina: ' + (d.coordinacion||'N/E') + '\nCognicion funcional: ' + (d.cognicion||'N/E') + ' | Percepcion/praxis: ' + (d.percepcion||'N/E') + '\nDolor: ' + (d.dolor||'N/E') + '/10 | Fatiga: ' + (d.fatiga||'N/E') + '/10\nBarreras entorno: ' + (d.barreras||'N/E') + ' | Ayudas tecnicas: ' + (d.ayudas||'N/E') + '\nRetorno trabajo/escuela: ' + (d.retorno||'N/E') + '\nObjetivos del paciente: ' + (d.objetivos_px||'N/E') + '\nContexto: ' + (d.contexto||'N/E') + ' | Frecuencia: ' + (d.frecuencia||'N/E') + '\n\nGenera el plan con secciones: PLAN DE TRATAMIENTO TERAPIA OCUPACIONAL, PERFIL OCUPACIONAL, PRONOSTICO, OBJETIVOS TERAPEUTICOS (centrados en participacion, SMART), PLAN DE INTERVENCION (abordaje MOHO/AOTA, evidencia, frecuencia), ADAPTACIONES Y TECNOLOGIA DE APOYO, CONSIDERACIONES ESPECIALES, REFERENCIAS DE EVIDENCIA. Usa formato markdown con **negritas** y separadores ---.\n\nAl final incluye: Advertencia: Este plan fue generado por IA. Debe ser revisado por el terapeuta ocupacional antes de aplicarse.';
-  if (tab === 'psico') return 'Eres un asistente clinico de apoyo a psicologos en rehabilitacion. Genera un plan de intervencion psicologica completo, basado en evidencia, en espanol colombiano. Incluye una seccion de hallazgos para compartir con el equipo interdisciplinario respetando la confidencialidad.\n\nDATOS DE EVALUACION:\nPaciente: ' + (d.edad||'N/E') + ' anos, ' + (d.sexo||'N/E') + ' | Escolaridad: ' + (d.escolaridad||'N/E') + '\nDiagnostico medico de base: ' + (d.dx_medico||'N/E') + '\nMotivo de interconsulta: ' + (d.motivo||'N/E') + '\nEvolucion: ' + (d.evolucion||'N/E') + '\nEstado de animo: ' + (d.animo||'N/E') + ' | PHQ-9: ' + (d.phq9||'N/E') + ' | GAD-7: ' + (d.gad7||'N/E') + '\nIdeacion suicida: ' + (d.suicidio||'N/E') + ' | Sueno: ' + (d.sueno||'N/E') + ' | Apetito: ' + (d.apetito||'N/E') + '\nAdaptacion al diagnostico: ' + (d.adaptacion||'N/E') + '\nAfrontamiento: ' + (d.afrontamiento||'N/E') + ' | Adherencia: ' + (d.adherencia||'N/E') + '\nRed de apoyo: ' + (d.apoyo||'N/E') + ' | Antecedentes: ' + (d.antecedentes||'N/E') + '\nMedicacion psicoactiva: ' + (d.medicacion||'N/E') + '\nImpacto en rehabilitacion: ' + (d.impacto||'N/E') + '\nPerdidas: ' + (d.perdidas||'N/E') + ' | Fortalezas: ' + (d.fortalezas||'N/E') + '\nObjetivos del paciente: ' + (d.objetivos_px||'N/E') + '\nFrecuencia: ' + (d.frecuencia||'N/E') + '\n\nGenera el plan con secciones: PLAN DE INTERVENCION PSICOLOGICA, PRONOSTICO (factores protectores y de riesgo), OBJETIVOS TERAPEUTICOS (SMART), PLAN DE INTERVENCION (TCC/ACT/EM con evidencia APA/Cochrane), IMPACTO SOBRE OTRAS AREAS (para el equipo), CONSIDERACIONES ESPECIALES (riesgo en terminos generales, derivacion psiquiatrica), REFERENCIAS DE EVIDENCIA. Usa formato markdown con **negritas** y separadores ---.\n\nAl final incluye: Advertencia: Este plan fue generado por IA. El psicologo debe revisar todo antes de cualquier uso clinico. La informacion sensible debe manejarse con los protocolos de confidencialidad de la institucion.';
-  return '';
-}
-
-async function generarPlanProfesion(tab) {
-  var cfg = getSpecByTab(tab);
-  var d = recopilarDatosProf(tab);
-  var prefix = cfg.prefix;
-  if (!d.dx_medico && !d.dx_fisio && !d.motivo) {
-    showToast('Por favor ingresa al menos el diagnóstico o motivo de consulta.', 'warn');
-    return;
-  }
-  var btn = document.getElementById(prefix + '-btn-gen');
-  if (btn) { btn.disabled = true; btn.textContent = 'Generando plan...'; }
-  var resEl = document.getElementById(prefix + '-resultado');
-  if (resEl) resEl.innerHTML = '<div class="loading-card"><div class="spinner-wrap"><div class="spinner-bg"></div><div class="spinner" style="border-top-color:' + cfg.color + '"></div></div><div class="loading-title">Generando plan de ' + cfg.label + '...</div><div class="loading-sub">Analizando hallazgos y generando recomendaciones basadas en evidencia</div></div>';
-  try {
-    var prompt = buildPromptProf(tab, d);
-    var resp = await fetch('/api/generar-plan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt: prompt}) });
-    var data = await resp.json();
-    var planTexto = data.plan || '';
-    var html = planTexto.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">');
-    if (resEl) resEl.innerHTML = '<div class="result-card"><div class="result-header"><div class="result-header-left"><div class="result-dot" style="background:' + cfg.color + '"></div><span class="result-label">Plan generado — ' + cfg.label + '</span></div><div class="result-actions"><button class="btn-action" onclick="generarSOAPProf(\'' + tab + '\')" style="color:' + cfg.color + ';">Generar SOAP</button><button class="btn-action" onclick="imprimirPlanProf(\'' + tab + '\')">Imprimir / PDF</button><button class="btn-action" onclick="copiarPlanProf(\'' + tab + '\')">Copiar texto</button></div></div><div class="result-body" id="' + prefix + '-plan-texto">' + html + '</div></div>';
-    if (activePxId) {
-      var profDB = tab === 'to' ? 'terapia_ocupacional' : tab === 'psico' ? 'psicologia' : 'fonoaudiologia';
-      guardarPlanEnDB(activePxId, profDB, planTexto, d);
-    }
-    var h = getHistorial();
-    h.unshift({ id:Date.now(), fecha:new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}), hora:new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}), tab:tab, especialidad:cfg.label, color:cfg.color, light:cfg.light, dx_medico:d.dx_medico||d.motivo||'', dx_fisio:d.dx_fisio||'', edad:d.edad, sexo:d.sexo, plan:planTexto });
-    if (h.length > 50) h.splice(50);
-    localStorage.setItem('fisioIA_historial', JSON.stringify(h));
-  } catch(e) {
-    if (resEl) resEl.innerHTML = '<div style="color:#DC2626;padding:1rem;">Error al generar el plan. Verifica tu conexion e intenta nuevamente.</div>';
-  }
-  if (btn) { btn.disabled = false; btn.textContent = 'Generar plan de ' + cfg.label.toLowerCase(); }
-}
-
-function copiarPlanProf(tab) {
-  var el = document.getElementById(getSpecByTab(tab).prefix + '-plan-texto');
-  if (!el) return;
-  navigator.clipboard.writeText(el.innerText);
-  showToast('Plan copiado al portapapeles.', 'ok');
-}
-
-function imprimirPlanProf(tab) {
-  var cfg = getSpecByTab(tab);
-  var planEl = document.getElementById(cfg.prefix + '-plan-texto');
-  if (!planEl) return;
-  var win = window.open('', '_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Plan ' + cfg.label + ' - FisioIA</title><style>body{font-family:sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.7;}strong{font-weight:600;}hr{border:none;border-top:1px solid #ddd;margin:1rem 0;}</style></head><body>' + planEl.innerHTML + '<p style="font-size:11px;color:#999;margin-top:2rem;">Generado por FisioIA - Herramienta de apoyo clinico. No reemplaza el criterio profesional.</p></body></html>');
-  win.document.close();
-  win.print();
+  return profSpecConfig[tab] || specConfig[tab] || null;
 }
 
 function mostrarTabsProfesion(prof) {
   var tabsFisio = document.querySelector('.tabs-wrapper:not(#tabs-profesiones-nuevas)');
   var tabsNuevas = document.getElementById('tabs-profesiones-nuevas');
-  var panelesFisio = ['neuro','ortho','geria','pedia'];
-  if (prof === 'fonoaudiologia' || prof === 'terapia_ocupacional' || prof === 'psicologia') {
-    if (tabsFisio) tabsFisio.style.display = 'none';
-    panelesFisio.forEach(function(t) { var p = document.getElementById('panel-' + t); if (p) p.style.display = 'none'; });
-    if (tabsNuevas) tabsNuevas.style.display = 'block';
-    var tabKey = prof === 'fonoaudiologia' ? 'fono' : prof === 'terapia_ocupacional' ? 'to' : 'psico';
-    var tabBtn = document.getElementById('tab-btn-' + tabKey);
-    if (tabBtn) tabBtn.style.display = 'flex';
-    switchTabProf(tabKey);
-    // Mostrar buscador si no hay paciente activo
-    if (!activePxId) {
-      setTimeout(mostrarBuscadorPaciente, 300);
-    }
-  }
+  if (!tabsNuevas) return;
+
+  if (tabsFisio) tabsFisio.style.display = 'none';
+  ['neuro','ortho','geria','pedia'].forEach(function(t) {
+    var p = document.getElementById('panel-' + t);
+    if (p) { p.style.display = 'none'; p.classList.remove('active'); }
+  });
+
+  var tabKey = PROF_CONFIG[prof] ? PROF_CONFIG[prof].tabKey : null;
+  if (!tabKey) return;
+
+  tabsNuevas.style.display = 'block';
+  ['fono','to','psico'].forEach(function(t) {
+    var btn = document.getElementById('tab-btn-' + t);
+    var panel = document.getElementById('panel-' + t);
+    if (btn) btn.style.display = (t === tabKey) ? 'flex' : 'none';
+    if (panel) panel.style.display = (t === tabKey) ? 'block' : 'none';
+  });
+  switchTabProf(tabKey);
 }
 
+function switchTabProf(tab) {
+  document.querySelectorAll('#tabs-profesiones-nuevas .tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  var btn = document.getElementById('tab-btn-' + tab);
+  if (btn) btn.classList.add('active');
+  ['fono','to','psico'].forEach(function(t) {
+    var p = document.getElementById('panel-' + t);
+    if (p) p.classList.toggle('active', t === tab);
+  });
+}
+
+function limpiarFormularioProf(tab) {
+  if (!confirm('¿Limpiar todos los campos de este formulario?')) return;
+  var sel = '#panel-' + tab;
+  document.querySelectorAll(sel + ' input[type="text"], ' + sel + ' input[type="number"], ' + sel + ' textarea').forEach(function(el){ el.value = ''; });
+  document.querySelectorAll(sel + ' select').forEach(function(el){ el.selectedIndex = 0; });
+  document.querySelectorAll(sel + ' .tag.sel').forEach(function(el){ el.classList.remove('sel'); });
+  var prefix = profTabPrefix[tab];
+  var res = document.getElementById(prefix + '-resultado');
+  if (res) res.innerHTML = '';
+  showToast('Formulario limpiado.', 'info');
+}
+
+function recopilarDatosProf(tab) {
+  var p = profTabPrefix[tab];
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+  var gc = function(id) { var el = document.getElementById(id); return el ? el.checked : false; };
+
+  if (tab === 'fono') return {
+    especialidad: 'Fonoaudiología', edad: g('fo-edad'), sexo: g('fo-sexo'), fase: g('fo-fase'),
+    dx_medico: g('fo-dx_medico'), dx_fisio: g('fo-dx_fisio'), evolucion: g('fo-evolucion'), area: g('fo-area'),
+    consistencia: g('fo-consistencia'), aspiracion: g('fo-aspiracion'), fase_oral: g('fo-fase-oral'),
+    fase_faringe: g('fo-fase-faringe'), alimentacion: g('fo-alimentacion'), eat10: g('fo-eat10'),
+    comprension: g('fo-comprension'), expresion: g('fo-expresion'), afasia: g('fo-afasia'),
+    disartria: g('fo-disartria'), inteligibilidad: g('fo-inteligibilidad'), voz: g('fo-voz'), caa: g('fo-caa'),
+    escalas_txt: g('fo-escalas'), objetivos_px: g('fo-objetivos_px'), contexto: g('fo-contexto'),
+    frecuencia: g('fo-frecuencia'), adicional: g('fo-adicional')
+  };
+
+  if (tab === 'to') {
+    var roles = [];
+    document.querySelectorAll('#panel-to .tag.sel').forEach(function(t) { roles.push(t.dataset.val || t.textContent.trim()); });
+    return {
+      especialidad: 'Terapia Ocupacional', edad: g('to-edad'), sexo: g('to-sexo'), fase: g('to-fase'),
+      dx_medico: g('to-dx_medico'), dx_fisio: g('to-dx_fisio'), evolucion: g('to-evolucion'),
+      roles: roles.join(', '), avd_basicas: g('to-avd-basicas'), aivd: g('to-aivd'), fim: g('to-fim'),
+      avd_detalle: g('to-avd-detalle'), mano: g('to-mano'), coordinacion: g('to-coordinacion'),
+      cognicion: g('to-cognicion'), percepcion: g('to-percepcion'), dolor: g('to-dolor'), fatiga: g('to-fatiga'),
+      barreras: g('to-barreras'), ayudas: g('to-ayudas'), retorno: g('to-retorno'),
+      objetivos_px: g('to-objetivos_px'), contexto: g('to-contexto'), frecuencia: g('to-frecuencia'), adicional: g('to-adicional')
+    };
+  }
+
+  if (tab === 'psico') return {
+    especialidad: 'Psicología', edad: g('ps-edad'), sexo: g('ps-sexo'), escolaridad: g('ps-escolaridad'),
+    dx_medico: g('ps-dx_medico'), motivo: g('ps-motivo'), evolucion: g('ps-evolucion'),
+    animo: g('ps-animo'), phq9: g('ps-phq9'), gad7: g('ps-gad7'), suicidio: g('ps-suicidio'),
+    sueno: g('ps-sueno'), apetito: g('ps-apetito'), adaptacion: g('ps-adaptacion'),
+    afrontamiento: g('ps-afrontamiento'), adherencia: g('ps-adherencia'), apoyo: g('ps-apoyo'),
+    antecedentes: g('ps-antecedentes'), medicacion: g('ps-medicacion'), impacto: g('ps-impacto'),
+    perdidas: g('ps-perdidas'), fortalezas: g('ps-fortalezas'), objetivos_px: g('ps-objetivos_px'),
+    frecuencia: g('ps-frecuencia'), adicional: g('ps-adicional'),
+    compartir: {
+      animo: gc('ps-share-animo'), adherencia: gc('ps-share-adherencia'),
+      impacto: gc('ps-share-impacto'), apoyo: gc('ps-share-apoyo'),
+      suicidio: gc('ps-share-suicidio'), antecedentes: gc('ps-share-antecedentes')
+    }
+  };
+}
+
+function buildPromptProf(tab, d) {
+  var base = 'Eres un asistente clínico especializado en ' + d.especialidad + '. Genera un plan de tratamiento completo, estructurado y basado en evidencia científica actualizada. Usa lenguaje técnico apropiado para comunicación entre profesionales de salud en Colombia. Responde en español colombiano.' + getPatientContext();
+
+  var estructura = '\nGenera el plan con EXACTAMENTE esta estructura:\n\n' +
+    '**PLAN DE INTERVENCIÓN — ' + d.especialidad.toUpperCase() + '**\n' +
+    '**Paciente:** [perfil breve]\n**Diagnóstico:** [médico + de la disciplina]\n**Fase clínica:** [fase]\n\n---\n\n' +
+    '**PRONÓSTICO**\n- Pronóstico funcional estimado: [descripción clara, realista y justificada]\n- Factores favorables: [lista]\n- Factores limitantes: [lista]\n- Tiempo estimado para objetivos principales: [rango]\n\n---\n\n' +
+    '**OBJETIVOS TERAPÉUTICOS**\nCorto plazo (semanas 1-4):\n- [Objetivo SMART]\n- [Objetivo SMART]\n\nMediano plazo (1-3 meses):\n- [Objetivo SMART]\n- [Objetivo SMART]\n\nLargo plazo (3-6+ meses):\n- [Objetivo SMART]\n\n---\n\n' +
+    '**PLAN DE INTERVENCIÓN**\nFase 1 (semanas 1-X):\nTécnicas e intervenciones:\n- [Técnica] — justificación: [evidencia]\n- [Técnica] — justificación: [evidencia]\nProgresión: [frecuencia y criterios]\nIndicadores de progreso: [cómo medir]\n\nFase 2 (semanas X-X):\nTécnicas e intervenciones:\n- [Técnica] — justificación: [evidencia]\nProgresión: [descripción]\nIndicadores de progreso: [métricas]\n\n---\n\n' +
+    '**CONSIDERACIONES ESPECIALES**\n- Precauciones y contraindicaciones: [lista]\n- Recomendaciones para cuidadores/familia: [si aplica]\n- Coordinación con otras disciplinas: [si aplica]\n\n---\n\n' +
+    '**REFERENCIAS DE EVIDENCIA**\nIncluye 5 referencias reales y verificables:\n1. [Apellido, A. (año). Título. Revista, volumen(número), páginas. DOI si existe]\n2. [...]\n3. [...]\n4. [Guía clínica o revisión sistemática]\n5. [Cochrane Database o similar]\n\nIMPORTANTE: Las referencias deben ser reales y relevantes para el diagnóstico específico.';
+
+  if (tab === 'fono') return base + '\n\nDATOS DE EVALUACIÓN FONOAUDIOLÓGICA:\n' +
+    '- Edad: ' + (d.edad||'N/E') + ' | Sexo: ' + (d.sexo||'N/E') + ' | Fase: ' + (d.fase||'N/E') + '\n' +
+    '- Diagnóstico médico: ' + (d.dx_medico||'N/E') + '\n- Diagnóstico fonoaudiológico: ' + (d.dx_fisio||'N/E') + '\n' +
+    '- Tiempo de evolución: ' + (d.evolucion||'N/E') + ' | Área principal: ' + (d.area||'N/E') + '\n\n' +
+    'DEGLUCIÓN:\n- Nivel IDDSI tolerado: ' + (d.consistencia||'N/E') + ' | Signos de aspiración: ' + (d.aspiracion||'N/E') + '\n' +
+    '- Fase oral: ' + (d.fase_oral||'N/E') + ' | Fase faríngea: ' + (d.fase_faringe||'N/E') + '\n' +
+    '- Alimentación actual: ' + (d.alimentacion||'N/E') + ' | EAT-10: ' + (d.eat10||'N/R') + '\n\n' +
+    'LENGUAJE Y COMUNICACIÓN:\n- Comprensión: ' + (d.comprension||'N/E') + ' | Expresión: ' + (d.expresion||'N/E') + '\n' +
+    '- Tipo de afasia: ' + (d.afasia||'N/E') + ' | Disartria: ' + (d.disartria||'N/E') + '\n' +
+    '- Inteligibilidad: ' + (d.inteligibilidad||'N/E') + ' | Voz: ' + (d.voz||'N/E') + ' | CAA en uso: ' + (d.caa||'Ninguna') + '\n\n' +
+    'CONTEXTO:\n- Escalas: ' + (d.escalas_txt||'No especificadas') + '\n- Objetivos: ' + (d.objetivos_px||'N/E') + '\n- Contexto: ' + (d.contexto||'N/E') + '\n- Frecuencia: ' + (d.frecuencia||'N/E') + '\n- Adicional: ' + (d.adicional||'Ninguno') +
+    estructura;
+
+  if (tab === 'to') return base + '\n\nDATOS DE EVALUACIÓN DE TERAPIA OCUPACIONAL:\n' +
+    '- Edad: ' + (d.edad||'N/E') + ' | Sexo: ' + (d.sexo||'N/E') + ' | Fase: ' + (d.fase||'N/E') + '\n' +
+    '- Diagnóstico médico: ' + (d.dx_medico||'N/E') + '\n- Diagnóstico ocupacional: ' + (d.dx_fisio||'N/E') + '\n' +
+    '- Tiempo de evolución: ' + (d.evolucion||'N/E') + ' | Roles ocupacionales: ' + (d.roles||'N/E') + '\n\n' +
+    'AVD:\n- AVD básicas: ' + (d.avd_basicas||'N/E') + ' | AIVD: ' + (d.aivd||'N/E') + ' | FIM: ' + (d.fim||'N/R') + '\n' +
+    '- Detalle AVD comprometidas: ' + (d.avd_detalle||'N/E') + '\n\n' +
+    'FUNCIÓN Y COGNICIÓN:\n- Función mano dominante: ' + (d.mano||'N/E') + ' | Coordinación fina: ' + (d.coordinacion||'N/E') + '\n' +
+    '- Cognición funcional: ' + (d.cognicion||'N/E') + ' | Percepción/praxis: ' + (d.percepcion||'N/E') + '\n' +
+    '- Dolor: ' + (d.dolor||'N/R') + '/10 | Fatiga: ' + (d.fatiga||'N/R') + '/10\n\n' +
+    'ENTORNO:\n- Barreras: ' + (d.barreras||'N/E') + ' | Ayudas técnicas: ' + (d.ayudas||'Ninguna') + ' | Retorno laboral/escolar: ' + (d.retorno||'N/A') + '\n' +
+    '- Objetivos: ' + (d.objetivos_px||'N/E') + '\n- Contexto: ' + (d.contexto||'N/E') + '\n- Frecuencia: ' + (d.frecuencia||'N/E') + '\n- Adicional: ' + (d.adicional||'Ninguno') +
+    estructura;
+
+  if (tab === 'psico') {
+    var compartirTxt = d.compartir ? Object.keys(d.compartir).filter(function(k){return d.compartir[k];}).join(', ') : '';
+    return base + '\n\nDATOS DE EVALUACIÓN PSICOLÓGICA:\n' +
+      '- Edad: ' + (d.edad||'N/E') + ' | Sexo: ' + (d.sexo||'N/E') + ' | Escolaridad: ' + (d.escolaridad||'N/E') + '\n' +
+      '- Diagnóstico médico de base: ' + (d.dx_medico||'N/E') + '\n- Motivo de consulta: ' + (d.motivo||'N/E') + '\n' +
+      '- Tiempo de evolución: ' + (d.evolucion||'N/E') + '\n\n' +
+      'ESTADO EMOCIONAL:\n- Ánimo: ' + (d.animo||'N/E') + ' | PHQ-9: ' + (d.phq9||'N/R') + ' | GAD-7: ' + (d.gad7||'N/R') + '\n' +
+      '- Ideación suicida: ' + (d.suicidio||'N/E') + ' | Sueño: ' + (d.sueno||'N/E') + ' | Apetito: ' + (d.apetito||'N/E') + '\n\n' +
+      'ADAPTACIÓN:\n- Fase de adaptación: ' + (d.adaptacion||'N/E') + ' | Afrontamiento: ' + (d.afrontamiento||'N/E') + '\n' +
+      '- Adherencia al tratamiento: ' + (d.adherencia||'N/E') + ' | Red de apoyo: ' + (d.apoyo||'N/E') + '\n' +
+      '- Antecedentes: ' + (d.antecedentes||'Ninguno') + ' | Medicación: ' + (d.medicacion||'Ninguna') + '\n\n' +
+      'IMPACTO FUNCIONAL:\n- Impacto en rehabilitación: ' + (d.impacto||'N/E') + '\n- Pérdidas: ' + (d.perdidas||'N/E') + '\n- Fortalezas: ' + (d.fortalezas||'N/E') + '\n\n' +
+      'CONTEXTO:\n- Objetivos: ' + (d.objetivos_px||'N/E') + '\n- Frecuencia: ' + (d.frecuencia||'N/E') + '\n- Adicional: ' + (d.adicional||'Ninguno') + '\n' +
+      '- [NOTA CONFIDENCIALIDAD: campos marcados para compartir con equipo interdisciplinario: ' + (compartirTxt||'ninguno') + ']' +
+      estructura;
+  }
+  return base + estructura;
+}
+
+async function generarPlanProfesion(tab) {
+  var d = recopilarDatosProf(tab);
+  var prefix = profTabPrefix[tab];
+  var cfg = getSpecByTab(tab);
+
+  if (!d.dx_medico && !d.dx_fisio && !d.motivo) {
+    showToast('Por favor ingresa al menos el diagnóstico o motivo de consulta.', 'warn');
+    return;
+  }
+
+  var btn = document.getElementById(prefix + '-btn-gen');
+  btn.disabled = true;
+  btn.textContent = 'Generando plan...';
+
+  document.getElementById(prefix + '-resultado').innerHTML =
+    '<div class="loading-card"><div class="spinner-wrap"><div class="spinner-bg"></div>' +
+    '<div class="spinner" style="border-top-color:' + cfg.color + '"></div></div>' +
+    '<div class="loading-title" style="color:' + cfg.color + '">Analizando hallazgos clínicos...</div>' +
+    '<div class="loading-sub">Generando plan de ' + cfg.label.toLowerCase() + ' basado en evidencia. Puede tomar 20-40 segundos.</div></div>';
+
+  try {
+    var texto = await fetchConReintento(buildPromptProf(tab, d), 3);
+    var html = texto
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^---$/gm, '<hr style="border:none;border-top:1px solid #E8EAED;margin:1.2rem 0;">')
+      .replace(/(https?:\/\/[\S]+)/g, '<a href="$1" target="_blank" rel="noopener" style="color:' + cfg.color + ';text-decoration:underline;word-break:break-all;">$1</a>');
+
+    document.getElementById(prefix + '-resultado').innerHTML =
+      '<div class="result-card"><div class="result-header"><div class="result-header-left">' +
+      '<div class="result-dot" style="background:' + cfg.color + '"></div>' +
+      '<span class="result-label">Plan de intervención generado</span>' +
+      '<span class="result-specialty-badge" style="background:' + cfg.light + ';color:' + cfg.color + ';border:1px solid ' + cfg.color + '33">' + cfg.label + '</span></div>' +
+      '<div class="result-actions"><button class="btn-action" onclick="imprimirPlanProf(\'' + prefix + '\',\'' + tab + '\')">Imprimir / PDF</button>' +
+      '<button class="btn-action" onclick="copiarPlan(\'' + prefix + '-plan-texto\')">Copiar texto</button></div></div>' +
+      '<div class="result-body" id="' + prefix + '-plan-texto">' + html + '</div></div>';
+
+    guardarEnHistorial(tab, d, texto);
+    guardarSesionEnPaciente(tab, d, texto);
+    if (activePxId) setTimeout(function(){ verDetalle(activePxId); }, 600);
+  } catch(e) {
+    document.getElementById(prefix + '-resultado').innerHTML = '<div class="error-card"><strong>Error al generar el plan.</strong> Verifica tu conexión e intenta nuevamente.</div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Generar plan de ' + cfg.label.toLowerCase();
+  document.getElementById(prefix + '-resultado').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copiarPlanProf(prefix) { copiarPlan(prefix + '-plan-texto'); }
+
+function imprimirPlanProf(prefix, tab) {
+  var planEl = document.getElementById(prefix + '-plan-texto');
+  if (!planEl) return;
+  var cfg = getSpecByTab(tab);
+  var now = new Date();
+  var fecha = now.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+  var ventana = window.open('', '_blank', 'width=900,height=700');
+  ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FisioIA — Plan ' + cfg.label + '</title>' +
+    '<style>body{font-family:sans-serif;padding:2rem 3rem;max-width:800px;margin:0 auto;color:#202124;line-height:1.75;}' +
+    'h2{color:' + cfg.color + ';}.badge{display:inline-block;font-size:9px;font-weight:600;padding:3px 10px;border-radius:20px;background:' + cfg.light + ';color:' + cfg.color + ';margin-bottom:14px;}' +
+    '@media print{.no-print{display:none;}}</style></head><body>' +
+    '<div class="no-print" style="text-align:right;margin-bottom:1rem;"><button onclick="window.print()">Imprimir / Guardar PDF</button></div>' +
+    '<h2>FisioIA — Plan de Intervención</h2><div class="badge">' + cfg.label + '</div>' +
+    '<p style="font-size:9pt;color:#666;">Generado el ' + fecha + '</p><hr>' +
+    planEl.innerHTML +
+    '<p style="font-size:7.5pt;color:#999;margin-top:2rem;">Documento generado con asistencia de IA como apoyo clínico. Debe ser revisado y validado por el profesional tratante.</p>' +
+    '</body></html>');
+  ventana.document.close();
+}
 </script>
 </body>
 </html>
