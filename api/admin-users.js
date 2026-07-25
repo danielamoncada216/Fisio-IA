@@ -95,10 +95,41 @@ module.exports = async function handler(req, res) {
     if (req.method === 'POST') {
       let body = req.body;
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch (e) { body = {}; } }
-      const { action, userId } = body || {};
+      const { action, userId, amount } = body || {};
 
-      if (!userId || (action !== 'ban' && action !== 'unban')) {
+      if (!userId || (action !== 'ban' && action !== 'unban' && action !== 'grantPlans')) {
         res.status(400).json({ error: 'Parámetros inválidos.' });
+        return;
+      }
+
+      if (action === 'grantPlans') {
+        // Otorga manualmente más planes gratis a un usuario (después de que la
+        // administradora confirma el pago por fuera de la app — no hay cobro
+        // automático). Suma a planes_permitidos; nunca toca planes_usados, así
+        // el conteo histórico de uso queda intacto.
+        const cantidad = Number.isInteger(amount) && amount > 0 ? amount : 30;
+        const perfilResp = await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=planes_permitidos`,
+          { headers: adminHeaders }
+        );
+        if (!perfilResp.ok) {
+          res.status(502).json({ error: 'Error al consultar el perfil del usuario.' });
+          return;
+        }
+        const perfilRows = await perfilResp.json();
+        const actual = Array.isArray(perfilRows) && perfilRows.length ? (perfilRows[0].planes_permitidos || 0) : 5;
+
+        const patchResp = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+          method: 'PATCH',
+          headers: { ...adminHeaders, Prefer: 'return=minimal' },
+          body: JSON.stringify({ planes_permitidos: actual + cantidad })
+        });
+        if (!patchResp.ok) {
+          const errText = await patchResp.text();
+          res.status(502).json({ error: 'Error al otorgar los planes.', detail: errText });
+          return;
+        }
+        res.status(200).json({ ok: true, planes_permitidos: actual + cantidad });
         return;
       }
 
