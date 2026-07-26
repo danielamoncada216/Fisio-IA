@@ -4680,19 +4680,14 @@ function seleccionarPaciente(id){
   verDetalle(id);
   var panelActivo = document.querySelector('.tab-panel.active');
   if (panelActivo) precargarDatosPaciente(panelActivo.getAttribute('data-tab'));
-  // NOTA: antes se llamaba a actualizarOverlayFlujo() siempre, lo que hacía
-  // que el aviso "Completa la historia clínica de ingreso" apareciera cada
-  // vez que se seleccionaba CUALQUIER paciente sin HC, así fuera la décima
-  // vez que se abría. Ahora ese aviso solo se dispara solo una vez, justo al
-  // crear un paciente nuevo (ver guardarPaciente()).
-  // PERO si el overlay YA está abierto (por ejemplo, pidiendo "selecciona un
-  // paciente" — paso 1) hay que refrescarlo al seleccionar uno, si no se
-  // queda congelado en pantalla bloqueando toda la app sin forma de cerrarlo
-  // (el paso 1 no tiene botón de "continuar de todas formas").
-  var overlayFlujo = document.getElementById('flujo-overlay');
-  if (overlayFlujo && overlayFlujo.style.display !== 'none') {
-    setTimeout(actualizarOverlayFlujo, 300);
-  }
+  // A pedido: seleccionar un paciente YA EXISTENTE nunca debe pedir completar
+  // la historia clínica, tenga o no tenga una guardada — ese aviso es solo
+  // para pacientes recién creados (ver guardarPaciente(), que llama a
+  // actualizarOverlayFlujo() aparte, con el chequeo de HC, solo para ese
+  // caso). Aquí simplemente se cierra el aviso si estaba abierto (por
+  // ejemplo, en el paso 1 pidiendo elegir un paciente) — así nunca se queda
+  // congelado en pantalla bloqueando la app.
+  ocultarOverlayFlujo();
 }
 
 function desactivarPaciente(){
@@ -6429,7 +6424,7 @@ function mostrarOverlayFlujo(paso) {
   var desc = document.getElementById('flujo-desc');
 
   if (paso === 1) {
-    titulo.textContent = 'Selecciona o crea un paciente';
+    titulo.textContent = '¡Hola! Selecciona tu paciente o créalo';
     desc.textContent = 'Para generar un plan de tratamiento, primero necesitas un paciente activo.';
     btnAccion.textContent = 'Seleccionar paciente';
     btnAccion.onclick = function() { abrirPacientes(); };
