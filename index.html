@@ -4453,6 +4453,33 @@ async function deletePacienteDB(id){
   }catch(e){return false;}
 }
 
+// Esta función ya existía (deletePacienteDB) pero no estaba conectada a ningún
+// botón — no había forma de borrar un paciente desde la interfaz. Este es el
+// punto de entrada real, con confirmación explícita porque es irreversible.
+async function eliminarPacienteDefinitivo(pxId) {
+  var px = getPacientes();
+  var p = px.find(function(x) { return x.id === pxId; });
+  if (!p) return;
+
+  var confirmado = confirm(
+    '¿Eliminar a ' + p.nombre + ' de forma permanente?\n\n' +
+    'Se borrará su ficha y las sesiones registradas. Esta acción no se puede deshacer.'
+  );
+  if (!confirmado) return;
+
+  var ok = await deletePacienteDB(pxId);
+  if (!ok) {
+    showToast('No se pudo eliminar. Verifica tu conexión e intenta de nuevo.', 'err');
+    return;
+  }
+
+  if (activePxId === pxId) activePxId = null;
+  savePacientes(px.filter(function(x) { return x.id !== pxId; }));
+  cerrarDetalle();
+  renderPxList();
+  showToast('Paciente eliminado.', 'ok');
+}
+
 // Local cache for performance
 var pacientesCache=[];
 function getPacientes(){return pacientesCache;}
@@ -4728,6 +4755,7 @@ function verDetalle(id){
       '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#534AB7;" onclick="abrirEpicrisis(\''+esc(id)+'\')" title="Epicrisis (nota de alta)">🏁</button><span class="pd-rail-label">Epicrisis</span></div>'+
       '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#202124;" onclick="exportarHCpdf(\''+esc(id)+'\')" title="Exportar historia clínica en PDF">📥</button><span class="pd-rail-label">PDF</span></div>'+
       '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#9CA3AF;" onclick="abrirModalPaciente(\''+esc(id)+'\')" title="Editar datos del paciente">✏️</button><span class="pd-rail-label">Editar</span></div>'+
+      '<div class="pd-rail-item"><button class="pd-rail-btn" style="background:#C53030;" onclick="eliminarPacienteDefinitivo(\''+esc(id)+'\')" title="Eliminar paciente permanentemente">🗑️</button><span class="pd-rail-label">Eliminar</span></div>'+
     '</div>'+
     '</div>';
 
