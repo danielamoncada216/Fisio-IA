@@ -5345,6 +5345,15 @@ function cerrarSesion() {
   sessionStorage.removeItem('fisioIA_email');
   sessionStorage.removeItem('fisioIA_expires');
   sessionStorage.removeItem('fisioIA_profession');
+  // REGRESIÓN (2026-07-26, reportada por la usuaria): cerrar sesión no
+  // limpiaba el paciente activo ni la caché local de pacientes, así que al
+  // iniciar sesión con OTRA cuenta (sin recargar la página) se seguía viendo
+  // el paciente de la sesión anterior hasta seleccionar uno nuevo. No es una
+  // fuga de datos entre cuentas en la base de datos (Supabase/RLS siguen
+  // aislando correctamente cada cuenta) — es que la vista nunca se reiniciaba.
+  desactivarPaciente();
+  pacientesCache = [];
+  ['neuro','ortho','geria','pedia'].forEach(limpiarCamposFormulario);
   resetearUIprofesion();
   document.getElementById('login-screen').classList.remove('hidden');
   showAuthTab('login');
