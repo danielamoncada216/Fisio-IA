@@ -4680,12 +4680,19 @@ function seleccionarPaciente(id){
   verDetalle(id);
   var panelActivo = document.querySelector('.tab-panel.active');
   if (panelActivo) precargarDatosPaciente(panelActivo.getAttribute('data-tab'));
-  // NOTA: aquí antes se llamaba a actualizarOverlayFlujo() siempre, lo que
-  // hacía que el aviso "Completa la historia clínica de ingreso" apareciera
-  // cada vez que se seleccionaba CUALQUIER paciente sin HC, así fuera la
-  // décima vez que se abría. Ahora ese aviso solo se dispara una vez, justo
-  // al crear un paciente nuevo (ver guardarPaciente()) — reabrir un paciente
-  // ya existente no lo vuelve a mostrar solo.
+  // NOTA: antes se llamaba a actualizarOverlayFlujo() siempre, lo que hacía
+  // que el aviso "Completa la historia clínica de ingreso" apareciera cada
+  // vez que se seleccionaba CUALQUIER paciente sin HC, así fuera la décima
+  // vez que se abría. Ahora ese aviso solo se dispara solo una vez, justo al
+  // crear un paciente nuevo (ver guardarPaciente()).
+  // PERO si el overlay YA está abierto (por ejemplo, pidiendo "selecciona un
+  // paciente" — paso 1) hay que refrescarlo al seleccionar uno, si no se
+  // queda congelado en pantalla bloqueando toda la app sin forma de cerrarlo
+  // (el paso 1 no tiene botón de "continuar de todas formas").
+  var overlayFlujo = document.getElementById('flujo-overlay');
+  if (overlayFlujo && overlayFlujo.style.display !== 'none') {
+    setTimeout(actualizarOverlayFlujo, 300);
+  }
 }
 
 function desactivarPaciente(){
