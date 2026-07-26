@@ -2,12 +2,14 @@
   "version": 2,
   "builds": [
     { "src": "api/generar-plan.js", "use": "@vercel/node" },
+    { "src": "api/admin-users.js", "use": "@vercel/node" },
     { "src": "sw.js", "use": "@vercel/static" },
     { "src": "manifest.json", "use": "@vercel/static" },
     { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/generar-plan", "dest": "/api/generar-plan.js" },
+    { "src": "/api/admin-users", "dest": "/api/admin-users.js" },
     { "src": "/sw.js", "dest": "/sw.js" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/(.*)", "dest": "/index.html" }
