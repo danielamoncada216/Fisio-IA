@@ -4680,7 +4680,12 @@ function seleccionarPaciente(id){
   verDetalle(id);
   var panelActivo = document.querySelector('.tab-panel.active');
   if (panelActivo) precargarDatosPaciente(panelActivo.getAttribute('data-tab'));
-  setTimeout(actualizarOverlayFlujo, 300);
+  // NOTA: aquí antes se llamaba a actualizarOverlayFlujo() siempre, lo que
+  // hacía que el aviso "Completa la historia clínica de ingreso" apareciera
+  // cada vez que se seleccionaba CUALQUIER paciente sin HC, así fuera la
+  // décima vez que se abría. Ahora ese aviso solo se dispara una vez, justo
+  // al crear un paciente nuevo (ver guardarPaciente()) — reabrir un paciente
+  // ya existente no lo vuelve a mostrar solo.
 }
 
 function desactivarPaciente(){
@@ -4710,13 +4715,17 @@ function verDetalle(id){
       var s=rev[i],num=ses.length-i;
       var profCfg=PROF_CONFIG[s.profession]||PROF_CONFIG.fisioterapia;
       var dotClass=s.tipo==='manual'?'manual':s.tipo==='reval'?'reval':'sesion';
+      // A pedido: las sesiones creadas al generar un plan (tipo "valoracion")
+      // muestran "Valoración" en el título — antes solo decían la especialidad,
+      // sin dejar claro que ese registro viene de una evaluación completa.
+      var prefijoTipo=s.tipo==='valoracion'?'Valoración · ':'';
       var planSafe=(s.plan||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       planSafe=planSafe.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
       tlHTML+='<div class="tl-item"><div class="tl-dot '+dotClass+'"></div>'+
         '<div class="tl-card">'+
           '<div class="tl-card-header" onclick="toggleTL(\'tl-'+esc(s.id)+'\')">'+
             '<div class="tl-card-left"><div>'+
-              '<div class="tl-title">'+esc(s.especialidad||'Sesión')+' — #'+num+'</div>'+
+              '<div class="tl-title">'+prefijoTipo+esc(s.especialidad||'Sesión')+' — #'+num+'</div>'+
               '<div class="tl-sub">'+esc(s.dx||s.dx_medico||'')+'</div>'+
             '</div></div>'+
             '<span class="tl-date">'+esc(s.fecha)+'</span>'+
@@ -4864,6 +4873,7 @@ function eliminarSesion(pxId,sesId){
 
 function guardarSesionEnPaciente(tab, datos, planTexto) {
   if (!activePxId) return;
+  var esReval = (tab === 'reval');
   var cfg = specConfig[tab] || getSpecByTab(tab);
   var px = getPacientes();
   var p = px.find(function(x) { return x.id === activePxId; });
@@ -4874,10 +4884,16 @@ function guardarSesionEnPaciente(tab, datos, planTexto) {
     id: Date.now().toString(),
     fecha: new Date().toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}),
     tab: tab,
-    especialidad: cfg ? cfg.label : tab,
+    // Antes, una revaluación quedaba con especialidad literal "reval" (el
+    // nombre interno de la pestaña) en vez de un texto legible.
+    especialidad: esReval ? 'Revaluación' : (cfg ? cfg.label : tab),
     color: cfg ? cfg.color : '#0F6E56',
     dx: datos.dx_medico || datos.dx_fisio || datos.motivo || '',
-    plan: planTexto
+    plan: planTexto,
+    // A pedido: cada plan generado desde un formulario de evaluación queda
+    // marcado como "valoración" en la línea de tiempo del paciente, para
+    // diferenciarlo de una sesión registrada a mano o de una revaluación.
+    tipo: esReval ? 'reval' : 'valoracion'
   };
   p.sesiones.push(sesionLocal);
   // FIX: recalcular el contador visible a partir del número real de sesiones
@@ -5026,10 +5042,16 @@ async function guardarPaciente(){
     ok = d.user_id ? await savePacienteDB(d) : false;
     if(ok){var px2=getPacientes();px2.unshift(d);savePacientes(px2);}
   }
+  var esPacienteNuevo = !editingPxId;
   if(btn){btn.disabled=false;btn.textContent='Guardar paciente';}
   if(!ok){showToast('Error al guardar. Verifica tu conexión.', 'err');return;}
   cerrarModalPaciente();renderPxList();
   seleccionarPaciente(editingPxId||d.id);
+  // El aviso de "completa la historia clínica" solo se muestra solo, sin que
+  // se pida, la primera vez — justo al terminar de crear el paciente. Volver
+  // a seleccionar este mismo paciente más adelante no lo repite (ver nota en
+  // seleccionarPaciente()).
+  if (esPacienteNuevo) setTimeout(actualizarOverlayFlujo, 300);
 }
 
 // ─── SUPABASE AUTH ────────────────────────────────────────────────────────────
@@ -5704,6 +5726,14 @@ function abrirHC(pxId) {
   // volver a escribirlo desde cero.
   var dxProfCampo = document.getElementById('hc-dx-prof');
   if (dxProfCampo && !dxProfCampo.value && p.diagnostico) dxProfCampo.value = p.diagnostico;
+  // Mismo criterio para "Diagnóstico médico (CIE-10)": ya se escribió al
+  // crear el paciente, no tiene sentido pedirlo de nuevo en blanco.
+  var cie10Campo = document.getElementById('hc-cie10');
+  if (cie10Campo && !cie10Campo.value && p.diagnostico) cie10Campo.value = p.diagnostico;
+  // Y "Antecedentes personales" parte de las notas ya registradas, si había
+  // algo escrito ahí — sigue siendo editable, es solo un punto de partida.
+  var antPersCampo = document.getElementById('hc-ant-personales');
+  if (antPersCampo && !antPersCampo.value && p.notas) antPersCampo.value = p.notas;
   document.getElementById('hc-ia-resultado').style.display = 'none';
   document.getElementById('hc-ia-resultado').innerHTML = '';
   document.getElementById('hc-modal-overlay').classList.add('open');
