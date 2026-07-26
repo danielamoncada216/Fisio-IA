@@ -1893,7 +1893,7 @@
         <label>Tono muscular</label>
         <div class="grid2" style="margin-bottom:8px;">
           <div>
-            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Hemicuerpo / segmento afectado</label>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Hemicuerpo derecho</label>
             <select id="n-tono">
               <option value="">Seleccionar</option>
               <option>Normal</option>
@@ -1907,7 +1907,7 @@
             </select>
           </div>
           <div>
-            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Hemicuerpo / segmento no afectado</label>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Hemicuerpo izquierdo</label>
             <select id="n-tono-contra">
               <option value="">Seleccionar</option>
               <option>Normal</option>
@@ -1928,7 +1928,7 @@
         <label>Fuerza muscular — Escala MRC Modificada (incluye +)</label>
         <div class="grid2" style="margin-bottom:8px;">
           <div>
-            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro superior afectado</label>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro superior derecho</label>
             <select id="n-fuerza-ms-afect">
               <option value="">Seleccionar</option>
               <option>0 — Sin contracción</option>
@@ -1946,7 +1946,7 @@
             </select>
           </div>
           <div>
-            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro superior no afectado</label>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro superior izquierdo</label>
             <select id="n-fuerza-ms-no">
               <option value="">Seleccionar</option>
               <option>0 — Sin contracción</option>
@@ -1966,7 +1966,7 @@
         </div>
         <div class="grid2" style="margin-bottom:8px;">
           <div>
-            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro inferior afectado</label>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro inferior derecho</label>
             <select id="n-fuerza-mi-afect">
               <option value="">Seleccionar</option>
               <option>0 — Sin contracción</option>
@@ -1984,7 +1984,7 @@
             </select>
           </div>
           <div>
-            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro inferior no afectado</label>
+            <label style="font-size:11px;color:var(--gray-400);margin-bottom:4px;display:block;">Miembro inferior izquierdo</label>
             <select id="n-fuerza-mi-no">
               <option value="">Seleccionar</option>
               <option>0 — Sin contracción</option>
@@ -3199,6 +3199,43 @@ function switchTab(tab) {
   document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
   document.getElementById(`panel-${tab}`).classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  precargarDatosPaciente(tab);
+}
+
+// ─── PRECARGAR DATOS DEL PACIENTE EN EL FORMULARIO DE EVALUACIÓN ─────────────
+// Antes: crear un paciente pedía edad/sexo/diagnóstico/meta funcional, y el
+// formulario de evaluación (neuro/ortho/geria/pedia) volvía a pedir esos
+// mismos datos desde cero, sin ninguna relación entre los dos. Esta función
+// copia lo que ya se sabe del paciente activo hacia el formulario, sin pisar
+// nada que la persona ya haya escrito (solo llena campos vacíos). Solo aplica
+// a neuro/ortho/geria/pedia (tabPrefix) — fono/TO/psicología tienen su propio
+// flujo y no se tocan aquí.
+function precargarDatosPaciente(tab) {
+  if (!activePxId) return;
+  var prefix = tabPrefix[tab];
+  if (!prefix) return;
+  var p = getPacientes().find(function(x){ return x.id === activePxId; });
+  if (!p) return;
+
+  var edadCampo = document.getElementById(prefix + '-edad');
+  if (edadCampo && !edadCampo.value) {
+    var edadTexto = calcEdad(p.nacimiento); // ej. "61 años", o '' si no hay fecha
+    if (edadTexto) {
+      edadCampo.value = (edadCampo.type === 'number') ? edadTexto.replace(/[^0-9]/g, '') : edadTexto;
+    }
+  }
+
+  var sexoCampo = document.getElementById(prefix + '-sexo');
+  if (sexoCampo && !sexoCampo.value && p.sexo) sexoCampo.value = p.sexo;
+
+  // Diagnóstico MÉDICO (el de "Nuevo paciente") sí se precarga — es el mismo
+  // dato. El diagnóstico FISIOTERAPÉUTICO es un juicio clínico distinto y no
+  // se toca: cada evaluación puede llegar a una impresión diferente.
+  var dxCampo = document.getElementById(prefix + '-dx_medico');
+  if (dxCampo && !dxCampo.value && p.diagnostico) dxCampo.value = p.diagnostico;
+
+  var objCampo = document.getElementById(prefix + '-objetivos_px');
+  if (objCampo && !objCampo.value && p.meta) objCampo.value = p.meta;
 }
 
 // ─── DATA COLLECTION ─────────────────────────────────────────────────────────
@@ -3344,8 +3381,8 @@ Incluye 5 referencias reales y verificables en este formato exacto:
 IMPORTANTE: Las referencias deben ser reales, publicadas y relevantes para el diagnóstico específico del paciente. Incluye el DOI cuando sea posible para que el profesional pueda verificarlas.`;
 
   if (tab === 'neuro') {
-    const tonoTxt = 'Segmento afectado: ' + (d.tono_afect||'N/E') + ' | Segmento no afectado: ' + (d.tono_contra||'N/E') + (d.tono_zona ? (' | Zona: ' + d.tono_zona) : '');
-    const fuerzaTxt = 'MS afectado: ' + (d.fuerza_ms_afect||'N/E') + ' | MS no afectado: ' + (d.fuerza_ms_no||'N/E') + ' | MI afectado: ' + (d.fuerza_mi_afect||'N/E') + ' | MI no afectado: ' + (d.fuerza_mi_no||'N/E') + (d.fuerza_detalle ? (' | Detalle: ' + d.fuerza_detalle) : '');
+    const tonoTxt = 'Hemicuerpo derecho: ' + (d.tono_afect||'N/E') + ' | Hemicuerpo izquierdo: ' + (d.tono_contra||'N/E') + (d.tono_zona ? (' | Segmentos con más compromiso: ' + d.tono_zona) : '');
+    const fuerzaTxt = 'MS derecho: ' + (d.fuerza_ms_afect||'N/E') + ' | MS izquierdo: ' + (d.fuerza_ms_no||'N/E') + ' | MI derecho: ' + (d.fuerza_mi_afect||'N/E') + ' | MI izquierdo: ' + (d.fuerza_mi_no||'N/E') + (d.fuerza_detalle ? (' | Detalle: ' + d.fuerza_detalle) : '');
     return `${base}
 
 DATOS DE EVALUACIÓN NEUROLÓGICA:
@@ -3354,7 +3391,10 @@ DATOS DE EVALUACIÓN NEUROLÓGICA:
 - Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
 - Tiempo de evolución: ${d.evolucion||'N/E'}
 
-HALLAZGOS CLÍNICOS:
+HALLAZGOS CLÍNICOS (tono y fuerza se reportan por lado anatómico — derecho e
+izquierdo — no como "afectado/no afectado": determina tú, a partir de los
+valores de cada lado, la escala aplicada y el diagnóstico, cuál es el
+hemicuerpo comprometido y descríbelo explícitamente en el plan):
 - Tono muscular: ${tonoTxt}
 - Fuerza muscular (MRC modificada): ${fuerzaTxt}
 - Control postural / Equilibrio: ${d.equilibrio||'N/E'}
@@ -4616,6 +4656,7 @@ async function cargarPacientes() {
 }
 
 function seleccionarPaciente(id){
+  var idAnterior=activePxId;
   activePxId=id;
   var p=getPacientes().find(function(px){return px.id===id;});
   if(!p)return;
@@ -4628,7 +4669,17 @@ function seleccionarPaciente(id){
   if(p.id){
     renderEquipoPaciente(p.id);
   }
+  // Si se cambió a un paciente distinto (no solo se reabrió el mismo), se
+  // limpian los 4 formularios de fisioterapia antes de precargar — sin esto,
+  // los datos del paciente anterior se quedaban mezclados con los del nuevo
+  // (la precarga solo llena campos vacíos, así que un dato viejo nunca se
+  // reemplazaba solo).
+  if (idAnterior !== id) {
+    ['neuro','ortho','geria','pedia'].forEach(limpiarCamposFormulario);
+  }
   verDetalle(id);
+  var panelActivo = document.querySelector('.tab-panel.active');
+  if (panelActivo) precargarDatosPaciente(panelActivo.getAttribute('data-tab'));
   setTimeout(actualizarOverlayFlujo, 300);
 }
 
@@ -5336,9 +5387,9 @@ async function generarSOAP(tab, prefix, d) {
   if (tab === 'neuro') {
     // FIX CRÍTICO: usar los mismos campos segmentados correctos que construirPrompt,
     // en vez de los antiguos d.tono / d.fuerza que ya no existen en el objeto de datos.
-    const tonoTxt = 'Segmento afectado: ' + (d.tono_afect||'N/E') + ' | Segmento no afectado: ' + (d.tono_contra||'N/E') + (d.tono_zona ? (' | Zona: ' + d.tono_zona) : '');
-    const fuerzaTxt = 'MS afectado: ' + (d.fuerza_ms_afect||'N/E') + ' | MS no afectado: ' + (d.fuerza_ms_no||'N/E') + ' | MI afectado: ' + (d.fuerza_mi_afect||'N/E') + ' | MI no afectado: ' + (d.fuerza_mi_no||'N/E') + (d.fuerza_detalle ? (' | Detalle: ' + d.fuerza_detalle) : '');
-    hallazgosTxt = `Tono muscular: ${tonoTxt}. Fuerza muscular (MRC modificada): ${fuerzaTxt}. Equilibrio: ${d.equilibrio||'N/E'}. Marcha: ${d.marcha||'N/E'}. Dolor: ${d.dolor||'N/R'}/10 en ${d.dolor_zona||'N/E'}. Sensibilidad superficial: ${d.sens_superficial||'N/E'}, profunda: ${d.sens_profunda||'N/E'}. Cognición: ${d.cognicion||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
+    const tonoTxt = 'Hemicuerpo derecho: ' + (d.tono_afect||'N/E') + ' | Hemicuerpo izquierdo: ' + (d.tono_contra||'N/E') + (d.tono_zona ? (' | Segmentos con más compromiso: ' + d.tono_zona) : '');
+    const fuerzaTxt = 'MS derecho: ' + (d.fuerza_ms_afect||'N/E') + ' | MS izquierdo: ' + (d.fuerza_ms_no||'N/E') + ' | MI derecho: ' + (d.fuerza_mi_afect||'N/E') + ' | MI izquierdo: ' + (d.fuerza_mi_no||'N/E') + (d.fuerza_detalle ? (' | Detalle: ' + d.fuerza_detalle) : '');
+    hallazgosTxt = `Tono muscular: ${tonoTxt}. Fuerza muscular (MRC modificada): ${fuerzaTxt}. Equilibrio: ${d.equilibrio||'N/E'}. Marcha: ${d.marcha||'N/E'}. Dolor: ${d.dolor||'N/R'}/10 en ${d.dolor_zona||'N/E'}. Sensibilidad superficial: ${d.sens_superficial||'N/E'}, profunda: ${d.sens_profunda||'N/E'}. Cognición: ${d.cognicion||'N/E'}. Otros: ${d.otros||'Ninguno'}. (Nota: el tono y la fuerza se reportan por lado anatómico — determina cuál es el hemicuerpo comprometido a partir de los valores de cada lado y el diagnóstico.)`;
   } else if (tab === 'ortho') {
     hallazgosTxt = `Dolor en reposo: ${d.dolor_reposo||'N/R'}/10, en movimiento: ${d.dolor_movimiento||'N/R'}/10. ROM: ${d.rom||'N/E'}. Fuerza: ${d.fuerza||'N/E'}. Edema: ${d.edema||'N/E'}. Función/carga: ${d.funcion||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
   } else if (tab === 'geria') {
@@ -5526,9 +5577,13 @@ function toggleOtroDx() {
 }
 
 // ─── LIMPIAR FORMULARIO ──────────────────────────────────────────────────────
-function limpiarFormulario(tab) {
-  if (!confirm('¿Limpiar todos los campos de este formulario?')) return;
+// Núcleo de la limpieza, sin confirm() ni toast — lo usa tanto el botón
+// "Limpiar formulario" (con confirmación, es una acción explícita) como el
+// cambio de paciente activo (silencioso: evita que queden datos del paciente
+// anterior mezclados con el nuevo, ver seleccionarPaciente()).
+function limpiarCamposFormulario(tab) {
   const prefix = tabPrefix[tab];
+  if (!prefix) return;
   document.querySelectorAll(`#panel-${tab} input[type="text"], #panel-${tab} input[type="number"], #panel-${tab} textarea`).forEach(el => el.value = '');
   document.querySelectorAll(`#panel-${tab} select`).forEach(el => el.selectedIndex = 0);
   document.querySelectorAll(`#panel-${tab} .tag.sel`).forEach(el => el.classList.remove('sel'));
@@ -5540,6 +5595,10 @@ function limpiarFormulario(tab) {
     document.getElementById('otro-dx-field').style.display = 'none';
     document.getElementById('tag-otro-neuro').classList.remove('sel');
   }
+}
+function limpiarFormulario(tab) {
+  if (!confirm('¿Limpiar todos los campos de este formulario?')) return;
+  limpiarCamposFormulario(tab);
   showToast('Formulario limpiado.', 'info');
 }
 
@@ -5640,6 +5699,11 @@ function abrirHC(pxId) {
     var el = document.getElementById(id);
     if (el) el.value = (p.hc && p.hc[id]) ? p.hc[id] : '';
   });
+  // Si nunca se ha guardado un diagnóstico funcional en esta HC, se parte del
+  // diagnóstico ya registrado al crear el paciente — no hay razón para
+  // volver a escribirlo desde cero.
+  var dxProfCampo = document.getElementById('hc-dx-prof');
+  if (dxProfCampo && !dxProfCampo.value && p.diagnostico) dxProfCampo.value = p.diagnostico;
   document.getElementById('hc-ia-resultado').style.display = 'none';
   document.getElementById('hc-ia-resultado').innerHTML = '';
   document.getElementById('hc-modal-overlay').classList.add('open');
