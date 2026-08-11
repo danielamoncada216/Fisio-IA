@@ -3672,7 +3672,9 @@ function imprimirPlan(tabPrefix) {
   const hora = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
   const planHTML = planEl.innerHTML;
 
-  const ventana = window.open('', '_blank', 'width=900,height=700,noopener');
+  const ventana = window.open('', '_blank', 'width=900,height=700');
+  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
+  ventana.opener = null;
   ventana.document.write(`<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -4169,7 +4171,9 @@ function abrirConsentimiento(pxId) {
 function imprimirConsentimiento() {
   var printContent = document.getElementById('consent-printable');
   if (!printContent) return;
-  var ventana = window.open('', '_blank', 'width=800,height=700,noopener');
+  var ventana = window.open('', '_blank', 'width=800,height=700');
+  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
+  ventana.opener = null;
   ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Consentimiento Informado</title>' +
     '<style>body{font-family:serif;font-size:13px;line-height:1.8;color:#111;padding:40px;max-width:700px;margin:0 auto;}' +
     '@media print{body{padding:20px;}}</style></head><body>' +
@@ -6042,10 +6046,14 @@ async function generarInformeInterdisciplinario(pxId) {
       'Genera un informe breve y estructurado en español colombiano con: resumen general del caso, objetivos compartidos del equipo, y recomendaciones de coordinación entre disciplinas.';
 
     var texto = await fetchConReintento(prompt, 3);
-    // noopener: esta ventana muestra texto que combina aportes de varios
-    // profesionales del equipo; sin noopener, un script inyectado ahí podría
-    // acceder de vuelta a la pestaña principal (window.opener).
-    var ventana = window.open('', '_blank', 'width=800,height=700,noopener');
+    // Esta ventana muestra texto que combina aportes de varios profesionales
+    // del equipo; se corta window.opener manualmente (en vez de pasar
+    // "noopener" a window.open) porque ese flag hace que algunos navegadores
+    // devuelvan null y no se pueda escribir el contenido — así se mantiene
+    // la misma protección sin romper la ventana.
+    var ventana = window.open('', '_blank', 'width=800,height=700');
+    if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
+    ventana.opener = null;
     ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe Interdisciplinario</title>' +
       '<style>body{font-family:sans-serif;padding:2rem;max-width:700px;margin:0 auto;line-height:1.7;white-space:pre-wrap;}</style></head><body>' +
       '<h2>Informe Interdisciplinario — ' + esc(p.nombre) + '</h2>' + esc(texto) + '</body></html>');
@@ -6351,7 +6359,9 @@ function exportarHCpdf(pxId) {
       '<div style="font-size:9.5pt;white-space:pre-wrap;margin-top:4px;color:#333;">' + esc(s.plan||'') + '</div></div>';
   }).join('');
 
-  var ventana = window.open('', '_blank', 'width=900,height=700,noopener');
+  var ventana = window.open('', '_blank', 'width=900,height=700');
+  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
+  ventana.opener = null;
   ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Historia Clínica — ' + esc(p.nombre) + '</title>' +
     '<style>body{font-family:sans-serif;padding:2rem;max-width:800px;margin:0 auto;color:#202124;line-height:1.6;}' +
     'h2{color:#0F6E56;}h3{color:#0F6E56;margin-top:1.5rem;font-size:12pt;border-bottom:1px solid #E1F5EE;padding-bottom:4px;}' +
@@ -6729,7 +6739,9 @@ function imprimirPlanProf(prefix, tab) {
   var cfg = getSpecByTab(tab);
   var now = new Date();
   var fecha = now.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
-  var ventana = window.open('', '_blank', 'width=900,height=700,noopener');
+  var ventana = window.open('', '_blank', 'width=900,height=700');
+  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
+  ventana.opener = null;
   ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FisioIA — Plan ' + cfg.label + '</title>' +
     '<style>body{font-family:sans-serif;padding:2rem 3rem;max-width:800px;margin:0 auto;color:#202124;line-height:1.75;}' +
     'h2{color:' + cfg.color + ';}.badge{display:inline-block;font-size:9px;font-weight:600;padding:3px 10px;border-radius:20px;background:' + cfg.light + ';color:' + cfg.color + ';margin-bottom:14px;}' +
