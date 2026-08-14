@@ -667,7 +667,12 @@
     .patient-item:hover { border-color: var(--neuro); background: var(--neuro-light); }
     .patient-item.active { border-color: var(--neuro); background: var(--neuro-light); }
     .patient-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--neuro); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
-    .patient-item-name { font-size: 13px; font-weight: 600; }
+    .patient-item-name { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .px-semaforo { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .px-semaforo.mejora { background: #1E9E6B; }
+    .px-semaforo.estable { background: #D9A419; }
+    .px-semaforo.empeora { background: #D64545; }
+    .px-semaforo.sin-datos { background: #D0D5DD; }
     .patient-item-meta { font-size: 11px; color: var(--gray-600); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .patient-panel-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); flex-shrink: 0; }
     .btn-new-patient { width: 100%; padding: 10px; border-radius: 8px; background: var(--neuro); color: white; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; }
@@ -832,8 +837,9 @@
     .tl-card:hover { box-shadow:0 2px 12px rgba(0,0,0,0.08); }
     .tl-card-header { padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px; }
     .tl-card-left { display:flex;align-items:center;gap:8px;flex:1;min-width:0; }
-    .tl-date { font-size:11px;color:var(--gray-400);white-space:nowrap;flex-shrink:0; }
-    .tl-title { font-size:12px;font-weight:600;color:var(--gray-900); }
+    .tl-card-left > div { min-width:0; }
+    .tl-date { font-size:11px;color:var(--gray-400);white-space:nowrap;flex-shrink:0;margin-left:8px; }
+    .tl-title { font-size:12px;font-weight:600;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
     .tl-sub { font-size:11px;color:var(--gray-400);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
     .tl-badge { font-size:10px;padding:2px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0; }
     .tl-body { padding:12px 14px;border-top:0.5px solid #F3F4F6;display:none;font-size:12px;line-height:1.7;color:#374151; }
@@ -2174,6 +2180,10 @@
         <div class="field"><label for="o-dolor_movimiento">Dolor en movimiento (EVA 0-10)</label><input type="number" id="o-dolor_movimiento" placeholder="0 = sin dolor" min="0" max="10"></div>
       </div>
       <div class="field">
+        <label for="o-dolor_ubicacion">Ubicación del dolor</label>
+        <input type="text" id="o-dolor_ubicacion" placeholder="ej. Tobillo derecho, hombro izquierdo, cara lateral de la rodilla...">
+      </div>
+      <div class="field">
         <label>Rango articular (ROM)</label>
         <div class="tags">
           <span class="tag" data-field="o-rom">Conservado</span>
@@ -2181,7 +2191,8 @@
           <span class="tag" data-field="o-rom">Limitación moderada (25-50%)</span>
           <span class="tag" data-field="o-rom">Limitación severa (&gt;50%)</span>
         </div>
-        <input type="text" id="o-rom" placeholder="Especifica articulación y movimientos limitados...">
+        <label for="o-rom" style="margin-top:2px;">Ubicación / articulación y movimientos limitados</label>
+        <input type="text" id="o-rom" placeholder="ej. Rodilla derecha, flexión limitada a 90°...">
       </div>
       <div class="field">
         <label>Fuerza muscular</label>
@@ -2191,7 +2202,8 @@
           <span class="tag" data-field="o-fuerza">Debilidad moderada (MRC 3)</span>
           <span class="tag" data-field="o-fuerza">Debilidad severa (MRC 0-2)</span>
         </div>
-        <input type="text" id="o-fuerza" placeholder="Grupos musculares comprometidos...">
+        <label for="o-fuerza" style="margin-top:2px;">Ubicación / grupo muscular comprometido</label>
+        <input type="text" id="o-fuerza" placeholder="ej. Cuádriceps derecho, flexores plantares del tobillo...">
       </div>
       <div class="field">
         <label>Edema / inflamación</label>
@@ -2201,7 +2213,8 @@
           <span class="tag" data-field="o-edema">Edema moderado</span>
           <span class="tag" data-field="o-edema">Edema severo</span>
         </div>
-        <input type="text" id="o-edema" placeholder="Localización y características...">
+        <label for="o-edema" style="margin-top:2px;">Ubicación del edema</label>
+        <input type="text" id="o-edema" placeholder="ej. Tobillo derecho, dorso del pie...">
       </div>
       <div class="field">
         <label>Función y carga</label>
@@ -2355,6 +2368,10 @@
         <div class="field"><label for="g-fuerza">Fuerza muscular (MRC global)</label><select id="g-fuerza"><option value="">Seleccionar</option><option>5 — Normal</option><option>4 — Debilidad leve</option><option>3 — Debilidad moderada</option><option>2 — Debilidad severa</option><option>0-1 — Muy severa</option></select></div>
         <div class="field"><label for="g-dolor">Dolor predominante (EVA 0-10)</label><input type="number" id="g-dolor" placeholder="0 = sin dolor" min="0" max="10"></div>
       </div>
+      <div class="field">
+        <label for="g-ubicacion">Ubicación (fuerza reducida / dolor)</label>
+        <input type="text" id="g-ubicacion" placeholder="ej. Miembros inferiores, hemicuerpo derecho, rodilla derecha...">
+      </div>
       <div class="field"><label for="g-otros">Otros hallazgos (sarcopenia, desnutrición, alteraciones sensoriales...)</label><textarea id="g-otros" placeholder="Pérdida de masa muscular, alteraciones visuales o auditivas, úlceras por presión, estado nutricional..."></textarea></div>
     </div>
 
@@ -2489,6 +2506,10 @@
             <option>Mixto</option>
           </select>
         </div>
+      </div>
+      <div class="field">
+        <label for="p-lateralidad">Lado / miembro específico afectado</label>
+        <input type="text" id="p-lateralidad" placeholder="ej. Hipotonía de las 4 extremidades, hemicuerpo derecho, solo miembro superior izquierdo, solo brazo derecho...">
       </div>
       <div class="field">
         <label>Nivel funcional de marcha</label>
@@ -2819,6 +2840,10 @@
         </div>
         <div class="field"><label for="to-dolor">Dolor que limita AVD (0-10)</label><input type="number" id="to-dolor" placeholder="0-10" min="0" max="10"></div>
         <div class="field"><label for="to-fatiga">Fatiga (0-10)</label><input type="number" id="to-fatiga" placeholder="0-10" min="0" max="10"></div>
+      </div>
+      <div class="field">
+        <label for="to-dolor_ubicacion">Ubicación del dolor</label>
+        <input type="text" id="to-dolor_ubicacion" placeholder="ej. Mano derecha, hombro izquierdo, muñeca...">
       </div>
     </div>
 
@@ -3270,7 +3295,7 @@ function recopilarDatos(tab) {
   if (tab === 'ortho') return {
     especialidad: 'Ortopédico', edad: g('o-edad'), sexo: g('o-sexo'), fase: g('o-fase'),
     dx_medico: g('o-dx_medico'), dx_fisio: g('o-dx_fisio'), evolucion: g('o-evolucion'),
-    dolor_reposo: g('o-dolor_reposo'), dolor_movimiento: g('o-dolor_movimiento'),
+    dolor_reposo: g('o-dolor_reposo'), dolor_movimiento: g('o-dolor_movimiento'), dolor_ubicacion: g('o-dolor_ubicacion'),
     rom: g('o-rom'), fuerza: g('o-fuerza'), edema: g('o-edema'), funcion: g('o-funcion'),
     otros: g('o-otros'), escalas: scores, actividad: g('o-actividad'),
     frecuencia: g('o-frecuencia'), objetivos_px: g('o-objetivos_px'), adicional: g('o-adicional')
@@ -3279,14 +3304,14 @@ function recopilarDatos(tab) {
     especialidad: 'Geriátrico', edad: g('g-edad'), sexo: g('g-sexo'), residencia: g('g-residencia'),
     dx_medico: g('g-dx_medico'), dx_fisio: g('g-dx_fisio'), comorbilidades: g('g-comorbilidades'),
     independencia: g('g-independencia'), caida: g('g-caida'), marcha: g('g-marcha'),
-    cognicion: g('g-cognicion'), fuerza: g('g-fuerza'), dolor: g('g-dolor'),
+    cognicion: g('g-cognicion'), fuerza: g('g-fuerza'), dolor: g('g-dolor'), ubicacion: g('g-ubicacion'),
     otros: g('g-otros'), escalas: scores, apoyo: g('g-apoyo'),
     frecuencia: g('g-frecuencia'), objetivos_px: g('g-objetivos_px'), adicional: g('g-adicional')
   };
   if (tab === 'pedia') return {
     especialidad: 'Pediátrico', edad: g('p-edad'), sexo: g('p-sexo'), grupo: g('p-grupo'),
     dx_medico: g('p-dx_medico'), dx_fisio: g('p-dx_fisio'), perinatales: g('p-perinatales'),
-    hitos: g('p-hitos'), tono: g('p-tono'), patron: g('p-patron'), marcha: g('p-marcha'),
+    hitos: g('p-hitos'), tono: g('p-tono'), patron: g('p-patron'), lateralidad: g('p-lateralidad'), marcha: g('p-marcha'),
     reflejos: g('p-reflejos'), otros: g('p-otros'), escalas: scores, escolar: g('p-escolar'),
     frecuencia: g('p-frecuencia'), objetivos_px: g('p-objetivos_px'), adicional: g('p-adicional')
   };
@@ -3422,7 +3447,7 @@ DATOS DE EVALUACIÓN ORTOPÉDICA:
 - Tiempo de evolución: ${d.evolucion||'N/E'}
 
 HALLAZGOS CLÍNICOS:
-- Dolor en reposo: ${d.dolor_reposo||'N/R'}/10 | Dolor en movimiento: ${d.dolor_movimiento||'N/R'}/10
+- Dolor en reposo: ${d.dolor_reposo||'N/R'}/10 | Dolor en movimiento: ${d.dolor_movimiento||'N/R'}/10 | Ubicación del dolor: ${d.dolor_ubicacion||'N/E'}
 - ROM: ${d.rom||'N/E'} | Fuerza: ${d.fuerza||'N/E'}
 - Edema: ${d.edema||'N/E'} | Función / Carga: ${d.funcion||'N/E'}
 - Otros hallazgos: ${d.otros||'Ninguno'}
@@ -3445,7 +3470,7 @@ DATOS DE EVALUACIÓN GERIÁTRICA:
 HALLAZGOS CLÍNICOS:
 - Independencia funcional: ${d.independencia||'N/E'}
 - Riesgo de caída: ${d.caida||'N/E'} | Marcha: ${d.marcha||'N/E'}
-- Cognición: ${d.cognicion||'N/E'} | Fuerza: ${d.fuerza||'N/E'} | Dolor: ${d.dolor||'N/R'}/10
+- Cognición: ${d.cognicion||'N/E'} | Fuerza: ${d.fuerza||'N/E'} | Dolor: ${d.dolor||'N/R'}/10 | Ubicación (fuerza/dolor): ${d.ubicacion||'N/E'}
 - Otros: ${d.otros||'Ninguno'}
 - Escalas: ${escalasTxt}
 
@@ -3463,9 +3488,12 @@ DATOS DE EVALUACIÓN PEDIÁTRICA:
 - Diagnóstico fisioterapéutico: ${d.dx_fisio||'N/E'}
 - Antecedentes perinatales: ${d.perinatales||'N/E'}
 
-HALLAZGOS DEL DESARROLLO:
+HALLAZGOS DEL DESARROLLO (el tono puede afectar las 4 extremidades, solo el
+tren inferior, un solo hemicuerpo o un único miembro — usa el patrón motor y
+el lado/miembro específico afectado para dirigir los ejercicios exactamente
+a esa distribución, no de forma genérica):
 - Hitos alcanzados: ${d.hitos||'N/E'}
-- Tono: ${d.tono||'N/E'} | Patrón motor: ${d.patron||'N/E'}
+- Tono: ${d.tono||'N/E'} | Patrón motor: ${d.patron||'N/E'} | Lado/miembro específico afectado: ${d.lateralidad||'N/E'}
 - Marcha: ${d.marcha||'N/E'}
 - Reflejos / reacciones: ${d.reflejos||'N/E'}
 - Otros hallazgos: ${d.otros||'Ninguno'}
@@ -3660,6 +3688,26 @@ function copiarPlan(id) {
   });
 }
 
+// Abre una ventana nueva navegándola a un Blob URL con el HTML dado, en vez
+// de window.open('') + document.write(). document.write() en una ventana
+// en blanco es poco confiable: en PWA instaladas, Safari y Firefox puede
+// quedar en blanco o no ejecutarse. Con un Blob URL la ventana navega a un
+// documento real, que funciona igual en pestaña normal, ventana emergente o
+// app instalada.
+function abrirVentanaImpresion(html) {
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const ventana = window.open(url, '_blank', 'width=900,height=700');
+  if (!ventana) {
+    alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
+    URL.revokeObjectURL(url);
+    return null;
+  }
+  ventana.opener = null;
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+  return ventana;
+}
+
 function imprimirPlan(tabPrefix) {
   const planEl = document.getElementById(tabPrefix + '-plan-texto');
   if (!planEl) return;
@@ -3672,10 +3720,7 @@ function imprimirPlan(tabPrefix) {
   const hora = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
   const planHTML = planEl.innerHTML;
 
-  const ventana = window.open('', '_blank', 'width=900,height=700');
-  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
-  ventana.opener = null;
-  ventana.document.write(`<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -3784,8 +3829,8 @@ function imprimirPlan(tabPrefix) {
     </div>
   </div>
 </body>
-</html>`);
-  ventana.document.close();
+</html>`;
+  abrirVentanaImpresion(html);
 }
 
 
@@ -4171,15 +4216,12 @@ function abrirConsentimiento(pxId) {
 function imprimirConsentimiento() {
   var printContent = document.getElementById('consent-printable');
   if (!printContent) return;
-  var ventana = window.open('', '_blank', 'width=800,height=700');
-  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
-  ventana.opener = null;
-  ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Consentimiento Informado</title>' +
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Consentimiento Informado</title>' +
     '<style>body{font-family:serif;font-size:13px;line-height:1.8;color:#111;padding:40px;max-width:700px;margin:0 auto;}' +
     '@media print{body{padding:20px;}}</style></head><body>' +
     printContent.innerHTML +
-    '<scr' + 'ipt>window.onload=function(){window.print();}<\/scr' + 'ipt></body></html>');
-  ventana.document.close();
+    '<scr' + 'ipt>window.onload=function(){window.print();}<\/scr' + 'ipt></body></html>';
+  abrirVentanaImpresion(html);
 }
 
 // ─── REVALUACIÓN SYSTEM ──────────────────────────────────────────────────────
@@ -4546,6 +4588,41 @@ function calcEdad(f){
 function abrirPacientes(){document.getElementById('patient-panel').classList.add('open');document.getElementById('patient-overlay').classList.add('open');cargarPacientes();}
 function cerrarPacientes(){document.getElementById('patient-panel').classList.remove('open');document.getElementById('patient-overlay').classList.remove('open');}
 
+// ─── SEMÁFORO DE PROGRESO ────────────────────────────────────────────────────
+// Calcula, sin llamar a la IA, si un paciente va mejorando/estable/empeorando
+// a partir del dolor (EVA 0-10) que ya se registra en cada sesión. Umbral de
+// 2 puntos = diferencia mínima clínicamente importante (MCID) reportada en
+// literatura para escalas EVA de dolor — no es un número arbitrario.
+function extraerDolorSesion(datosEval) {
+  if (!datosEval) return null;
+  var candidatos = [datosEval.dolor_movimiento, datosEval.dolor, datosEval.dolor_reposo];
+  for (var i = 0; i < candidatos.length; i++) {
+    var v = parseFloat(candidatos[i]);
+    if (!isNaN(v)) return v;
+  }
+  return null;
+}
+
+function calcularSemaforo(paciente) {
+  var sesiones = (paciente.sesiones || [])
+    .filter(function(s) { return s.datosEval && extraerDolorSesion(s.datosEval) !== null; })
+    .slice()
+    .sort(function(a, b) { return new Date(a.createdAt || 0) - new Date(b.createdAt || 0); });
+
+  var valores = sesiones.map(function(s) { return extraerDolorSesion(s.datosEval); });
+
+  if (valores.length < 2) {
+    return { estado: 'sin-datos', label: 'Sin suficientes registros de dolor todavía para ver tendencia.' };
+  }
+
+  var primero = valores[0], ultimo = valores[valores.length - 1];
+  var delta = ultimo - primero;
+
+  if (delta <= -2) return { estado: 'mejora', label: 'Mejorando: dolor bajó de ' + primero + ' a ' + ultimo + '/10 desde el inicio.' };
+  if (delta >= 2)  return { estado: 'empeora', label: 'Atención: dolor subió de ' + primero + ' a ' + ultimo + '/10 desde el inicio.' };
+  return { estado: 'estable', label: 'Estable: dolor de ' + primero + ' a ' + ultimo + '/10, sin cambio importante.' };
+}
+
 function renderPxList(filter){
   var px=getPacientes(),list=document.getElementById('patient-list');
   var f=filter?px.filter(function(p){return p.nombre.toLowerCase().indexOf(filter.toLowerCase())>-1||(p.diagnostico||'').toLowerCase().indexOf(filter.toLowerCase())>-1;}):px;
@@ -4554,6 +4631,7 @@ function renderPxList(filter){
     var edad = calcEdad(p.nacimiento);
     var ses = (p.sesiones || []).length;
     var act = p.id === activePxId;
+    var semaforo = calcularSemaforo(p);
     var compartidoBadge = p._compartido
       ? '<span style="font-size:10px;padding:2px 7px;border-radius:20px;background:#E6F1FB;color:#185FA5;font-weight:500;">Compartido</span>'
       : '';
@@ -4563,7 +4641,7 @@ function renderPxList(filter){
     return '<div class="patient-item' + (act ? ' active' : '') + '" onclick="seleccionarPaciente(\'' + esc(p.id) + '\')">' +
       '<div class="patient-avatar">' + esc(getInitials(p.nombre)) + '</div>' +
       '<div style="flex:1;min-width:0;">' +
-        '<div class="patient-item-name">' + esc(p.nombre) + '</div>' +
+        '<div class="patient-item-name" title="' + esc(semaforo.label) + '"><span class="px-semaforo ' + semaforo.estado + '"></span>' + esc(p.nombre) + '</div>' +
         '<div class="patient-item-meta">' + esc(p.diagnostico || 'Sin diagnóstico') + (edad ? ' · ' + esc(edad) : '') + ' · ' + ses + ' sesión' + (ses !== 1 ? 'es' : '') + '</div>' +
         '<div style="display:flex;gap:4px;margin-top:3px;">' + compartidoBadge + '</div>' +
       '</div>' +
@@ -4617,7 +4695,7 @@ async function cargarPacientes() {
       try {
         var ids = todosPacientes.map(function(p) { return p.id; });
         var rSes = await fetch(
-          SUPABASE_URL + '/rest/v1/sesiones_clinicas?patient_id=in.(' + ids.join(',') + ')&select=id,patient_id,fecha,especialidad,dx_medico,dx_fisio,plan_texto,tipo,num_sesion,profession,created_at&order=created_at.desc',
+          SUPABASE_URL + '/rest/v1/sesiones_clinicas?patient_id=in.(' + ids.join(',') + ')&select=id,patient_id,fecha,especialidad,dx_medico,dx_fisio,plan_texto,tipo,num_sesion,profession,created_at,datos_eval&order=created_at.desc',
           { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } }
         );
         var sesionesDB = await rSes.json();
@@ -4637,7 +4715,9 @@ async function cargarPacientes() {
                 especialidad: s.especialidad || profCfg.label,
                 color: profCfg.color,
                 dx: s.dx_medico || s.dx_fisio || '',
-                plan: s.plan_texto || ''
+                plan: s.plan_texto || '',
+                createdAt: s.created_at,
+                datosEval: s.datos_eval || null
               };
             });
             // FIX: el contador mostrado (sesionesCount) se recalcula SIEMPRE a
@@ -4899,7 +4979,9 @@ function guardarSesionEnPaciente(tab, datos, planTexto) {
     // A pedido: cada plan generado desde un formulario de evaluación queda
     // marcado como "valoración" en la línea de tiempo del paciente, para
     // diferenciarlo de una sesión registrada a mano o de una revaluación.
-    tipo: esReval ? 'reval' : 'valoracion'
+    tipo: esReval ? 'reval' : 'valoracion',
+    createdAt: new Date().toISOString(),
+    datosEval: datos
   };
   p.sesiones.push(sesionLocal);
   // FIX: recalcular el contador visible a partir del número real de sesiones
@@ -5428,11 +5510,11 @@ async function generarSOAP(tab, prefix, d) {
     const fuerzaTxt = 'MS derecho: ' + (d.fuerza_ms_afect||'N/E') + ' | MS izquierdo: ' + (d.fuerza_ms_no||'N/E') + ' | MI derecho: ' + (d.fuerza_mi_afect||'N/E') + ' | MI izquierdo: ' + (d.fuerza_mi_no||'N/E') + (d.fuerza_detalle ? (' | Detalle: ' + d.fuerza_detalle) : '');
     hallazgosTxt = `Tono muscular: ${tonoTxt}. Fuerza muscular (MRC modificada): ${fuerzaTxt}. Equilibrio: ${d.equilibrio||'N/E'}. Marcha: ${d.marcha||'N/E'}. Dolor: ${d.dolor||'N/R'}/10 en ${d.dolor_zona||'N/E'}. Sensibilidad superficial: ${d.sens_superficial||'N/E'}, profunda: ${d.sens_profunda||'N/E'}. Cognición: ${d.cognicion||'N/E'}. Otros: ${d.otros||'Ninguno'}. (Nota: el tono y la fuerza se reportan por lado anatómico — determina cuál es el hemicuerpo comprometido a partir de los valores de cada lado y el diagnóstico.)`;
   } else if (tab === 'ortho') {
-    hallazgosTxt = `Dolor en reposo: ${d.dolor_reposo||'N/R'}/10, en movimiento: ${d.dolor_movimiento||'N/R'}/10. ROM: ${d.rom||'N/E'}. Fuerza: ${d.fuerza||'N/E'}. Edema: ${d.edema||'N/E'}. Función/carga: ${d.funcion||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
+    hallazgosTxt = `Dolor en reposo: ${d.dolor_reposo||'N/R'}/10, en movimiento: ${d.dolor_movimiento||'N/R'}/10, ubicación: ${d.dolor_ubicacion||'N/E'}. ROM: ${d.rom||'N/E'}. Fuerza: ${d.fuerza||'N/E'}. Edema: ${d.edema||'N/E'}. Función/carga: ${d.funcion||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
   } else if (tab === 'geria') {
-    hallazgosTxt = `Independencia funcional: ${d.independencia||'N/E'}. Riesgo de caída: ${d.caida||'N/E'}. Marcha: ${d.marcha||'N/E'}. Cognición: ${d.cognicion||'N/E'}. Fuerza: ${d.fuerza||'N/E'}. Dolor: ${d.dolor||'N/R'}/10. Otros: ${d.otros||'Ninguno'}.`;
+    hallazgosTxt = `Independencia funcional: ${d.independencia||'N/E'}. Riesgo de caída: ${d.caida||'N/E'}. Marcha: ${d.marcha||'N/E'}. Cognición: ${d.cognicion||'N/E'}. Fuerza: ${d.fuerza||'N/E'}. Dolor: ${d.dolor||'N/R'}/10. Ubicación: ${d.ubicacion||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
   } else if (tab === 'pedia') {
-    hallazgosTxt = `Hitos alcanzados: ${d.hitos||'N/E'}. Tono: ${d.tono||'N/E'}. Patrón motor: ${d.patron||'N/E'}. Marcha: ${d.marcha||'N/E'}. Reflejos: ${d.reflejos||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
+    hallazgosTxt = `Hitos alcanzados: ${d.hitos||'N/E'}. Tono: ${d.tono||'N/E'}. Patrón motor: ${d.patron||'N/E'}. Lado/miembro afectado: ${d.lateralidad||'N/E'}. Marcha: ${d.marcha||'N/E'}. Reflejos: ${d.reflejos||'N/E'}. Otros: ${d.otros||'Ninguno'}.`;
   }
 
   const prompt = `Eres un fisioterapeuta experto. A partir de estos datos clínicos, genera una nota SOAP profesional, concisa y lista para historia clínica en Colombia. Responde en español colombiano.
@@ -5531,8 +5613,8 @@ function renderHistorial() {
       <div class="historial-item-dx">${esc(item.dx_medico || item.dx_fisio || 'Sin diagnóstico')}</div>
       <div class="historial-item-meta">${item.edad ? esc(item.edad) + ' años' : ''}</div>
       <div class="historial-item-actions">
-        <button class="historial-btn-sm" onclick="event.stopPropagation();copiarPlanHistorial('${item.id}')">Copiar</button>
-        <button class="historial-btn-sm danger" onclick="event.stopPropagation();eliminarPlanHistorial('${item.id}')">Eliminar</button>
+        <button type="button" class="historial-btn-sm" onclick="event.stopPropagation();copiarPlanHistorial('${item.id}')">Copiar</button>
+        <button type="button" class="historial-btn-sm danger" onclick="event.stopPropagation();eliminarPlanHistorial('${item.id}')">Eliminar</button>
       </div>
     </div>`).join('');
 }
@@ -5585,6 +5667,7 @@ function eliminarPlanHistorial(id) {
   const historial = getHistorial().filter(h => h.id !== id);
   localStorage.setItem('fisioIA_historial', JSON.stringify(historial));
   renderHistorial();
+  showToast('Plan eliminado del historial.', 'info');
 }
 
 function marcarGuardado() {
@@ -6046,18 +6129,10 @@ async function generarInformeInterdisciplinario(pxId) {
       'Genera un informe breve y estructurado en español colombiano con: resumen general del caso, objetivos compartidos del equipo, y recomendaciones de coordinación entre disciplinas.';
 
     var texto = await fetchConReintento(prompt, 3);
-    // Esta ventana muestra texto que combina aportes de varios profesionales
-    // del equipo; se corta window.opener manualmente (en vez de pasar
-    // "noopener" a window.open) porque ese flag hace que algunos navegadores
-    // devuelvan null y no se pueda escribir el contenido — así se mantiene
-    // la misma protección sin romper la ventana.
-    var ventana = window.open('', '_blank', 'width=800,height=700');
-    if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
-    ventana.opener = null;
-    ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe Interdisciplinario</title>' +
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Informe Interdisciplinario</title>' +
       '<style>body{font-family:sans-serif;padding:2rem;max-width:700px;margin:0 auto;line-height:1.7;white-space:pre-wrap;}</style></head><body>' +
-      '<h2>Informe Interdisciplinario — ' + esc(p.nombre) + '</h2>' + esc(texto) + '</body></html>');
-    ventana.document.close();
+      '<h2>Informe Interdisciplinario — ' + esc(p.nombre) + '</h2>' + esc(texto) + '</body></html>';
+    abrirVentanaImpresion(html);
   } catch(e) { showToast('Error al generar el informe.', 'err'); }
 }
 
@@ -6359,10 +6434,7 @@ function exportarHCpdf(pxId) {
       '<div style="font-size:9.5pt;white-space:pre-wrap;margin-top:4px;color:#333;">' + esc(s.plan||'') + '</div></div>';
   }).join('');
 
-  var ventana = window.open('', '_blank', 'width=900,height=700');
-  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
-  ventana.opener = null;
-  ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Historia Clínica — ' + esc(p.nombre) + '</title>' +
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Historia Clínica — ' + esc(p.nombre) + '</title>' +
     '<style>body{font-family:sans-serif;padding:2rem;max-width:800px;margin:0 auto;color:#202124;line-height:1.6;}' +
     'h2{color:#0F6E56;}h3{color:#0F6E56;margin-top:1.5rem;font-size:12pt;border-bottom:1px solid #E1F5EE;padding-bottom:4px;}' +
     '.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10pt;margin-bottom:1rem;}' +
@@ -6381,8 +6453,8 @@ function exportarHCpdf(pxId) {
     '<p style="font-size:9.5pt;"><strong>Diagnóstico funcional:</strong> ' + esc(hc['hc-dx-prof']||'No registrado') + '</p>' +
     '<h3>Sesiones y planes (' + ses.length + ')</h3>' +
     (sesionesHTML || '<p style="font-size:9.5pt;color:#999;">Sin sesiones registradas.</p>') +
-    '</body></html>');
-  ventana.document.close();
+    '</body></html>';
+  abrirVentanaImpresion(html);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -6566,6 +6638,7 @@ function limpiarFormularioProf(tab) {
   document.querySelectorAll(sel + ' input[type="text"], ' + sel + ' input[type="number"], ' + sel + ' textarea').forEach(function(el){ el.value = ''; });
   document.querySelectorAll(sel + ' select').forEach(function(el){ el.selectedIndex = 0; });
   document.querySelectorAll(sel + ' .tag.sel').forEach(function(el){ el.classList.remove('sel'); });
+  document.querySelectorAll(sel + ' input[type="checkbox"]').forEach(function(el){ el.checked = false; });
   var prefix = profTabPrefix[tab];
   var res = document.getElementById(prefix + '-resultado');
   if (res) res.innerHTML = '';
@@ -6596,7 +6669,7 @@ function recopilarDatosProf(tab) {
       dx_medico: g('to-dx_medico'), dx_fisio: g('to-dx_fisio'), evolucion: g('to-evolucion'),
       roles: roles.join(', '), avd_basicas: g('to-avd-basicas'), aivd: g('to-aivd'), fim: g('to-fim'),
       avd_detalle: g('to-avd-detalle'), mano: g('to-mano'), coordinacion: g('to-coordinacion'),
-      cognicion: g('to-cognicion'), percepcion: g('to-percepcion'), dolor: g('to-dolor'), fatiga: g('to-fatiga'),
+      cognicion: g('to-cognicion'), percepcion: g('to-percepcion'), dolor: g('to-dolor'), dolor_ubicacion: g('to-dolor_ubicacion'), fatiga: g('to-fatiga'),
       barreras: g('to-barreras'), ayudas: g('to-ayudas'), retorno: g('to-retorno'),
       objetivos_px: g('to-objetivos_px'), contexto: g('to-contexto'), frecuencia: g('to-frecuencia'), adicional: g('to-adicional')
     };
@@ -6652,7 +6725,7 @@ function buildPromptProf(tab, d) {
     '- Detalle AVD comprometidas: ' + (d.avd_detalle||'N/E') + '\n\n' +
     'FUNCIÓN Y COGNICIÓN:\n- Función mano dominante: ' + (d.mano||'N/E') + ' | Coordinación fina: ' + (d.coordinacion||'N/E') + '\n' +
     '- Cognición funcional: ' + (d.cognicion||'N/E') + ' | Percepción/praxis: ' + (d.percepcion||'N/E') + '\n' +
-    '- Dolor: ' + (d.dolor||'N/R') + '/10 | Fatiga: ' + (d.fatiga||'N/R') + '/10\n\n' +
+    '- Dolor: ' + (d.dolor||'N/R') + '/10 | Ubicación del dolor: ' + (d.dolor_ubicacion||'N/E') + ' | Fatiga: ' + (d.fatiga||'N/R') + '/10\n\n' +
     'ENTORNO:\n- Barreras: ' + (d.barreras||'N/E') + ' | Ayudas técnicas: ' + (d.ayudas||'Ninguna') + ' | Retorno laboral/escolar: ' + (d.retorno||'N/A') + '\n' +
     '- Objetivos: ' + (d.objetivos_px||'N/E') + '\n- Contexto: ' + (d.contexto||'N/E') + '\n- Frecuencia: ' + (d.frecuencia||'N/E') + '\n- Adicional: ' + (d.adicional||'Ninguno') +
     estructura;
@@ -6739,10 +6812,7 @@ function imprimirPlanProf(prefix, tab) {
   var cfg = getSpecByTab(tab);
   var now = new Date();
   var fecha = now.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
-  var ventana = window.open('', '_blank', 'width=900,height=700');
-  if (!ventana) { alert('El navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.'); return; }
-  ventana.opener = null;
-  ventana.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FisioIA — Plan ' + cfg.label + '</title>' +
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>FisioIA — Plan ' + cfg.label + '</title>' +
     '<style>body{font-family:sans-serif;padding:2rem 3rem;max-width:800px;margin:0 auto;color:#202124;line-height:1.75;}' +
     'h2{color:' + cfg.color + ';}.badge{display:inline-block;font-size:9px;font-weight:600;padding:3px 10px;border-radius:20px;background:' + cfg.light + ';color:' + cfg.color + ';margin-bottom:14px;}' +
     '@media print{.no-print{display:none;}}</style></head><body>' +
@@ -6751,8 +6821,8 @@ function imprimirPlanProf(prefix, tab) {
     '<p style="font-size:9pt;color:#666;">Generado el ' + fecha + '</p><hr>' +
     planEl.innerHTML +
     '<p style="font-size:7.5pt;color:#999;margin-top:2rem;">Documento generado con asistencia de IA como apoyo clínico. Debe ser revisado y validado por el profesional tratante.</p>' +
-    '</body></html>');
-  ventana.document.close();
+    '</body></html>';
+  abrirVentanaImpresion(html);
 }
 // ═══════════════════════════════════════════════════════════════
 // PWA: SERVICE WORKER + INSTALACIÓN COMO APP
