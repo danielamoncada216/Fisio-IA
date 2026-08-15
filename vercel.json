@@ -5,6 +5,8 @@
     { "src": "api/admin-users.js", "use": "@vercel/node" },
     { "src": "sw.js", "use": "@vercel/static" },
     { "src": "manifest.json", "use": "@vercel/static" },
+    { "src": "privacidad.html", "use": "@vercel/static" },
+    { "src": "icons/*.png", "use": "@vercel/static" },
     { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
@@ -12,6 +14,8 @@
     { "src": "/api/admin-users", "dest": "/api/admin-users.js" },
     { "src": "/sw.js", "dest": "/sw.js" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
+    { "src": "/privacidad.html", "dest": "/privacidad.html" },
+    { "src": "/icons/(.*)", "dest": "/icons/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
