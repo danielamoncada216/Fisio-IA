@@ -1062,8 +1062,13 @@
     @media (max-width: 640px) {
       .grid2, .grid3 { grid-template-columns: 1fr; }
       .container { padding: 1rem 0.75rem 5rem; }
-      nav { padding: 0 1rem; }
+      nav { padding: 0 0.6rem; }
       .nav-sub, .nav-dot { display: none; }
+      .nav-badge, #autosave-label, #nav-user-email { display: none; }
+      .nav-brand { gap: 6px; }
+      nav > div:last-child { gap: 3px !important; }
+      nav button { padding: 6px 7px !important; }
+      nav .btn-label { display: none; }
       .tabs { gap: 3px; padding: 4px; }
       .tab-btn { font-size: 11px; padding: 9px 4px; gap: 4px; }
       .tab-btn .tab-icon { width: 18px; height: 18px; }
@@ -1558,11 +1563,11 @@
     <span class="nav-badge">Basado en evidencia</span>
     <span id="nav-prof-badge" style="display:none;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;"></span>
     <button onclick="abrirPacientes()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:var(--neuro);color:white;border:none;cursor:pointer;font-weight:600;">Pacientes</button>
-    <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋 Historial</button>
+    <button onclick="abrirHistorial()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">📋<span class="btn-label"> Historial</span></button>
     <button id="btn-notif" onclick="abrirNotificaciones()" title="Notificaciones" aria-label="Notificaciones" style="position:relative;font-family:'DM Sans',sans-serif;font-size:14px;padding:5px 10px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;display:none;"><i class="ti ti-bell" aria-hidden="true"></i><span id="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:#E24B4A;color:white;font-size:9px;font-weight:600;line-height:16px;text-align:center;"></span></button>
     <span id="nav-user-email" style="font-size:11px;color:var(--gray-400);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-    <button id="install-app-btn" onclick="instalarApp()" style="display:none;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:var(--neuro);color:white;border:none;cursor:pointer;font-weight:600;align-items:center;gap:5px;">⬇ Instalar app</button>
-    <button id="admin-nav-btn" onclick="abrirAdmin()" style="display:none;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:#7C4D1E;color:white;border:none;cursor:pointer;font-weight:600;">⚙️ Admin</button>
+    <button id="install-app-btn" onclick="instalarApp()" style="display:none;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:var(--neuro);color:white;border:none;cursor:pointer;font-weight:600;align-items:center;gap:5px;">⬇<span class="btn-label"> Instalar app</span></button>
+    <button id="admin-nav-btn" onclick="abrirAdmin()" style="display:none;font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border-radius:20px;background:#7C4D1E;color:white;border:none;cursor:pointer;font-weight:600;">⚙️<span class="btn-label"> Admin</span></button>
     <button onclick="cerrarSesion()" style="font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 13px;border:1px solid var(--border-strong);border-radius:20px;background:transparent;color:var(--gray-600);cursor:pointer;transition:all 0.12s;" onmouseover="this.style.color='var(--gray-900)';this.style.borderColor='var(--gray-900)'" onmouseout="this.style.color='var(--gray-600)';this.style.borderColor='var(--border-strong)'">Salir</button>
   </div>
 
