@@ -3229,15 +3229,16 @@ function switchTab(tab) {
 
 // ─── PRECARGAR DATOS DEL PACIENTE EN EL FORMULARIO DE EVALUACIÓN ─────────────
 // Antes: crear un paciente pedía edad/sexo/diagnóstico/meta funcional, y el
-// formulario de evaluación (neuro/ortho/geria/pedia) volvía a pedir esos
-// mismos datos desde cero, sin ninguna relación entre los dos. Esta función
-// copia lo que ya se sabe del paciente activo hacia el formulario, sin pisar
-// nada que la persona ya haya escrito (solo llena campos vacíos). Solo aplica
-// a neuro/ortho/geria/pedia (tabPrefix) — fono/TO/psicología tienen su propio
-// flujo y no se tocan aquí.
+// formulario de evaluación volvía a pedir esos mismos datos desde cero, sin
+// ninguna relación entre los dos. Esta función copia lo que ya se sabe del
+// paciente activo hacia el formulario, sin pisar nada que la persona ya haya
+// escrito (solo llena campos vacíos). Cubre las 7 especialidades: primero se
+// intenta con `tabPrefix` (neuro/ortho/geria/pedia) y si no aplica, con
+// `profTabPrefix` (fono/to/psico) — los campos edad/sexo/dx_medico/
+// objetivos_px se llaman igual en ambos mundos.
 function precargarDatosPaciente(tab) {
   if (!activePxId) return;
-  var prefix = tabPrefix[tab];
+  var prefix = tabPrefix[tab] || profTabPrefix[tab];
   if (!prefix) return;
   var p = getPacientes().find(function(x){ return x.id === activePxId; });
   if (!p) return;
@@ -4754,12 +4755,13 @@ function seleccionarPaciente(id){
     renderEquipoPaciente(p.id);
   }
   // Si se cambió a un paciente distinto (no solo se reabrió el mismo), se
-  // limpian los 4 formularios de fisioterapia antes de precargar — sin esto,
-  // los datos del paciente anterior se quedaban mezclados con los del nuevo
-  // (la precarga solo llena campos vacíos, así que un dato viejo nunca se
-  // reemplazaba solo).
+  // limpian los formularios de las 7 especialidades antes de precargar — sin
+  // esto, los datos del paciente anterior se quedaban mezclados con los del
+  // nuevo (la precarga solo llena campos vacíos, así que un dato viejo nunca
+  // se reemplazaba solo). Extendido a fono/TO/psicología a pedido explícito.
   if (idAnterior !== id) {
     ['neuro','ortho','geria','pedia'].forEach(limpiarCamposFormulario);
+    ['fono','to','psico'].forEach(limpiarCamposFormularioProf);
   }
   verDetalle(id);
   var panelActivo = document.querySelector('.tab-panel.active');
@@ -5440,6 +5442,7 @@ function cerrarSesion() {
   desactivarPaciente();
   pacientesCache = [];
   ['neuro','ortho','geria','pedia'].forEach(limpiarCamposFormulario);
+  ['fono','to','psico'].forEach(limpiarCamposFormularioProf);
   resetearUIprofesion();
   document.getElementById('login-screen').classList.remove('hidden');
   showAuthTab('login');
@@ -5807,11 +5810,90 @@ async function getMiUserId() {
 // ═══════════════════════════════════════════════════════════════
 var hcCurrentPxId = null;
 
-function abrirHC(pxId) {
+// REGRESIÓN (2026-07-27): "revisión por sistemas" son 4 campos separados en
+// el formulario (neuro/musculo/cardio/otros) pero la tabla real solo tiene
+// UNA columna (`revision_sistemas`). Se combinan con etiquetas al guardar, y
+// esta función los separa de vuelta al cargar — el separador "\n\n" antes de
+// cada etiqueta reconocida evita confundir un salto de línea normal dentro
+// de un campo con el límite entre campos.
+var REVISION_SISTEMAS_CAMPOS = [
+  ['Neurológico: ', 'hc-neuro'],
+  ['Musculoesquelético: ', 'hc-musculo'],
+  ['Cardiovascular/respiratorio: ', 'hc-cardio'],
+  ['Otros sistemas: ', 'hc-otros-sis']
+];
+function combinarRevisionSistemas(hc) {
+  return REVISION_SISTEMAS_CAMPOS
+    .filter(function(m) { return hc[m[1]]; })
+    .map(function(m) { return m[0] + hc[m[1]]; })
+    .join('\n\n');
+}
+function separarRevisionSistemas(texto) {
+  var out = {};
+  if (!texto) return out;
+  var partes = texto.split(/\n\n(?=(?:Neurológico|Musculoesquelético|Cardiovascular\/respiratorio|Otros sistemas): )/);
+  partes.forEach(function(parte) {
+    REVISION_SISTEMAS_CAMPOS.forEach(function(m) {
+      if (parte.indexOf(m[0]) === 0) out[m[1]] = parte.slice(m[0].length);
+    });
+  });
+  return out;
+}
+
+// Convierte una fila real de la tabla `anamnesis` (columnas de Supabase) al
+// objeto local con llaves `hc-*` que usa el resto del código (formulario,
+// caché local, impresión) — es la función inversa de lo que arma guardarHC().
+function anamnesisDBaLocal(row) {
+  var sistemas = separarRevisionSistemas(row.revision_sistemas);
+  return {
+    'hc-motivo': row.motivo_consulta || '',
+    'hc-enfermedad': row.enfermedad_actual || '',
+    'hc-evolucion': row.tiempo_evolucion || '',
+    'hc-cie10': row.dx_cie10 || '',
+    'hc-ant-personales': row.ant_personales || '',
+    'hc-ant-familiares': row.ant_familiares || '',
+    'hc-ant-farma': row.ant_farmacologicos || '',
+    'hc-alergias': row.alergias || '',
+    'hc-neuro': sistemas['hc-neuro'] || '',
+    'hc-musculo': sistemas['hc-musculo'] || '',
+    'hc-cardio': sistemas['hc-cardio'] || '',
+    'hc-otros-sis': sistemas['hc-otros-sis'] || '',
+    'hc-dx-prof': row.dx_profesional || '',
+    'hc-cif': row.dx_cif || '',
+    'hc-escalas-ingreso': row.escalas_ingreso || ''
+  };
+}
+
+async function abrirHC(pxId) {
   hcCurrentPxId = pxId;
   var p = getPacientes().find(function(x){ return x.id === pxId; });
   if (!p) return;
   document.getElementById('hc-modal-px-name').textContent = p.nombre + (p.diagnostico ? ' · ' + p.diagnostico : '');
+
+  // REGRESIÓN (2026-07-27): antes esta función solo leía p.hc, una copia que
+  // vive en memoria (pacientesCache no se guarda en localStorage) — se perdía
+  // al recargar la página, y nunca reflejaba lo que guardó otro miembro del
+  // equipo. Si no hay copia local, se busca la HC real ya guardada en
+  // Supabase para este paciente y esta profesión.
+  if (!p.hc) {
+    var tokenHC = sessionStorage.getItem('fisioIA_token');
+    if (tokenHC) {
+      try {
+        var rHC = await fetch(SUPABASE_URL + '/rest/v1/anamnesis?patient_id=eq.' + pxId + '&profession=eq.' + (miProfesion || 'fisioterapia') + '&limit=1',
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + tokenHC } });
+        var dataHC = await rHC.json();
+        if (Array.isArray(dataHC) && dataHC.length) {
+          p.hc = anamnesisDBaLocal(dataHC[0]);
+          var pxAll = getPacientes();
+          var idxHC = pxAll.findIndex(function(x){ return x.id === pxId; });
+          if (idxHC > -1) { pxAll[idxHC].hc = p.hc; savePacientes(pxAll); }
+        }
+      } catch(e) { console.log('Error cargando HC desde Supabase:', e); }
+    }
+  }
+  // Si mientras se cargaba la HC real el usuario ya cerró o cambió de
+  // paciente, no seguir llenando un modal que ya no corresponde.
+  if (hcCurrentPxId !== pxId) return;
 
   // Limpiar / precargar campos si ya existe HC guardada
   var campos = ['hc-motivo','hc-enfermedad','hc-evolucion','hc-cie10','hc-ant-personales','hc-ant-familiares','hc-ant-farma','hc-alergias','hc-neuro','hc-musculo','hc-cardio','hc-otros-sis','hc-dx-prof','hc-cif','hc-escalas-ingreso'];
@@ -5918,12 +6000,22 @@ async function guardarHC() {
   var idx = px.findIndex(function(x){ return x.id === hcCurrentPxId; });
   if (idx > -1) { px[idx].hc = hc; savePacientes(px); }
 
-  // Guardar en Supabase (tabla anamnesis)
+  // REGRESIÓN (2026-07-27): esto mandaba todos los campos dentro de un
+  // objeto `data`, pero la tabla real `anamnesis` NO tiene esa columna —
+  // tiene una columna por cada dato (motivo_consulta, ant_personales, etc.).
+  // El insert fallaba siempre (PGRST204, "columna no encontrada"), pero
+  // fetch() no lanza error por una respuesta 4xx — el try/catch nunca se
+  // disparaba, así que la Historia Clínica NUNCA llegó a guardarse en la
+  // base de datos. Solo quedaba en pacientesCache (que ni siquiera
+  // sobrevive a un refresh de la página), mientras el mensaje decía
+  // "guardada correctamente". Se corrige mandando cada campo a su columna
+  // real y revisando de verdad si la respuesta fue exitosa.
   var token = sessionStorage.getItem('fisioIA_token');
   var userId = await getMiUserId();
+  var guardadoEnServidor = false;
   if (token && userId) {
     try {
-      await fetch(SUPABASE_URL + '/rest/v1/anamnesis', {
+      var rGuardar = await fetch(SUPABASE_URL + '/rest/v1/anamnesis', {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token,
@@ -5933,13 +6025,30 @@ async function guardarHC() {
           patient_id: hcCurrentPxId,
           user_id: userId,
           profession: miProfesion || 'fisioterapia',
-          data: hc
+          motivo_consulta: hc['hc-motivo'],
+          enfermedad_actual: hc['hc-enfermedad'],
+          tiempo_evolucion: hc['hc-evolucion'],
+          dx_cie10: hc['hc-cie10'],
+          ant_personales: hc['hc-ant-personales'],
+          ant_familiares: hc['hc-ant-familiares'],
+          ant_farmacologicos: hc['hc-ant-farma'],
+          alergias: hc['hc-alergias'],
+          revision_sistemas: combinarRevisionSistemas(hc),
+          dx_profesional: hc['hc-dx-prof'],
+          dx_cif: hc['hc-cif'],
+          escalas_ingreso: hc['hc-escalas-ingreso']
         })
       });
+      guardadoEnServidor = rGuardar.ok;
+      if (!rGuardar.ok) console.log('Error guardando HC en DB:', rGuardar.status, await rGuardar.text());
     } catch(e) { console.log('Error guardando HC en DB:', e); }
   }
 
-  showToast('Historia clínica guardada correctamente.', 'ok');
+  if (guardadoEnServidor) {
+    showToast('Historia clínica guardada correctamente.', 'ok');
+  } else {
+    showToast('Se guardó localmente, pero no se pudo sincronizar con el servidor. Vuelve a intentarlo con buena conexión.', 'warn');
+  }
   cerrarHC();
   setTimeout(actualizarOverlayFlujo, 200);
   if (activePxId === hcCurrentPxId) verDetalle(hcCurrentPxId);
@@ -5967,6 +6076,24 @@ async function renderEquipoPaciente(pxId) {
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
     equipo = await r.json();
     if (!Array.isArray(equipo)) equipo = [];
+    // REGRESIÓN (2026-07-27): patient_team no tiene una columna member_email
+    // ni una relación que PostgREST pueda usar para traer el correo con un
+    // solo select (no hay foreign key hacia profiles) — se busca aparte por
+    // user_id y se le pega a cada miembro del equipo como antes.
+    if (equipo.length) {
+      var idsEquipo = equipo.map(function(e) { return e.user_id; }).join(',');
+      try {
+        var rEmails = await fetch(SUPABASE_URL + '/rest/v1/profiles?id=in.(' + idsEquipo + ')&select=id,email',
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
+        var perfiles = await rEmails.json();
+        if (Array.isArray(perfiles)) {
+          equipo.forEach(function(e) {
+            var perfil = perfiles.find(function(p) { return p.id === e.user_id; });
+            e.member_email = perfil ? perfil.email : '';
+          });
+        }
+      } catch(e2) { /* si falla, se queda el texto genérico "Profesional asignado" */ }
+    }
   } catch(e) { equipo = []; }
 
   var areasHTML = Object.keys(PROFESIONES_DATA).map(function(key) {
@@ -6018,14 +6145,26 @@ async function invitarAlEquipo(pxId, profession) {
     }
     var inviteeId = profs[0].id;
 
-    await fetch(SUPABASE_URL + '/rest/v1/patient_team', {
+    // REGRESIÓN (2026-07-27): igual que con anamnesis/epicrisis/etc., esto
+    // mandaba `member_email`, una columna que `patient_team` no tiene — el
+    // insert fallaba siempre (PGRST204) pero nunca se revisaba `response.ok`,
+    // así que se mostraba "Invitación enviada correctamente" aunque nunca
+    // se hubiera guardado nada. El correo del invitado no se guarda en esta
+    // tabla — se busca aparte en `profiles` cuando hay que mostrarlo (ver
+    // renderEquipoPaciente()).
+    var rInvite = await fetch(SUPABASE_URL + '/rest/v1/patient_team', {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ patient_id: pxId, user_id: inviteeId, profession: profession, member_email: email, status: 'pending', invited_by: userId })
+      body: JSON.stringify({ patient_id: pxId, user_id: inviteeId, profession: profession, status: 'pending', invited_by: userId })
     });
 
-    if (msgDiv) { msgDiv.className = 'equipo-msg ok'; msgDiv.style.display = 'block'; msgDiv.textContent = 'Invitación enviada correctamente.'; }
-    showToast('Invitación enviada a ' + email, 'ok');
+    if (rInvite.ok) {
+      if (msgDiv) { msgDiv.className = 'equipo-msg ok'; msgDiv.style.display = 'block'; msgDiv.textContent = 'Invitación enviada correctamente.'; }
+      showToast('Invitación enviada a ' + email, 'ok');
+    } else {
+      console.log('Error enviando invitación:', rInvite.status, await rInvite.text());
+      if (msgDiv) { msgDiv.className = 'equipo-msg err'; msgDiv.style.display = 'block'; msgDiv.textContent = 'No se pudo enviar la invitación.'; }
+    }
   } catch(e) {
     if (msgDiv) { msgDiv.className = 'equipo-msg err'; msgDiv.style.display = 'block'; msgDiv.textContent = 'Error al enviar la invitación.'; }
   }
@@ -6228,16 +6367,40 @@ async function guardarEpicrisis() {
 
   if (!epicrisis.fecha_alta) { showToast('La fecha de alta es obligatoria.', 'warn'); return; }
 
+  // REGRESIÓN (2026-07-27): igual que con la historia clínica, esto mandaba
+  // los campos dentro de un objeto `data` que la tabla real `epicrisis` no
+  // tiene — tiene columnas separadas, y dos de ellas con nombre distinto al
+  // campo local (`estado` → `estado_alta`, `resumen` → `resumen_atencion`).
+  // El insert fallaba siempre y quedaba enmascarado por un mensaje de éxito.
   var token = sessionStorage.getItem('fisioIA_token');
   var userId = await getMiUserId();
   if (token && userId) {
     try {
-      await fetch(SUPABASE_URL + '/rest/v1/epicrisis', {
+      var rEpi = await fetch(SUPABASE_URL + '/rest/v1/epicrisis', {
         method: 'POST',
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ patient_id: epicrisisCurrentPxId, user_id: userId, profession: miProfesion || 'fisioterapia', data: epicrisis })
+        body: JSON.stringify({
+          patient_id: epicrisisCurrentPxId,
+          user_id: userId,
+          profession: miProfesion || 'fisioterapia',
+          fecha_ingreso: epicrisis.fecha_ingreso || null,
+          fecha_alta: epicrisis.fecha_alta,
+          estado_alta: epicrisis.estado,
+          dx_ingreso: epicrisis.dx_ingreso,
+          dx_egreso: epicrisis.dx_egreso,
+          resumen_atencion: epicrisis.resumen,
+          logros: epicrisis.logros,
+          pendientes: epicrisis.pendientes,
+          plan_casa: epicrisis.plan_casa,
+          recomendaciones: epicrisis.recomendaciones
+        })
       });
-      showToast('Epicrisis guardada correctamente.', 'ok');
+      if (rEpi.ok) {
+        showToast('Epicrisis guardada correctamente.', 'ok');
+      } else {
+        console.log('Error guardando epicrisis:', rEpi.status, await rEpi.text());
+        showToast('No se pudo guardar la epicrisis en el servidor. Intenta de nuevo.', 'err');
+      }
     } catch(e) { showToast('Error al guardar la epicrisis.', 'err'); }
   }
 
@@ -6305,7 +6468,7 @@ async function cargarTabInterconsultas(pxId) {
     }
     cont.innerHTML = data.map(function(i) {
       return '<div class="tl-card" style="margin-bottom:8px;padding:12px 14px;">' +
-        '<div style="font-size:12px;font-weight:600;">' + esc(i.especialidad_destino || 'Interconsulta') + '</div>' +
+        '<div style="font-size:12px;font-weight:600;">' + esc(i.profession_dest || 'Interconsulta') + '</div>' +
         '<div style="font-size:11px;color:var(--gray-400);margin-top:2px;">' + new Date(i.created_at).toLocaleDateString('es-CO') + '</div>' +
         '<div style="font-size:12px;margin-top:6px;">' + esc(i.motivo || '') + '</div></div>';
     }).join('') + '<button class="btn-modal-primary" style="margin-top:10px;" onclick="crearInterconsulta(\'' + esc(pxId) + '\')">+ Nueva interconsulta</button>';
@@ -6322,14 +6485,25 @@ async function crearInterconsulta(pxId) {
   var userId = await getMiUserId();
   if (!token || !userId) return;
 
+  // REGRESIÓN (2026-07-27): la tabla real `interconsultas_clinicas` no usa
+  // `user_id` ni `especialidad_destino` — las columnas reales son
+  // `solicitante_id` y `profession_dest`. El insert fallaba siempre
+  // (columna no encontrada) pero el código mostraba "Interconsulta
+  // registrada" de todas formas, porque nunca revisaba si la respuesta
+  // realmente fue exitosa.
   try {
-    await fetch(SUPABASE_URL + '/rest/v1/interconsultas_clinicas', {
+    var rInter = await fetch(SUPABASE_URL + '/rest/v1/interconsultas_clinicas', {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ patient_id: pxId, user_id: userId, especialidad_destino: especialidad, motivo: motivo })
+      body: JSON.stringify({ patient_id: pxId, solicitante_id: userId, profession_dest: especialidad, motivo: motivo })
     });
-    showToast('Interconsulta registrada.', 'ok');
-    cargarTabInterconsultas(pxId);
+    if (rInter.ok) {
+      showToast('Interconsulta registrada.', 'ok');
+      cargarTabInterconsultas(pxId);
+    } else {
+      console.log('Error registrando interconsulta:', rInter.status, await rInter.text());
+      showToast('No se pudo registrar la interconsulta en el servidor.', 'err');
+    }
   } catch(e) { showToast('Error al registrar la interconsulta.', 'err'); }
 }
 
@@ -6343,11 +6517,29 @@ async function cargarTabAdjuntos(pxId) {
     var r = await fetch(SUPABASE_URL + '/rest/v1/adjuntos_clinicos?patient_id=eq.' + pxId + '&order=created_at.desc',
       { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token } });
     var data = await r.json();
-    var lista = Array.isArray(data) && data.length
+    if (!Array.isArray(data)) data = [];
+
+    // El bucket "Adjuntos-clinicos" es privado (son datos clínicos) — no
+    // existe una URL pública fija para cada archivo. Se genera un link
+    // temporal (válido 1 hora) justo antes de mostrar la lista.
+    await Promise.all(data.map(async function(a) {
+      if (!a.storage_path) { a._verUrl = '#'; return; }
+      try {
+        var rSign = await fetch(SUPABASE_URL + '/storage/v1/object/sign/Adjuntos-clinicos/' + a.storage_path, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ expiresIn: 3600 })
+        });
+        var signed = await rSign.json();
+        a._verUrl = signed.signedURL ? (SUPABASE_URL + '/storage/v1' + signed.signedURL) : '#';
+      } catch(e) { a._verUrl = '#'; }
+    }));
+
+    var lista = data.length
       ? data.map(function(a) {
           return '<div class="tl-card" style="margin-bottom:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">' +
-            '<span style="font-size:12px;">📎 ' + esc(a.nombre_archivo || 'Archivo') + '</span>' +
-            '<a href="' + esc(a.url || '#') + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--neuro);">Ver</a></div>';
+            '<span style="font-size:12px;">📎 ' + esc(a.nombre || 'Archivo') + '</span>' +
+            '<a href="' + esc(a._verUrl || '#') + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--neuro);">Ver</a></div>';
         }).join('')
       : '<div class="grafica-empty">Sin adjuntos registrados.</div>';
     cont.innerHTML = lista +
@@ -6372,14 +6564,36 @@ async function subirAdjunto(pxId, file) {
     });
     if (!uploadResp.ok) { showToast('Error al subir el archivo.', 'err'); return; }
 
-    var publicUrl = SUPABASE_URL + '/storage/v1/object/public/Adjuntos-clinicos/' + path;
-    await fetch(SUPABASE_URL + '/rest/v1/adjuntos_clinicos', {
+    // REGRESIÓN (2026-07-27): la tabla real `adjuntos_clinicos` no tiene
+    // `nombre_archivo` ni `url` — tiene `nombre`, `storage_path`, `mime_type`
+    // y `tamano_bytes`, que antes ni se mandaban. El archivo SÍ llegaba a
+    // subirse al bucket (eso usa la API de Storage, no esta tabla), pero el
+    // registro nunca quedaba en la base de datos, así que la lista de
+    // adjuntos aparecía vacía siempre.
+    // No se guarda una URL fija: el bucket es privado (datos clínicos), así
+    // que cualquier URL quedaría inválida — el link para ver el archivo se
+    // genera al momento en cargarTabAdjuntos().
+    var tipoAdjunto = (file.type || '').indexOf('image/') === 0 ? 'imagen' : 'otro';
+    var rAdj = await fetch(SUPABASE_URL + '/rest/v1/adjuntos_clinicos', {
       method: 'POST',
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ patient_id: pxId, user_id: userId, nombre_archivo: file.name, url: publicUrl })
+      body: JSON.stringify({
+        patient_id: pxId,
+        user_id: userId,
+        nombre: file.name,
+        tipo: tipoAdjunto,
+        storage_path: path,
+        mime_type: file.type || null,
+        tamano_bytes: file.size || null
+      })
     });
-    showToast('Archivo subido correctamente.', 'ok');
-    cargarTabAdjuntos(pxId);
+    if (rAdj.ok) {
+      showToast('Archivo subido correctamente.', 'ok');
+      cargarTabAdjuntos(pxId);
+    } else {
+      console.log('Error guardando adjunto:', rAdj.status, await rAdj.text());
+      showToast('El archivo se subió, pero no se pudo registrar. Intenta de nuevo.', 'err');
+    }
   } catch(e) { showToast('Error al subir el archivo.', 'err'); }
 }
 
@@ -6630,10 +6844,14 @@ function switchTabProf(tab) {
     var p = document.getElementById('panel-' + t);
     if (p) p.classList.toggle('active', t === tab);
   });
+  precargarDatosPaciente(tab);
 }
 
-function limpiarFormularioProf(tab) {
-  if (!confirm('¿Limpiar todos los campos de este formulario?')) return;
+// Núcleo de limpieza sin confirm()/toast — usado por limpiarFormularioProf()
+// (botón manual) y por seleccionarPaciente() al cambiar de paciente, para que
+// los datos de un paciente no se queden mezclados con los del siguiente
+// (mismo criterio ya aplicado a neuro/ortho/geria/pedia).
+function limpiarCamposFormularioProf(tab) {
   var sel = '#panel-' + tab;
   document.querySelectorAll(sel + ' input[type="text"], ' + sel + ' input[type="number"], ' + sel + ' textarea').forEach(function(el){ el.value = ''; });
   document.querySelectorAll(sel + ' select').forEach(function(el){ el.selectedIndex = 0; });
@@ -6642,6 +6860,10 @@ function limpiarFormularioProf(tab) {
   var prefix = profTabPrefix[tab];
   var res = document.getElementById(prefix + '-resultado');
   if (res) res.innerHTML = '';
+}
+function limpiarFormularioProf(tab) {
+  if (!confirm('¿Limpiar todos los campos de este formulario?')) return;
+  limpiarCamposFormularioProf(tab);
   showToast('Formulario limpiado.', 'info');
 }
 
