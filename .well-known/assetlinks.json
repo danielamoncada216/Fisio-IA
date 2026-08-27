@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.fisioia.app",
+        "sha256_cert_fingerprints": ["6C:2A:8B:FA:3E:0E:C3:DC:08:A9:20:E0:8E:4B:68:42:3C:8D:E7:CB:EC:F2:0E:9C:C2:F9:43:D6:D9:0A:57:DA"]
+      }
+    }]
