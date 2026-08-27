@@ -6,7 +6,9 @@
     { "src": "sw.js", "use": "@vercel/static" },
     { "src": "manifest.json", "use": "@vercel/static" },
     { "src": "privacidad.html", "use": "@vercel/static" },
+    { "src": "eliminar-cuenta.html", "use": "@vercel/static" },
     { "src": "icons/*.png", "use": "@vercel/static" },
+    { "src": ".well-known/assetlinks.json", "use": "@vercel/static" },
     { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
@@ -15,7 +17,9 @@
     { "src": "/sw.js", "dest": "/sw.js" },
     { "src": "/manifest.json", "dest": "/manifest.json" },
     { "src": "/privacidad.html", "dest": "/privacidad.html" },
+    { "src": "/eliminar-cuenta.html", "dest": "/eliminar-cuenta.html" },
     { "src": "/icons/(.*)", "dest": "/icons/$1" },
+    { "src": "/.well-known/assetlinks.json", "dest": "/.well-known/assetlinks.json" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
